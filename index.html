@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CCAF Crash Course @ Ravn</title>
+<style>
+  :root{
+    --bg:#0e1118; --panel:#1a2132; --panel2:#212a40; --line:#2a3554;
+    --ink:#e8ecf6; --ink-dim:#9aa5bd; --ink-faint:#6b7690;
+    --acc:#7aa2ff; --acc2:#5eead4;
+    --sans:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;background:radial-gradient(1100px 600px at 80% -10%, #1a2340 0%, transparent 55%), var(--bg);
+       color:var(--ink);font-family:var(--sans);padding:64px 24px}
+  main{max-width:880px;margin:0 auto}
+  .kicker{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--acc);font-weight:700;margin-bottom:12px}
+  h1{font-size:46px;font-weight:800;letter-spacing:-.02em;line-height:1.08}
+  .sub{color:var(--ink-dim);font-size:18px;margin-top:12px;max-width:38em;line-height:1.55}
+  .parts{margin-top:44px;display:flex;flex-direction:column;gap:18px}
+  .part{display:block;text-decoration:none;color:inherit;background:linear-gradient(160deg,#1b2743,#141b2c);
+        border:1px solid #31527a;border-radius:18px;padding:26px 30px;transition:transform .15s, border-color .15s}
+  .part:hover{transform:translateY(-2px);border-color:var(--acc)}
+  .part .num{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc2);font-weight:700}
+  .part h2{font-size:26px;font-weight:800;margin:6px 0 8px}
+  .part p{color:var(--ink-dim);font-size:15.5px;line-height:1.55;max-width:44em}
+  .part .meta{margin-top:14px;display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink-faint)}
+  .part .meta span b{color:var(--ink-dim)}
+  .part.soon{background:var(--panel);border:1.5px dashed var(--line);cursor:default}
+  .part.soon:hover{transform:none;border-color:var(--line)}
+  .part.soon .num{color:var(--ink-faint)}
+  .part.soon h2{color:var(--ink-dim)}
+  code{font-family:var(--mono);font-size:.92em;background:#0b0e15;border:1px solid #232c44;border-radius:6px;padding:1px 6px}
+  footer{margin-top:52px;color:var(--ink-faint);font-size:13.5px;line-height:1.7}
+  footer a{color:var(--acc);text-decoration:none}
+</style>
+</head>
+<body>
+<main>
+  <h1>CCAF Crash Course</h1>
+
+  <div class="parts">
+    <a class="part" href="part-1/slides.html">
+      <div class="num">Part 1</div>
+      <h2>Agentic Architecture and Orchestration</h2>
+      <p>The body of a request to the Claude API, the agent loop, and hub-and-spoke
+         orchestration, with a live coordinator + 3 subagents auditing a real app,
+         and the same agent running headless in CI.</p>
+      <div class="meta">
+        <span><b>Deck:</b> part-1/slides.html</span>
+        <span><b>Live demo:</b> <code>cd part-1/demo && npm install && npm run demo</code></span>
+        <span><b>Presenter:</b> part-1/PRESENTER-NOTES.md</span>
+      </div>
+    </a>
+
+    <div class="part soon">
+      <div class="num">Part 2+</div>
+      <h2>Yours to add</h2>
+      <p>Expanding the course? Copy the <code>part-1/</code> structure into a new
+         <code>part-N/</code> folder (deck + notes + demo), then add a card for it here in
+         <code>index.html</code>. Keep the rules: simple explanations, analogies a kid could
+         understand, and a demo that's real, never pseudocode.</p>
+    </div>
+  </div>
+
+  <footer>
+    Maintained by Carlos Pérez · exam guide: <a href="https://github.com/paullarionov/claude-certified-architect">claude-certified-architect</a>
+  </footer>
+</main>
+</body>
+</html>

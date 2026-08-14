@@ -34,7 +34,7 @@ const subagents: NonNullable<Options["agents"]> = {
       "Look for concrete, verifiable issues: misused headings, interactive elements with wrong semantics (e.g. buttons inside links), missing labels, keyboard traps, contrast risks.",
       "Only report what you can point to in a specific file and line. No speculation.",
       "Be fast: read only the files you need. Return AT MOST your 4 strongest findings.",
-      "Format each finding as: [severity] file:line — issue — why it matters — suggested fix (one line each).",
+      "Format each finding as: [severity] file:line | issue | why it matters | suggested fix (one line each). Never use an em dash (\u2014) anywhere in your output.",
     ].join("\n"),
     tools: READ_ONLY_TOOLS,
   },
@@ -46,7 +46,7 @@ const subagents: NonNullable<Options["agents"]> = {
       "Look for: spelling errors, grammar issues, inconsistent capitalization or terminology, unclear microcopy, and en/es translation mismatches.",
       "Only report what you can point to in a specific file and key. No speculation.",
       "Be fast: start from the messages/ directory. Return AT MOST your 4 strongest findings.",
-      "Format each finding as: [severity] file (key) — issue — suggested rewrite (one line each).",
+      "Format each finding as: [severity] file (key) | issue | suggested rewrite (one line each). Never use an em dash (\u2014) anywhere in your output.",
     ].join("\n"),
     tools: READ_ONLY_TOOLS,
   },
@@ -58,7 +58,7 @@ const subagents: NonNullable<Options["agents"]> = {
       "Look for: plaintext secrets/passwords, injection risks, race conditions, dead or no-op code, and framework misuse.",
       "Only report what you can point to in a specific file and line. No speculation.",
       "Be fast: read only the files you need. Return AT MOST your 4 strongest findings.",
-      "Format each finding as: [severity] file:line — issue — why it matters — suggested fix (one line each).",
+      "Format each finding as: [severity] file:line | issue | why it matters | suggested fix (one line each). Never use an em dash (\u2014) anywhere in your output.",
     ].join("\n"),
     tools: READ_ONLY_TOOLS,
   },
@@ -68,13 +68,13 @@ const COORDINATOR_PROMPT = [
   "Audit the web application in the current working directory.",
   "",
   "You are the COORDINATOR. Do not read any project files yourself.",
-  "1. Spawn ALL THREE subagents (a11y-auditor, copy-auditor, code-auditor) IN PARALLEL — all in your very first response. Wait for all of them before doing anything else.",
+  "1. Spawn ALL THREE subagents (a11y-auditor, copy-auditor, code-auditor) IN PARALLEL, all in your very first response. Wait for all of them before doing anything else.",
   "2. Give each one the context it needs in its prompt: what the app is (temporary file sharing, Next.js + next-intl + Prisma), where to look, and the exact output format you expect back.",
   "3. When all three reports are back, merge them into ONE final report in markdown:",
   "   - Start with a 2-sentence executive summary.",
   "   - Then a prioritized list (most severe first, across all three dimensions).",
   "   - Keep every finding to 2 lines max. Credit which auditor found it.",
-  "Do not invent findings the subagents did not report.",
+  "Do not invent findings the subagents did not report. Never use an em dash (\u2014) anywhere in your output.",
 ].join("\n");
 
 export interface AuditHandle {
@@ -186,7 +186,7 @@ function translate(message: SDKMessage, spawned: Map<string, string>): DemoEvent
 
     case "user": {
       // Tool results come back as USER-role messages containing tool_result
-      // blocks (there is no "tool" role — teach this!). A tool_result whose
+      // blocks (there is no "tool" role, teach this!). A tool_result whose
       // tool_use_id matches a spawn is a subagent's final report landing back
       // at the coordinator.
       if (message.parent_tool_use_id !== null) break; // a subagent's internal tool result
@@ -227,7 +227,7 @@ function translate(message: SDKMessage, spawned: Map<string, string>): DemoEvent
     }
 
     default:
-      break; // partials, hooks, notifications — not part of the lesson
+      break; // partials, hooks, notifications, not part of the lesson
   }
 
   return events;

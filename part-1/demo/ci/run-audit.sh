@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# The SAME audit the class just watched — headless, exactly as CI runs it.
+# The SAME audit the class just watched, headless, exactly as CI runs it.
 #
 #   npm run audit:headless          (from the demo/ folder)
 #   AUDIT_REPO=/path/to/repo npm run audit:headless
@@ -12,7 +12,7 @@
 #   --output-format json → machine-readable result envelope
 #   --json-schema        → the model's answer must match audit-schema.json
 #                          (guarantees valid JSON + required fields; does NOT
-#                           guarantee the values are true — schema ≠ semantics)
+#                           guarantee the values are true, schema ≠ semantics)
 #   fresh session        → this process shares NO context with any session that
 #                          wrote the code. Author ≠ reviewer.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -46,5 +46,5 @@ if command -v jq >/dev/null; then
   jq -r '.structured_output.summary // empty' "$OUT"
   echo
   jq -r '.structured_output.findings[]?
-         | "[\(.severity)] \(.dimension) · \(.file)\(if .line then ":\(.line)" else "" end) — \(.issue)"' "$OUT"
+         | "[\(.severity)] \(.dimension) · \(.file)\(if .line then ":\(.line)" else "" end) | \(.issue)"' "$OUT"
 fi

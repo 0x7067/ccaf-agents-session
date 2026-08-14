@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Claude multi-agent audit — drop this into przsend/.github/workflows/
+# Claude multi-agent audit, drop this into przsend/.github/workflows/
 #
 # przsend already has ci.yml (lint + typecheck). This adds ONE more job to the
 # same pipeline: the exact audit the class watched live, with nobody at the
@@ -7,7 +7,7 @@
 #
 # CCAF notes:
 #  · `claude -p` is the only correct way to run Claude in CI (non-interactive).
-#  · The review runs in a FRESH session — never the one that wrote the code.
+#  · The review runs in a FRESH session, never the one that wrote the code.
 #  · On re-reviews, feed prior findings back in and ask only for new/unresolved
 #    issues, so the bot doesn't repeat comments (see the re-review step below).
 # ─────────────────────────────────────────────────────────────────────────────
@@ -51,7 +51,7 @@ jobs:
             jq -r '.structured_output.summary // "No summary produced."' audit.json
             echo
             jq -r '.structured_output.findings[]?
-                   | "- **[\(.severity)]** \(.dimension) · `\(.file)` — \(.issue)"' audit.json
+                   | "- **[\(.severity)]** \(.dimension) · `\(.file)` | \(.issue)"' audit.json
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload full result

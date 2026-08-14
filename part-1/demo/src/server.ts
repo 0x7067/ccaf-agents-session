@@ -1,15 +1,17 @@
 /**
- * Demo server: serves the slide deck and streams audit events to it.
+ * Demo server: serves the whole course (index + every part-N/) and streams
+ * audit events to the visualizer in part-1's deck.
  *
- *   npm run demo          → http://localhost:4747  (deck + live visualizer)
+ *   npm run demo          → http://localhost:4747  (course index)
+ *                           http://localhost:4747/part-1/slides.html
  *
- * The browser connects to ws://localhost:4747/ws and sends:
+ * The deck connects to ws://localhost:4747/ws and sends:
  *   { cmd: "start" }  → run the REAL audit with the Claude Agent SDK
  *   { cmd: "mock" }   → replay a canned run (rehearsal, zero tokens)
  *   { cmd: "stop" }   → interrupt the current run
  *
- * The repo under audit defaults to ../przsend relative to this project's
- * parent, override with:  AUDIT_REPO=/path/to/repo npm run demo
+ * The repo under audit defaults to ~/dev/web/przsend,
+ * override with:  AUDIT_REPO=/path/to/repo npm run demo
  */
 
 import http from "node:http";
@@ -22,23 +24,41 @@ import { runAudit, type AuditHandle } from "./audit.js";
 import { playMock } from "./mock.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SLIDES = path.resolve(__dirname, "../..", "slides.html");
+// src → demo → part-1 → repo root (where index.html lives)
+const ROOT = path.resolve(__dirname, "../../..");
 const REPO = process.env.AUDIT_REPO ?? path.resolve(process.env.HOME ?? "~", "dev/web/przsend");
 
+const MIME: Record<string, string> = {
+  ".html": "text/html; charset=utf-8",
+  ".md": "text/plain; charset=utf-8",
+  ".json": "application/json",
+  ".js": "text/javascript",
+  ".css": "text/css",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".ico": "image/x-icon",
+};
+
 const server = http.createServer((req, res) => {
-  if (req.url === "/" || req.url === "/index.html" || req.url === "/slides.html") {
-    try {
-      const html = fs.readFileSync(SLIDES);
-      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      res.end(html);
-    } catch {
-      res.writeHead(500);
-      res.end(`Could not read slides at ${SLIDES}`);
-    }
+  const urlPath = decodeURIComponent((req.url ?? "/").split("?")[0]!);
+  let filePath = path.normalize(path.join(ROOT, urlPath));
+  if (!filePath.startsWith(ROOT)) {
+    res.writeHead(403);
+    res.end("Forbidden");
     return;
   }
-  res.writeHead(404);
-  res.end("Not found");
+  try {
+    if (fs.statSync(filePath).isDirectory()) filePath = path.join(filePath, "index.html");
+    const body = fs.readFileSync(filePath);
+    res.writeHead(200, {
+      "Content-Type": MIME[path.extname(filePath).toLowerCase()] ?? "application/octet-stream",
+    });
+    res.end(body);
+  } catch {
+    res.writeHead(404);
+    res.end(`Not found: ${urlPath}`);
+  }
 });
 
 const wss = new WebSocketServer({ server, path: "/ws" });
@@ -95,7 +115,7 @@ wss.on("connection", (ws) => {
     }
 
     if (!fs.existsSync(REPO)) {
-      broadcast({ t: "error", msg: `Repo not found: ${REPO} — set AUDIT_REPO` });
+      broadcast({ t: "error", msg: `Repo not found: ${REPO}, set AUDIT_REPO` });
       return;
     }
 

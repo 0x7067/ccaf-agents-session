@@ -1,6 +1,6 @@
 node_modules/
-demo/ci/audit-result.json
-.DS_Store
-*.log
+audit-result.json
 ccaf-agents-session.zip
 _to_delete/
+.DS_Store
+*.log

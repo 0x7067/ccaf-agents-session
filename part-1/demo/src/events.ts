@@ -15,12 +15,12 @@ export type DemoEvent =
   | { t: "coord_text"; text: string }
   /**
    * The coordinator spawned a subagent via the Agent/Task tool.
-   * `prompt` is the ACTUAL context handed to the subagent — this is the
+   * `prompt` is the ACTUAL context handed to the subagent, this is the
    * teaching moment: context passing is explicit, visible, and finite.
    */
   | {
       t: "spawn";
-      id: string; // tool_use_id — the "return address" for the result
+      id: string; // tool_use_id, the "return address" for the result
       agent: string; // subagent_type, e.g. "a11y-auditor"
       description: string;
       prompt: string;
@@ -29,7 +29,7 @@ export type DemoEvent =
   | { t: "sub_tool"; parentId: string; tool: string; detail: string }
   /** A subagent produced some text (its own reasoning/notes). */
   | { t: "sub_text"; parentId: string; text: string }
-  /** A subagent finished — its final report travels BACK to the coordinator. */
+  /** A subagent finished, its final report travels BACK to the coordinator. */
   | { t: "sub_done"; parentId: string; result: string }
   /** The whole run finished: merged report + honest numbers. */
   | {

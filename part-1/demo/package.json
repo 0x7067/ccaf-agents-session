@@ -1,7 +1,7 @@
 {
   "name": "ccaf-agents-demo",
   "version": "1.0.0",
-  "description": "CCAF crash course — live multi-agent audit demo (Claude Agent SDK)",
+  "description": "CCAF crash course, live multi-agent audit demo (Claude Agent SDK)",
   "scripts": {
     "demo": "tsx src/server.ts",
     "typecheck": "tsc --noEmit",
