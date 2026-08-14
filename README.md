@@ -12,8 +12,8 @@ every part.
 
 | Part | Topic | Status |
 |---|---|---|
-| [Part 1](part-1/) | Agentic Architecture and Orchestration: the Claude API request body, the agent loop, multi-agent hub-and-spoke (live demo), agents in CI | ✅ ready |
-| Part 2+ | yours to add |, |
+| [Part 1](part-1/) | Agentic Architecture and Orchestration: the Claude API request body, the agent loop, multi-agent hub-and-spoke (live demo), and a full exam summary | ✅ ready |
+| Part 2+ | yours to add | |
 
 Each part is a self-contained folder:
 
@@ -63,4 +63,4 @@ code is the fastest way to make the material stick.
 This course maps to the exam guide at
 https://github.com/paullarionov/claude-certified-architect. The code is
 annotated with the exam-relevant reasoning: start with
-`part-1/demo/src/audit.ts` and `part-1/demo/ci/run-audit.sh`.
+`part-1/demo/src/audit.ts`.

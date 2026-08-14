@@ -36,28 +36,9 @@ Audit a different repo:
 AUDIT_REPO=/path/to/any/repo npm run demo
 ```
 
-## The CI/CD segment
-
-The same audit, headless, exactly as CI runs it:
-
-```bash
-npm run audit:headless          # uses claude -p + --agents + --json-schema
-```
-
-To wire it into przsend for real:
-
-```
-przsend/.github/workflows/claude-audit.yml   ← copy from ci/claude-audit.yml
-przsend/.github/claude/auditors.json         ← copy from ci/auditors.json
-przsend/.github/claude/audit-schema.json     ← copy from ci/audit-schema.json
-```
-
-and add an `ANTHROPIC_API_KEY` secret to the repo.
-
 ## Where the teaching lives in the code
 
 - `src/audit.ts`: subagent definitions, coordinator prompt, and the
   `canUseTool` read-only guard (the "hooks enforce, prompts ask" lesson)
 - `src/events.ts`: the tiny event protocol; each event maps 1:1 to an API
   concept (spawn = Task/Agent tool_use, sub_done = tool_result, …)
-- `ci/run-audit.sh`: every CI flag annotated with why it matters for the exam

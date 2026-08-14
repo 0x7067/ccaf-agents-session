@@ -24,6 +24,14 @@ export const MOCK_EVENTS: Timed[] = [
     },
   },
   {
+    at: 900,
+    e: {
+      t: "coord_prompt",
+      prompt:
+        "Audit the web application in the current working directory.\n\nYou are the COORDINATOR. Do not read any project files yourself.\n1. Spawn ALL THREE subagents (a11y-auditor, copy-auditor, code-auditor) IN PARALLEL, all in your very first response. Wait for all of them before doing anything else.\n2. Give each one the context it needs in its prompt.\n3. When all three reports are back, merge them into ONE final report.",
+    },
+  },
+  {
     at: 1500,
     e: {
       t: "coord_text",
@@ -76,6 +84,7 @@ export const MOCK_EVENTS: Timed[] = [
     e: {
       t: "sub_done",
       parentId: A2,
+      tokens: 21384,
       result:
         '[high] messages/en.json (ReportModal.report-file-subtitle), "malicious or ilegal" is misspelled, should be "illegal".\n[med] messages/en.json (Errors.error-uploading-description), "An error has occured", should be "occurred".\n[med] Inconsistent capitalization: "Report Type" (Title Case) vs "Additional details" (sentence case) in the same form.\n[low] Footer key "made-with-love-by" renders as "PRZ SEND by", key name and copy have drifted apart.',
     },
@@ -85,6 +94,7 @@ export const MOCK_EVENTS: Timed[] = [
     e: {
       t: "sub_done",
       parentId: A1,
+      tokens: 48112,
       result:
         "[high] files/[fileId]/page.tsx:172 | <h2> elements used as field labels (\"File name:\") | headings are for structure, not labels; screen readers announce a broken outline | use <dt>/<dd> or plain labels.\n[high] ui/download-file-button.tsx:118 | <Button> nested inside <a> | invalid HTML, double tab stop, confusing for assistive tech | make the anchor the button.\n[med] ui/download-file-button.tsx:96 | download-limit warning uses text-red-700 on the dark theme | likely fails WCAG AA contrast | use an accessible red.\n[med] ui/dropzone.tsx:33 | dropzone div is clickable but only the inner input is focusable | keyboard users may miss the drop target | verify focus order and labels.",
     },
@@ -94,6 +104,7 @@ export const MOCK_EVENTS: Timed[] = [
     e: {
       t: "sub_done",
       parentId: A3,
+      tokens: 61873,
       result:
         "[crit] prisma/schema.prisma:44 + functions/access-file-with-password.ts:10 | file passwords stored and compared in PLAINTEXT (where: { id, password }) | anyone with DB access reads every password | hash with bcrypt/argon2.\n[high] functions/increase-download-count.ts:8 | read-after-increment race | parallel downloads can exceed downloadLimit before deletion triggers | use a conditional update in one transaction.\n[high] functions/submit-error-report-form.ts:24 | user input interpolated raw into email HTML | HTML injection | escape or send plaintext.\n[med] app/[locale]/files/[fileId]/page.tsx:1 | next/head <Head> is a silent no-op in the App Router | page metadata is never set | use the metadata export.",
     },
@@ -127,6 +138,7 @@ export const MOCK_EVENTS: Timed[] = [
       costUsd: 0.42,
       durationMs: 19200,
       numTurns: 4,
+      coordTokens: 12940,
     },
   },
 ];

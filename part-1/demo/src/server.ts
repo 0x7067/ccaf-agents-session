@@ -20,7 +20,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { WebSocketServer, WebSocket } from "ws";
 import { PORT, type DemoEvent } from "./events.js";
-import { runAudit, type AuditHandle } from "./audit.js";
+import {
+  runAudit,
+  COORDINATOR_PROMPT,
+  COORDINATOR_SYSTEM_PROMPT,
+  COORDINATOR_ALLOWED_TOOLS,
+  SUBAGENTS,
+  type AuditHandle,
+} from "./audit.js";
 import { playMock } from "./mock.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -43,11 +50,13 @@ const MIME: Record<string, string> = {
 const server = http.createServer((req, res) => {
   const urlPath = decodeURIComponent((req.url ?? "/").split("?")[0]!);
   let filePath = path.normalize(path.join(ROOT, urlPath));
+  
   if (!filePath.startsWith(ROOT)) {
     res.writeHead(403);
     res.end("Forbidden");
     return;
   }
+
   try {
     if (fs.statSync(filePath).isDirectory()) filePath = path.join(filePath, "index.html");
     const body = fs.readFileSync(filePath);
@@ -88,8 +97,25 @@ async function stopCurrent() {
   current = null;
 }
 
+const DEFS_EVENT: DemoEvent = {
+  t: "defs",
+  coordinator: { systemPrompt: COORDINATOR_SYSTEM_PROMPT, allowedTools: COORDINATOR_ALLOWED_TOOLS },
+  agents: Object.fromEntries(
+    Object.entries(SUBAGENTS).map(([name, def]) => [
+      name,
+      {
+        description: def.description,
+        systemPrompt: def.prompt,
+        tools: def.tools ?? [],
+        model: def.model ?? "inherit",
+      },
+    ]),
+  ),
+};
+
 wss.on("connection", (ws) => {
   ws.send(JSON.stringify({ t: "status", msg: `connected · repo: ${REPO}` } satisfies DemoEvent));
+  ws.send(JSON.stringify(DEFS_EVENT));
 
   ws.on("message", async (raw) => {
     let cmd = "";
@@ -120,6 +146,7 @@ wss.on("connection", (ws) => {
     }
 
     broadcast({ t: "status", msg: `LIVE RUN starting on ${REPO}` });
+    broadcast({ t: "coord_prompt", prompt: COORDINATOR_PROMPT });
     const handle = runAudit(REPO, broadcast);
     current = { kind: "real", handle };
     void handle.done.then(() => {

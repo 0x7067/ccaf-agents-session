@@ -120,13 +120,18 @@
   #tabs .tab{font-size:13px;font-weight:700;padding:7px 14px;border-radius:9px;background:var(--panel);
              color:var(--ink-dim);cursor:pointer;border:1px solid transparent}
   #tabs .tab.on{color:var(--ink);border-color:#31406b;background:var(--panel2)}
+  #log-filters{display:flex;gap:6px;flex-wrap:wrap}
+  .fchip{font-size:11px;font-weight:700;letter-spacing:.04em;padding:3px 10px;border-radius:99px;
+         background:var(--panel);color:var(--ink-dim);cursor:pointer;border:1px solid transparent}
+  .fchip.on{border-color:#4a5f96;background:var(--panel2)}
   .pane{flex:1;background:var(--bg2);border:1px solid #232c44;border-radius:14px;padding:12px;overflow:auto;
         font-size:13px;display:none;min-height:0}
   .pane.on{display:block}
   #log .ev{padding:7px 10px;border-radius:9px;margin-bottom:6px;background:var(--panel);line-height:1.45;
            border-left:3px solid #39435e;font-family:var(--mono);font-size:12px}
-  #log .ev.spawn{border-left-color:var(--acc);cursor:pointer}
-  #log .ev.spawn:hover{background:var(--panel2)}
+  #log .ev.spawn{border-left-color:var(--acc)}
+  #log .ev.click{cursor:pointer}
+  #log .ev.click:hover{background:var(--panel2)}
   #log .ev.done{border-left-color:var(--ok)} #log .ev.text{border-left-color:var(--acc2)}
   #log .ev.err{border-left-color:var(--bad)}
   #log .ev .who{color:var(--acc);font-weight:700} #log .ev .muted{color:var(--ink-faint)}
@@ -186,10 +191,12 @@
   <div class="body">
     <div class="col">
       <div class="point"><span class="dot"></span><span><b>model</b>: the model we're going to use, e.g. <code>claude-sonnet-4-6</code> or <code>claude-opus-4-7</code></span></div>
+      <div class="point"><span class="dot"></span><span><b>max_tokens</b>: required. A hard ceiling on the size of the response</span></div>
       <div class="point"><span class="dot"></span><span><b>system</b>: <span class="hl-click" data-dlg="system">the system prompt</span>. It defines the behavior the model will have and takes precedence over the messages array</span></div>
       <div class="point"><span class="dot"></span><span><b>messages</b>: the whole conversation so far (user messages and assistant messages), sent every single time</span></div>
       <div class="point"><span class="dot"></span><span><b>tools</b>: functions we expose to the model to extend its capabilities</span></div>
-      <p style="font-size:13px;color:var(--ink-faint)">Best practice: real tool descriptions run 3-4+ sentences (what it does, when to use it, limits). Compressed here to fit the slide.</p>
+      <div class="point"><span class="dot"></span><span><b>tool_choice</b>: whether the model may, must, or must not use tools. Default: it decides on its own</span></div>
+      <p style="font-size:13px;color:var(--ink-faint)">Best practice: tool descriptions run 3-4+ sentences (what it does, when to use it, limits). Compressed here to fit the slide.</p>
     </div>
     <div class="col">
       <pre class="code" style="font-size:11.5px;line-height:1.4;padding:14px 18px">{
@@ -223,7 +230,8 @@
         <span class="f">"required"</span>: [<span class="s">"order_id"</span>, <span class="s">"amount"</span>]
       }
     }
-  ]
+  ],
+  <span class="f">"tool_choice"</span>: { <span class="f">"type"</span>: <span class="s">"auto"</span> }
 }</pre>
     </div>
   </div>
@@ -325,13 +333,14 @@
   <div class="body">
     <h1>Agents</h1>
     <div class="topics">
-      <span>What an agent actually is</span>
+      <span>What an agent is</span>
       <span>Workflows vs agents: who decides the steps</span>
       <span>The <code>Task</code> tool: how agents spawn subagents</span>
       <span>Why subagents exist</span>
       <span>Hub-and-spoke: coordinators and subagents</span>
       <span>Hooks: prompts ask, hooks enforce</span>
-      <span>Live demo: three agents audit a real app</span>
+      <span>Live demo: three agents audit one of my projects</span>
+      <span>Takeaways: trade-offs and model choice</span>
     </div>
   </div>
 </section>
@@ -373,7 +382,7 @@
     </div>
     <div class="col">
       <div class="big-callout">The loop is <em>dumb</em>.<br>The model is <em>smart</em>.</div>
-      <div class="point"><span class="dot"></span><span>The loop is ~25 lines of plain JavaScript <b>anyone in this room can read</b>. All the “magic” is the model choosing the next step.</span></div>
+      <div class="point"><span class="dot"></span><span>The loop is ~25 lines of plain JavaScript. All the “magic” is the model choosing the next step.</span></div>
       <div class="point"><span class="dot"></span><span><b>The model decides when it's done</b>, and that's what makes it an agent</span></div>
       <div class="point"><span class="dot"></span><span>A typical run: <b>user request</b> → <code>tool_use</code> → <code>tool_use</code> → <code>end_turn</code></span></div>
       <div class="point"><span class="dot"></span><span><b>When a tool fails</b>, you still send its tool_result, flagged with <span class="hl-click" style="font-family:var(--mono);font-size:.86em" data-dlg="iserror">"is_error": true</span></span></div>
@@ -381,7 +390,7 @@
       <div class="point good"><span class="dot"></span><span>The only reliable completion signal: <code>stop_reason === "end_turn"</code></span></div>
     </div>
   </div>
-  <div class="foot"><span>Agents · click the highlighted arguments to see the real payloads</span><span>chat = one lap around the loop · agent = as many laps as the task needs</span></div>
+  <div class="foot"><span>Agents · click the highlighted arguments to see what they contain at runtime</span><span>chat = one lap around the loop · agent = as many laps as the task needs</span></div>
 </section>
 
 <!-- ═══════════ 7 · WORKFLOW VS AGENT ═══════════ -->
@@ -455,7 +464,7 @@
       <div class="point"><span class="dot"></span><span>The raw API does not ship this tool: your harness defines it (named <code>Task</code> in the CCAF guide, <a href="https://code.claude.com/docs/en/agent-sdk/subagents#detect-subagent-invocation" target="_blank" rel="noopener" style="color:var(--acc)"><code>Agent</code> in newer SDK versions ↗</a>). The model just calls it</span></div>
     </div>
   </div>
-  <div class="foot"><span>Agents · click the highlighted term</span><span>an agent that can call agents: that is the whole trick behind multi-agent systems</span></div>
+  <div class="foot"><span>Agents · click the highlighted term</span><span>an agent that can call agents: that is the basis of every multi-agent system</span></div>
 </section>
 
 <!-- ═══════════ 7C · WHY SUBAGENTS ═══════════ -->
@@ -527,7 +536,7 @@
         work order and never call each other. Everything goes through the contractor, and that's why nothing gets lost.</div>
     </div>
   </div>
-  <div class="foot"><span>Agents</span><span>next: watch this exact picture happen for real</span></div>
+  <div class="foot"><span>Agents</span><span>next: this diagram, running</span></div>
 </section>
 
 <!-- ═══════════ 10 · WHAT YOU JUST SAW ═══════════ -->
@@ -548,7 +557,7 @@
   READ_ONLY.includes(name)
     ? { behavior: <span class="s">"allow"</span> }
     : { behavior: <span class="s">"deny"</span>, message: <span class="s">"read-only!"</span> }</pre>
-      <div class="point"><span class="dot"></span><span><b>Prompts ask (&gt;90%). Hooks enforce (100%).</b> Money, legal, safety → hooks. Style and preferences → prompts.</span></div>
+      <div class="point"><span class="dot"></span><span><span class="hl-click" data-dlg="hooks"><b>Prompts ask (&gt;90%). Hooks enforce (100%).</b></span> Money, legal, safety → hooks. Style and preferences → prompts.</span></div>
     </div>
   </div>
   <div class="foot"><span>Agents</span><span>exam: deterministic guardrails = hooks/callbacks, never prompt wording</span></div>
@@ -576,54 +585,119 @@
         <span class="tab on" data-pane="log">Message log</span>
         <span class="tab" data-pane="report">Final report</span>
       </div>
+      <div id="log-filters">
+        <span class="fchip on" data-f="all">all</span>
+        <span class="fchip" data-f="coordinator" style="color:#7aa2ff">coordinator</span>
+        <span class="fchip" data-f="a11y-auditor" style="color:#7ce38b">a11y</span>
+        <span class="fchip" data-f="copy-auditor" style="color:#5eead4">copy</span>
+        <span class="fchip" data-f="code-auditor" style="color:#ffb86b">code</span>
+      </div>
       <div class="pane on" id="log"></div>
       <div class="pane" id="report"><span style="color:var(--ink-faint)">The coordinator's merged report appears here when the run finishes.</span></div>
     </div>
   </div>
-  <div class="foot"><span>Click a <b style="color:var(--acc)">spawn</b> event or an agent node to see the EXACT context it received</span><span>ws://localhost:4747</span></div>
+  <div class="foot"><span>Click a <b style="color:var(--acc)">spawn</b> event or an agent node to see the context it was given</span><span>ws://localhost:4747</span></div>
 </section>
 
-<!-- ═══════════ DIVIDER · CLAUDE CODE IN CI/CD ═══════════ -->
+<!-- ═══════════ 9B · TAKEAWAYS ═══════════ -->
+<section class="slide">
+  <div class="kicker">Agents · after the demo</div>
+  <h2>Main takeaways: was it worth it?</h2>
+  <div class="sr-grid">
+    <div class="sr-card g">
+      <div class="sr-head"><span class="val">were subagents necessary?</span></div>
+      <div class="body-txt"><b>No.</b> One agent could run the three audits in sequence. Subagents bought <b>parallel wall-clock time, isolated contexts, and least privilege</b>, at the price of coordinator overhead and more tokens. Worth it here because the three audits are fully independent.</div>
+      <div class="sr-foot"><span class="hl-click" data-dlg="whensub">so when ARE they necessary? ↗</span></div>
+    </div>
+    <div class="sr-card b">
+      <div class="sr-head"><span class="val">which model per agent?</span></div>
+      <div class="body-txt">In this demo: <b>Sonnet</b> runs the a11y and code auditors (read-and-report work), <b>Haiku</b> runs the mechanical copy audit, and the coordinator sets no model, <b>inheriting your session model</b> for the judgment-heavy merge. Official pattern: set <code>model</code> per AgentDefinition, never one model for everything.</div>
+      <div class="sr-foot">verify it yourself: open any agent's quick overview in the demo, the model field is right there</div>
+    </div>
+    <div class="sr-card p">
+      <div class="sr-head"><span class="val">the code behind it</span></div>
+      <div class="body-txt">Everything you watched is <b>one file, ~150 lines</b>: a <code>query()</code> call with three AgentDefinitions, one coordinator prompt, and a <code>canUseTool</code> hook that makes the whole run read-only.</div>
+      <div class="sr-foot"><span class="hl-click" data-dlg="democode">open the demo code ↗</span></div>
+    </div>
+    <div class="sr-card o">
+      <div class="sr-head"><span class="val">hub-and-spoke: the trade-offs</span></div>
+      <div class="body-txt"><b>Pros:</b> parallelism, isolated contexts, specialization, least privilege, one merge point for observability.<br><b>Cons:</b> more tokens (four contexts), the coordinator is a bottleneck and single point of failure, context must be explicitly passed, narrow decomposition loses scope.</div>
+      <div class="sr-foot">right when subtasks are independent and context-heavy. Wrong for small, sequential, tightly coupled tasks.</div>
+    </div>
+  </div>
+  <div class="foot"><span>Agents · sources: the SDK subagents docs and the exam guide</span><span>weighing trade-offs IS the exam → next: the summary</span></div>
+</section>
+
+<!-- ═══════════ DIVIDER · SUMMARY ═══════════ -->
 <section class="slide divider">
   <div class="body">
-    <h1>Claude Code in CI/CD</h1>
+    <h1>Summary</h1>
     <div class="topics">
-      <span>Non-interactive mode with <code>claude -p</code></span>
-      <span>Structured output with JSON schemas</span>
-      <span>Session context isolation for reviews</span>
-      <span>Running the live audit headless in CI</span>
+      <span>The API: the request body, roles, <code>stop_reason</code>, the context window</span>
+      <span>Tools: definitions, <code>tool_choice</code>, JSON schemas and their limits</span>
+      <span>Agents: the loop, AgentDefinition, hub-and-spoke, hooks</span>
     </div>
   </div>
 </section>
 
-<!-- ═══════════ 11 · CI/CD ═══════════ -->
+<!-- ═══════════ 11 · SUMMARY: THE API ═══════════ -->
 <section class="slide">
-  <div class="kicker">Claude Code in CI/CD</div>
-  <h2>Same agent. Nobody at the keyboard.</h2>
+  <div class="kicker">Summary · 1 of 3</div>
+  <h2>The API</h2>
   <div class="body">
-    <div class="col" style="flex:1.2">
-      <pre class="code"><span class="c"># przsend already has CI (lint + typecheck).</span>
-<span class="c"># We add ONE job, the audit you just watched:</span>
-
-claude -p <span class="s">"Audit this repo: a11y, copy, code.
-          Return the top findings."</span> \
-       --output-format json \
-       --json-schema <span class="s">"$(cat audit-schema.json)"</span></pre>
-      <div class="point"><span class="dot"></span><span><code>-p / --print</code>: non-interactive mode. Process the prompt, print, exit. <b>The</b> way to run Claude in CI</span></div>
-      <div class="point"><span class="dot"></span><span><code>--output-format json</code> + a schema → output a pipeline can parse (post PR comments automatically)</span></div>
+    <div class="col">
+      <div class="point"><span class="dot"></span><span>One request body: <b>model</b>, <b>max_tokens</b>, <b>system</b>, <b>messages</b>, <b>tools</b>, <b>tool_choice</b>. Request in, response out</span></div>
+      <div class="point"><span class="dot"></span><span><b>Stateless.</b> The model keeps nothing between calls; the full conversation history goes up every single time</span></div>
+      <div class="point"><span class="dot"></span><span>Two conversational roles, <b>user</b> and <b>assistant</b>. Tool results travel back inside <b>user</b> messages, as <code>tool_result</code> blocks</span></div>
     </div>
     <div class="col">
-      <div class="point"><span class="dot"></span><span><b>Fresh session for review.</b> The session that <i>wrote</i> the code defends its own reasoning; a clean instance challenges it. Author ≠ reviewer.</span></div>
-      <div class="point"><span class="dot"></span><span><b>Re-reviews:</b> feed prior findings back in and ask only for <i>new or unresolved</i> issues, so there are no duplicate comments</span></div>
-      <div class="analogy"><span class="tag">Analogy</span><br>
-        You don't <b>grade your own homework</b>. And the teacher keeps
-        yesterday's margin notes so they don't write the same comment twice.</div>
+      <div class="point"><span class="dot"></span><span>The <b>system prompt</b> sets role, tone, and rules. It outranks the messages array, and it is resent with every call: prompt caching makes that cheap</span></div>
+      <div class="point"><span class="dot"></span><span><b>stop_reason</b> drives your code: <code>end_turn</code> show it, <code>tool_use</code> run it, <code>max_tokens</code> truncated, <code>stop_sequence</code> app logic</span></div>
+      <div class="point"><span class="dot"></span><span>Everything competes for <span class="hl-click" data-dlg="ctxwindow">the context window</span>: system, tools, the whole history, and the response being generated</span></div>
     </div>
   </div>
-  <div class="foot"><span>CI/CD</span><span>demo repo ships with .github/workflows/claude-audit.yml: go read it</span></div>
+  <div class="foot"><span>Summary · chapter 1</span><span>click the highlighted terms for the exam detail</span></div>
 </section>
 
-<!-- ═══════════ 12 · RECAP ═══════════ -->
+<!-- ═══════════ 12 · SUMMARY: TOOLS ═══════════ -->
+<section class="slide">
+  <div class="kicker">Summary · 2 of 3</div>
+  <h2>Tools</h2>
+  <div class="body">
+    <div class="col">
+      <div class="point"><span class="dot"></span><span>A tool is three fields: <b>name</b>, <b>description</b>, <b>input_schema</b>. The description is the most important one: it is what the model uses to decide when to call it</span></div>
+      <div class="point"><span class="dot"></span><span><b>Descriptions must not overlap.</b> Two tools that sound alike get called interchangeably. Say what it does, when to use it, and its limits</span></div>
+      <div class="point"><span class="dot"></span><span><span class="hl-click" data-dlg="toolchoice"><b>tool_choice</b></span> decides who decides: <code>auto</code> the model, <code>any</code> some tool, <code>tool</code> this exact tool, <code>none</code> text only</span></div>
+    </div>
+    <div class="col">
+      <div class="point"><span class="dot"></span><span><b>Structured output</b> is a tool trick: define a tool whose input_schema IS your output format, then force it with tool_choice</span></div>
+      <div class="point"><span class="dot"></span><span><span class="hl-click" data-dlg="schemarules">Schema design rules</span>: required only when always available, nullable over fabricated, enums with an escape hatch</span></div>
+      <div class="point"><span class="dot"></span><span><b>Schemas validate syntax, never semantics.</b> The JSON always parses and required fields are present, but the values can still be wrong</span></div>
+    </div>
+  </div>
+  <div class="foot"><span>Summary · chapter 2</span><span>the schema guarantees the shape of the answer, not the truth of it</span></div>
+</section>
+
+<!-- ═══════════ 13 · SUMMARY: AGENTS ═══════════ -->
+<section class="slide">
+  <div class="kicker">Summary · 3 of 3</div>
+  <h2>Agents</h2>
+  <div class="body">
+    <div class="col">
+      <div class="point"><span class="dot"></span><span>The loop: call the API, and while <code>stop_reason === "tool_use"</code>, run the tools, append the results, call again. <b>The model decides the steps</b></span></div>
+      <div class="point"><span class="dot"></span><span>The only done signal is <code>stop_reason === "end_turn"</code>. Anti-patterns: parsing the text for "Task completed", or an iteration cap as the stop condition</span></div>
+      <div class="point"><span class="dot"></span><span><b>AgentDefinition</b>: description, prompt, tools, model. Least privilege: each agent gets only the tools its job needs</span></div>
+    </div>
+    <div class="col">
+      <div class="point"><span class="dot"></span><span>Spawning a subagent is a <b>Task tool call</b>. Independent subtasks go in ONE response and run in parallel, and context is passed explicitly: the subagent sees nothing else</span></div>
+      <div class="point"><span class="dot"></span><span><b>Hub-and-spoke</b>: the coordinator decomposes, delegates, merges, and handles errors. Subagents never talk to each other</span></div>
+      <div class="point"><span class="dot"></span><span><b>Prompts ask (&gt;90%). Hooks enforce (100%).</b> Money, legal, safety: hooks. Style and preferences: prompts</span></div>
+    </div>
+  </div>
+  <div class="foot"><span>Summary · chapter 3</span><span>next: the seven sentences</span></div>
+</section>
+
+<!-- ═══════════ 14 · RECAP ═══════════ -->
 <section class="slide">
   <div class="kicker">Recap</div>
   <h2>Seven sentences to take into the exam</h2>
@@ -635,7 +709,7 @@ claude -p <span class="s">"Audit this repo: a11y, copy, code.
       <div class="point"><span class="dot"></span><span>The only reliable “done” is <code>stop_reason === "end_turn"</code>. Never parse text, never rely on iteration caps.</span></div>
       <div class="point"><span class="dot"></span><span>Subagents have <b>isolated context</b>: they know only their prompt, return one report, and never talk to each other.</span></div>
       <div class="point"><span class="dot"></span><span><b>Hooks enforce deterministically; prompts only ask.</b> Critical rules go in hooks.</span></div>
-      <div class="point"><span class="dot"></span><span>In CI: <code>claude -p</code> + JSON output; review with a <b>fresh session</b>, not the author's.</span></div>
+      <div class="point"><span class="dot"></span><span>Schemas guarantee <b>syntax, never semantics</b>: the JSON will parse, the required fields will be there, and the values can still be wrong.</span></div>
     </div>
   </div>
   <div class="foot"><span>CCAF crash course · Part 1 · Ravn</span><span>questions → carlosperez@ravn.co</span></div>
@@ -686,8 +760,8 @@ const DIALOGS={
    +'<pre>name   → which of YOUR functions to run\ninput  → its arguments, matching the tool\'s input_schema\nid     → identifies this one tool call. You reply to Claude with\n         this id plus your tool result, so Claude knows which\n         call you are answering and can act on it.</pre>'
  },
  push:{
-  title:'The two pushed messages, with real values',
-  html:'<p>With the variables filled in, this is exactly what lands in the messages array before the next API call:</p>'
+  title:'The two pushed messages',
+  html:'<p>With the variables filled in, this is what lands in the messages array before the next API call:</p>'
    +'<div class="k2">1 · res: the assistant\'s turn, containing its tool request</div>'
    +'<pre>{\n  '+F('"role"')+': '+S('"assistant"')+',\n  '+F('"content"')+': [\n    {\n      '+F('"type"')+': '+S('"tool_use"')+',\n      '+F('"id"')+': '+S('"toolu_01A2B3…"')+',\n      '+F('"name"')+': '+S('"process_refund"')+',\n      '+F('"input"')+': { '+F('"order_id"')+': '+S('"42"')+', '+F('"amount"')+': '+N('18')+' }\n    }\n  ]\n}</pre>'
    +'<div class="k2">2 · your tool\'s answer, sent back as a user message</div>'
@@ -698,7 +772,7 @@ const DIALOGS={
 DIALOGS.system={
  title:'What goes in a system prompt?',
  html:'<p>It defines how Claude behaves for the WHOLE conversation: its role, its tone, its rules, its output format. Anthropic\'s docs: even a single-sentence role makes a difference.</p>'
-  +'<div class="k2">A real one</div>'
+  +'<div class="k2">An example prompt</div>'
   +'<pre>'+S('"You are the support agent for Phoenix Corp. Be warm and concise,\nand answer in the user\'s language. Refunds up to $500 can be\nprocessed directly; larger amounts must be escalated to a\nhuman. Reply as plain text, without markdown."')+'</pre>'
   +'<div class="k2">The rules of the field (exam material)</div>'
   +'<pre>role + tone   → its main job: focus behavior and voice\nprecedence    → it outranks instructions in the messages array\nrules         → it can state policy, but a prompt ASKS (>90%)\nenforcement   → money, legal, safety: use hooks (100%), not wording</pre>'
@@ -727,10 +801,67 @@ DIALOGS.decompose={
  html:'<p>Decomposition means splitting the task into subtasks and choosing which subagents to run. Together with delegation and result aggregation, it is the coordinator\'s core responsibility in the exam\'s definition.</p>'
   +'<div class="k2">Two strategies (exam material)</div>'
   +'<pre>fixed pipeline  → subtasks known up front, defined in advance\n                  (prompt chaining: use when the structure is predictable)\ndynamic         → subtasks generated from intermediate results\n                  (use for open-ended tasks, where each step depends on the last)</pre>'
-  +'<div class="k2">The classic exam failure: decomposing too narrowly</div>'
+  +'<div class="k2">Avoid decomposing too narrowly</div>'
   +'<p>A coordinator asked to research a broad topic spawns only visual-art subagents and misses music, literature, and film entirely. Decomposition must cover the FULL scope of the problem, not the first slice that comes to mind. In our demo: dropping the copy auditor would silently lose a whole dimension of the audit.</p>'
   +'<div class="k2">Two more rules from the guide</div>'
-  +'<pre>independent subtasks  → spawn them all in ONE response: they run in parallel\na subtask fails       → do not abort. Continue with partial results and\n                        annotate coverage: what is well-supported, where the gaps are</pre>'
+  +'<pre>independent subtasks  → spawn them all in ONE response: they run in parallel\na subtask fails       → do not abort. The other subagents\' results are already\n                        paid for and still valid; aborting throws them away and\n                        returns nothing. Deliver the partial results and annotate\n                        coverage (what is well-supported, where the gaps are), so\n                        the report is honestly partial, not silently incomplete</pre>'
+};
+DIALOGS.hooks={
+ title:'Hooks vs prompt instructions (exam material)',
+ html:'<p>Both can state a rule. The difference is the guarantee.</p>'
+  +'<table class="tbl" style="font-size:13.5px;margin:10px 0 4px"><tr><th></th><th>hooks</th><th>prompt instructions</th></tr><tr><td>guarantee</td><td>deterministic: 100%</td><td>probabilistic: >90%, never 100%</td></tr><tr><td>use for</td><td>critical business rules, money, compliance</td><td>preferences, recommendations, formatting, tone</td></tr><tr><td>example</td><td>block refunds over $500</td><td>"try to solve before escalating"</td></tr></table>'
+  +'<div class="k2">Where hooks run</div>'
+  +'<pre>PreToolUse   → intercepts the call BEFORE the tool runs\n               (block a refund over $500, redirect it to escalation)\nPostToolUse  → intercepts the result BEFORE the model sees it\n               (normalize date formats coming from different tools)</pre>'
+  +'<p>The rule to memorize: when failure has financial, legal, or safety consequences, use hooks, not prompt wording. The canUseTool callback on this slide is exactly that: the read-only rule lives in code, so no prompt mistake can break it.</p>'
+};
+DIALOGS.democode={
+ title:'The demo, behind the scenes (demo/src/audit.ts)',
+ html:'<p>The whole demo is one program. Abbreviated where marked; the rest is copied straight from the file:</p>'
+  +'<pre>'
+  +C('// demo/src/audit.ts')+'\n'
+  +'import { query } from '+S('"@anthropic-ai/claude-agent-sdk"')+';\n\n'
+  +'const READ_ONLY_TOOLS = ['+S('"Read"')+', '+S('"Grep"')+', '+S('"Glob"')+'];\n\n'
+  +C('// 1 · The specialists, defined up front, keyed by name')+'\n'
+  +'const SUBAGENTS = {\n'
+  +'  '+S('"a11y-auditor"')+': {\n'
+  +'    description: '+S('"Accessibility specialist. Reviews UI for WCAG issues."')+',\n'
+  +'    prompt: '+S('"You are an accessibility auditor reviewing a Next.js app. …"')+',\n'
+  +'    tools: READ_ONLY_TOOLS,\n'
+  +'    model: '+S('"sonnet"')+'\n'
+  +'  },\n'
+  +'  '+S('"copy-auditor"')+': { '+C('/* same shape · model: "haiku" */')+' },\n'
+  +'  '+S('"code-auditor"')+': { '+C('/* same shape · model: "sonnet" */')+' }\n'
+  +'};\n\n'
+  +C('// 2 · One query() call runs the whole audit')+'\n'
+  +'const run = '+F('query')+'({\n'
+  +'  '+C('// the run\'s first user message: the coordinator\'s instructions')+'\n'
+  +'  prompt: '+S('"Audit the web application in the current working directory. You are the COORDINATOR. Do not read any project files yourself. 1. Spawn ALL THREE subagents IN PARALLEL, in your first response. 2. Give each one the context it needs in its prompt. 3. When all three reports are back, merge them into ONE final report."')+',\n\n'
+  +'  options: {\n'
+  +'    cwd: '+S('"/path/to/the/repo/to/audit"')+',\n'
+  +'    systemPrompt: '+S('"You are a software audit coordinator. You never modify files."')+',\n'
+  +'    agents: SUBAGENTS,\n'
+  +'    allowedTools: ['+S('"Agent"')+', ...READ_ONLY_TOOLS],\n\n'
+  +'    '+C('// 3 · the hook: no prompt mistake can make this run write files')+'\n'
+  +'    canUseTool: async (toolName) =>\n'
+  +'      ['+S('"Agent"')+', ...READ_ONLY_TOOLS].includes(toolName)\n'
+  +'        ? { behavior: '+S('"allow"')+' }\n'
+  +'        : { behavior: '+S('"deny"')+', message: '+S('"read-only audit"')+' }\n'
+  +'  }\n'
+  +'});\n\n'
+  +C('// 4 · Consume the stream: each message becomes an event on screen')+'\n'
+  +'for await (const message of run) {\n'
+  +'  '+C('// message.type: "system" | "assistant" | "user" | "result"')+'\n'
+  +'  '+C('// spawn = tool_use named "Agent" · report = its tool_result')+'\n'
+  +'}</pre>'
+  +'<p>The full version adds the subagent prompts, error handling, and the WebSocket streaming that feeds this visualizer: demo/src/audit.ts, about 150 lines.</p>'
+};
+DIALOGS.whensub={
+ title:'When ARE subagents necessary?',
+ html:'<p>Start from the official rule: "find the simplest solution possible, and only increase complexity when needed", because "agentic systems often trade latency and cost for better task performance" (<a href="https://www.anthropic.com/engineering/building-effective-agents" target="_blank" rel="noopener" style="color:var(--acc)">Anthropic, Building effective agents</a>). Add complexity only when it demonstrably improves outcomes.</p>'
+  +'<div class="k2">Four signals it is time (from the SDK subagents docs)</div>'
+  +'<pre>context filling up    → one agent reads everything and starts forgetting:\n                        isolate the heavy reading inside a subagent\nindependent subtasks  → they can run at the same time: parallelize\nniche expertise       → specialist instructions are bloating the main\n                        prompt: give them their own agent\nrisky tools           → a job needs fewer permissions than the main\n                        agent has: restrict it to its own tool list</pre>'
+  +'<div class="k2">In practice</div>'
+  +'<p>There is no best tool and no architecture you should use 100% of the time. It is case by case, and it comes from experimenting: when a single agent misses steps, loses context fast, or burns an expensive model on mechanical work, try a subagent. One subagent is a perfectly valid architecture; three is not a requirement.</p>'
 };
 DIALOGS.iserror={
  title:'When a tool fails',
@@ -745,6 +876,27 @@ DIALOGS.iserror={
   +'<pre>transient   (timeout, 503)   → retried by YOUR code, silently, 1-2 attempts\nvalidation  (bad arguments)  → Claude retries, when your message says how\nbusiness    (policy limit)   → no retry: Claude proposes an alternative\npermission  (access denied)  → no retry: Claude escalates</pre>'
   +'<p>The decision always comes from the words in your error. And two exam anti-patterns: never report an empty result as success, never retry without limit.</p>'
 };
+DIALOGS.ctxwindow={
+ title:'The context window (exam material)',
+ html:'<p>The window is the model\'s working memory for one call: the system prompt, the tool definitions, the whole messages array, and the response being generated all have to fit in it together. <code>max_tokens</code> only caps the response; the window caps everything at once.</p>'
+  +'<div class="k2">Three things the guide wants you to know</div>'
+  +'<pre>lost in the middle         → in a long context, the model recalls the start and\n                             the end best. Critical instructions go at the\n                             beginning or the end, never buried in the middle\ntool results pile up       → every lap of the loop appends a tool_result to the\n                             history. In long agent runs, old tool results become\n                             the main thing crowding the window\nprogressive summarization  → the fix: replace older turns and tool results with\n                             compact summaries, keep the recent ones verbatim</pre>'
+  +'<p>This is also why subagents matter: a subagent does its heavy reading in its OWN window and sends back one report, so the coordinator\'s window stays small. You watched exactly that in the demo\'s context economics table.</p>'
+};
+DIALOGS.toolchoice={
+ title:'tool_choice: who decides whether a tool is used',
+ html:'<p>Four values, from the official tool-use docs:</p>'
+  +'<pre>{ '+F('"type"')+': '+S('"auto"')+' }                             → the model decides if and which tool.\n                                                 The DEFAULT when tools are provided\n{ '+F('"type"')+': '+S('"any"')+' }                              → it must call SOME tool; its choice which\n{ '+F('"type"')+': '+S('"tool"')+', '+F('"name"')+': '+S('"process_refund"')+' }   → it must call exactly this tool\n{ '+F('"type"')+': '+S('"none"')+' }                             → no tools, text only.\n                                                 The DEFAULT when no tools are sent</pre>'
+  +'<div class="k2">The catch with forcing (exam material)</div>'
+  +'<p>With <code>any</code> or <code>tool</code>, the API prefills the assistant turn to force the call, so the model emits no text before the tool_use block, even if you ask it to explain first. Forcing is also how structured output works in practice: force the one tool whose input_schema is your output format.</p>'
+};
+DIALOGS.schemarules={
+ title:'Schema design rules (exam material)',
+ html:'<p>The schema decides whether the model is ALLOWED to be honest. Design it so that "I don\'t know" is always a legal answer:</p>'
+  +'<pre>{\n  '+F('"type"')+': '+S('"object"')+',\n  '+F('"properties"')+': {\n    '+F('"category"')+': {\n      '+F('"type"')+': '+S('"string"')+',\n      '+F('"enum"')+': ['+S('"bug"')+', '+S('"feature"')+', '+S('"docs"')+', '+S('"unclear"')+', '+S('"other"')+']\n    },\n    '+F('"category_detail"')+': {\n      '+F('"type"')+': ['+S('"string"')+', '+S('"null"')+'],\n      '+F('"description"')+': '+S('"Details if category = \'other\' or \'unclear\'"')+'\n    },\n    '+F('"severity"')+': { '+F('"type"')+': '+S('"string"')+', '+F('"enum"')+': ['+S('"critical"')+', '+S('"high"')+', '+S('"medium"')+', '+S('"low"')+'] },\n    '+F('"confidence"')+': { '+F('"type"')+': '+S('"number"')+', '+F('"minimum"')+': '+N('0')+', '+F('"maximum"')+': '+N('1')+' }\n  },\n  '+F('"required"')+': ['+S('"category"')+', '+S('"severity"')+']\n}</pre>'
+  +'<div class="k2">The four rules</div>'
+  +'<pre>required        → only for fields that are ALWAYS available. A required\n                  field the data cannot fill pushes the model to fabricate\nnullable        → ["string", "null"] lets the model return null instead\n                  of hallucinating a value\nenum + "other"  → an "other" option plus a detail field, so data outside\n                  your categories is not silently lost\nenum "unclear"  → an honest "unclear" beats a confidently wrong category</pre>'
+};
 document.querySelectorAll('.hl-click').forEach(el=>el.addEventListener('click',()=>{
   const d=DIALOGS[el.dataset.dlg]; if(!d) return;
   document.getElementById('m-title').textContent=d.title;
@@ -754,14 +906,17 @@ document.querySelectorAll('.hl-click').forEach(el=>el.addEventListener('click',(
 
 /* ══════════════════ visualizer ══════════════════ */
 const AGENT_META={
-  'a11y-auditor':{label:'a11y auditor',   role:'accessibility · WCAG',      slot:0},
-  'copy-auditor':{label:'copy auditor',   role:'UX writing · i18n parity',  slot:1},
-  'code-auditor':{label:'code auditor',   role:'security · correctness',    slot:2},
+  'a11y-auditor':{label:'a11y auditor',   role:'accessibility · WCAG',      slot:0, color:'#7ce38b'},
+  'copy-auditor':{label:'copy auditor',   role:'UX writing · i18n parity',  slot:1, color:'#5eead4'},
+  'code-auditor':{label:'code auditor',   role:'security · correctness',    slot:2, color:'#ffb86b'},
 };
+const SRC_COLORS={coordinator:'#7aa2ff',session:'#9aa5bd',you:'#c9d4ea','a11y-auditor':'#7ce38b','copy-auditor':'#5eead4','code-auditor':'#ffb86b'};
+const who=k=>'<span class="who" style="color:'+(SRC_COLORS[k]||'#7aa2ff')+'">'+k+'</span>';
 const viz=(()=>{
   const stage=document.getElementById('stage'), wires=document.getElementById('wires');
   const log=document.getElementById('log'), report=document.getElementById('report');
   const nodes={}, spawnsById={};  // spawn tool_use_id → agent key
+  let coordPrompt='', DEFS=null, runModel='';
   let agentData={};               // agent key → {prompt, result, node}
   let coordNode=null;
 
@@ -771,12 +926,14 @@ const viz=(()=>{
     const n=el('agent-node'+(isCoord?' coord':''),
       `<div class="name"><span class="status-dot"></span>${label}</div>
        <div class="role">${role}</div><div class="tools"></div>`);
+    n.querySelector('.name').style.color = isCoord ? '#7aa2ff' : (AGENT_META[key]?.color || '#e8ecf6');
     n.addEventListener('click',()=>inspect(key));
     stage.appendChild(n);
     return n;
   }
 
   function reset(){
+    coordPrompt='';
     stage.querySelectorAll('.agent-node,.msg-dot').forEach(n=>n.remove());
     wires.innerHTML=''; log.innerHTML=''; agentData={}; coordNode=null;
     for(const k in spawnsById) delete spawnsById[k];
@@ -789,17 +946,19 @@ const viz=(()=>{
     layout();
   }
 
-  function pos(node){ // center coords within stage
-    return {x:node.offsetLeft+node.offsetWidth/2, y:node.offsetTop+node.offsetHeight/2};
+  function pos(node){ // style.left/top already hold the node's CENTER (translate(-50%,-50%))
+    return {x:node.offsetLeft, y:node.offsetTop};
   }
 
   function layout(){
     if(!coordNode) return;
     const W=stage.clientWidth,H=stage.clientHeight;
     if(!W)return;
-    place(coordNode,W/2,H*0.18);
+    // constant vertical spread, centered in the stage: tall windows don't stretch the graph
+    const cy=Math.max(84, H/2-165), sy=Math.min(H-80, H/2+155);
+    place(coordNode,W/2,cy);
     const xs=[W*0.2,W*0.5,W*0.8];
-    for(const [key,m] of Object.entries(AGENT_META)) place(agentData[key].node,xs[m.slot],H*0.74);
+    for(const [key,m] of Object.entries(AGENT_META)) place(agentData[key].node,xs[m.slot],sy);
     drawWires();
   }
   function place(n,x,y){n.style.left=x+'px';n.style.top=y+'px';}
@@ -808,13 +967,14 @@ const viz=(()=>{
     wires.innerHTML='';
     if(!coordNode)return;
     const c=pos(coordNode);
+    const cBottom=c.y+coordNode.offsetHeight/2;
     for(const key of Object.keys(AGENT_META)){
-      const p=pos(agentData[key].node);
-      const path=document.createElementNS('http://www.w3.org/2000/svg','line');
-      path.setAttribute('x1',c.x);path.setAttribute('y1',c.y+34);
-      path.setAttribute('x2',p.x);path.setAttribute('y2',p.y-34);
-      path.setAttribute('stroke','#2b3654');path.setAttribute('stroke-width','1.5');
-      wires.appendChild(path);
+      const n=agentData[key].node, p=pos(n);
+      const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1',c.x);line.setAttribute('y1',cBottom);
+      line.setAttribute('x2',p.x);line.setAttribute('y2',p.y-n.offsetHeight/2);
+      line.setAttribute('stroke','#2b3654');line.setAttribute('stroke-width','1.5');
+      wires.appendChild(line);
     }
   }
 
@@ -836,10 +996,40 @@ const viz=(()=>{
     while(box.children.length>3)box.removeChild(box.firstChild);
   }
 
-  function logEv(cls,html,onclick){
+  let logFilter='all';
+  function matchesFilter(d){
+    return logFilter==='all' || d.dataset.src===logFilter || d.dataset.target===logFilter;
+  }
+  function applyLogFilter(){
+    for(const d of log.children) d.style.display = matchesFilter(d) ? '' : 'none';
+  }
+  function logEv(cls,html,src,onclick,target){
     const d=el('ev '+cls,html);
-    if(onclick){d.addEventListener('click',onclick);}
+    d.dataset.src=src||'session'; if(target) d.dataset.target=target;
+    d.style.borderLeftColor = SRC_COLORS[src] || '#39435e';
+    if(onclick){d.addEventListener('click',onclick);d.classList.add('click');}
+    if(!matchesFilter(d)) d.style.display='none';
     log.appendChild(d);log.scrollTop=log.scrollHeight;
+  }
+
+  function overviewHtml(key){
+    if(!DEFS) return '';
+    const model = runModel || 'unknown until a run starts';
+    const row=(k,v)=>'<tr><td>'+k+'</td><td>'+v+'</td></tr>';
+    let rows='';
+    if(key==='coordinator'){
+      rows = row('model', esc(model))
+           + row('allowed_tools', esc(DEFS.coordinator.allowedTools.join(', ')))
+           + row('system prompt', esc(DEFS.coordinator.systemPrompt));
+    }else{
+      const d=DEFS.agents[key]; if(!d) return '';
+      rows = row('model', d.model==='inherit' ? 'inherit → '+esc(model) : esc(d.model))
+           + row('description', esc(d.description))
+           + row('tools', esc(d.tools.join(', ')))
+           + row('system prompt', esc(d.systemPrompt.length>260?d.systemPrompt.slice(0,260)+'…':d.systemPrompt));
+    }
+    return '<div class="k2">Quick overview (from its AgentDefinition)</div>'
+         + '<table class="tbl" style="font-size:12.5px;margin:6px 0 4px">'+rows+'</table>';
   }
 
   function inspect(key){
@@ -847,17 +1037,45 @@ const viz=(()=>{
     const title=document.getElementById('m-title'),body=document.getElementById('m-body');
     if(key==='coordinator'){
       title.textContent='Coordinator, the hub';
-      body.innerHTML='<div class="k2">What it does</div><pre>Decomposes the audit, spawns the three specialists via the Task/Agent tool,\nwaits for their tool_results, then merges everything into one report.\nIt holds the ONLY complete picture; the specialists never see each other.</pre>';
+      body.innerHTML=overviewHtml('coordinator')
+        +'<div class="k2">What it does</div><pre>Decomposes the audit, spawns the three specialists via the Task/Agent tool,\nwaits for their tool_results, then merges everything into one report.\nIt holds the ONLY complete picture; the specialists never see each other.</pre>'
+        +'<div class="k2">The prompt it received (its own starting context)</div><pre>'+esc(coordPrompt||'run not started yet')+'</pre>';
     }else{
       const a=agentData[key];if(!a)return;
       title.textContent=AGENT_META[key].label;
       body.innerHTML=
-        '<div class="k2">Context it received (its ENTIRE universe)</div><pre>'+esc(a.prompt||'- not spawned yet -')+'</pre>'+
-        '<div class="k2">Final report it sent back (as a tool_result)</div><pre>'+esc(a.result||'- still working / not finished -')+'</pre>';
+        overviewHtml(key)+
+        '<div class="k2">Context it received (its ENTIRE universe)</div><pre>'+esc(a.prompt||'not spawned yet')+'</pre>'+
+        '<div class="k2">Final report it sent back (as a tool_result)</div><pre>'+esc(a.result||'still working, not finished yet')+'</pre>';
     }
     m.classList.add('on');
   }
   function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+
+  function economicsHtml(coordTokens){
+    const fmt=n=>n==null?'n/a':n.toLocaleString('en-US');
+    const est=s=>Math.round((s||'').length/4); // chars/4: a rough token estimate
+    let rows='', subTotal=0, allKnown=true, reportTokens=0;
+    if(coordTokens!=null) rows+='<tr><td>coordinator</td><td>'+fmt(coordTokens)+'</td><td>orchestration + the final merge</td></tr>';
+    for(const [key,meta] of Object.entries(AGENT_META)){
+      const a=agentData[key]; if(!a) continue;
+      const t=a.tokens;
+      if(t!=null){subTotal+=t;}else{allKnown=false;}
+      reportTokens+=est(a.result);
+      rows+='<tr><td>'+meta.label+'</td><td>'+fmt(t)+'</td><td>isolated context, never seen by the coordinator</td></tr>';
+    }
+    if(!rows) return '';
+    let punch='';
+    if(allKnown&&subTotal>0){
+      punch='<tr><td>subagent work, total</td><td>'+fmt(subTotal)+'</td><td></td></tr>'
+           +'<tr><td>re-entered the coordinator</td><td>~'+fmt(reportTokens)+'</td><td>the three final reports, estimated at 4 chars per token</td></tr>'
+           +'<tr><td><b>kept OUT of its context</b></td><td><b>~'+fmt(Math.max(0,subTotal-reportTokens))+'</b></td><td>reading that happened in the isolated buckets</td></tr>';
+    }
+    return '<div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--acc2);margin:18px 0 6px">Context economics: what splitting bought</div>'
+         +'<table class="tbl" style="font-size:12.5px">'
+         +'<tr><th>agent</th><th>tokens processed</th><th></th></tr>'
+         +rows+punch+'</table>';
+  }
 
   function mdLite(s){ // tiny markdown for the report pane
     return s.split(/\n/).map(line=>{
@@ -878,41 +1096,52 @@ const viz=(()=>{
     switch(e.t){
       case 'status':
         document.getElementById('ws-status').textContent=e.msg;break;
+      case 'defs':
+        DEFS=e; break;
       case 'init':
-        reset();
-        logEv('text',`<span class="who">session</span> model <b>${esc(e.model)}</b> · tools on the table: <span class="muted">${e.tools.slice(0,6).join(', ')}${e.tools.length>6?'…':''}</span>`);
+        // NOTE: subagents emit their own init events in live runs. Never reset here;
+        // the Run/Rehearse buttons own the reset.
+        runModel=e.model;
+        logEv('text',who('session')+` model <b>${esc(e.model)}</b> · tools on the table: <span class="muted">${e.tools.slice(0,6).join(', ')}${e.tools.length>6?'…':''}</span>`,'session');
         break;
+      case 'coord_prompt':{
+        coordPrompt=e.prompt;
+        const prev=e.prompt.length>220?e.prompt.slice(0,220)+'…':e.prompt;
+        logEv('spawn',who('you')+' → '+who('coordinator')+`<br><span class="muted">prompt:</span> ${esc(prev)} <span class="muted">· click for the full context ↗</span>`,
+          'coordinator',()=>inspect('coordinator'));
+        break;}
       case 'coord_text':
-        logEv('text',`<span class="who">coordinator</span> ${esc(e.text.length>220?e.text.slice(0,220)+'…':e.text)}`);
+        logEv('text',who('coordinator')+` ${esc(e.text.length>220?e.text.slice(0,220)+'…':e.text)}`,'coordinator');
         break;
       case 'spawn':{
         spawnsById[e.id]=e.agent;
         const a=agentData[e.agent];
-        if(a){a.prompt=e.prompt;a.node.classList.add('busy');fly(coordNode,a.node,true);}
-        logEv('spawn',`<span class="who">coordinator → ${esc(e.agent)}</span> Task: “${esc(e.description)}” <span class="muted">· click to see the full context passed ↗</span>`,
-          ()=>inspect(e.agent));
+        if(a){a.prompt=e.prompt;a.node.classList.remove('done');a.node.classList.add('busy');fly(coordNode,a.node,true);}
+        const prev=e.prompt.length>180?e.prompt.slice(0,180)+'…':e.prompt;
+        logEv('spawn',who('coordinator')+' → '+who(e.agent)+` Task: “${esc(e.description)}”<br><span class="muted">prompt:</span> ${esc(prev)} <span class="muted">· click for the full context ↗</span>`,
+          'coordinator',()=>inspect(e.agent),e.agent);
         break;}
       case 'sub_tool':{
         const key=spawnsById[e.parentId];if(!key)break;
         addTool(key,`${e.tool}(${e.detail})`);
-        logEv('',`<span class="muted">${esc(key)}</span> ⚙ ${esc(e.tool)}(${esc(e.detail)})`);
+        logEv('',who(key)+` ⚙ ${esc(e.tool)}(${esc(e.detail)})`,key);
         break;}
       case 'sub_text':break; // keep the log calm; the node spinner shows life
       case 'sub_done':{
         const key=spawnsById[e.parentId];if(!key)break;
         const a=agentData[key];
-        if(a){a.result=e.result;a.node.classList.remove('busy');a.node.classList.add('done');fly(a.node,coordNode,false);}
-        logEv('done',`<span class="who">${esc(key)} → coordinator</span> final report delivered (tool_result, ${e.result.length} chars) <span class="muted">· click node for details</span>`);
+        if(a){a.result=e.result;a.tokens=e.tokens;a.node.classList.remove('busy');a.node.classList.add('done');fly(a.node,coordNode,false);}
+        logEv('done',who(key)+' → '+who('coordinator')+` final report delivered (tool_result, ${e.result.length} chars) <span class="muted">· click to read the report ↗</span>`,key,()=>inspect(key));
         break;}
       case 'result':
-        report.innerHTML=mdLite(e.report);
+        report.innerHTML=mdLite(e.report)+economicsHtml(e.coordTokens);
         document.querySelector('[data-pane=report]').click();
         document.getElementById('metrics').textContent=
           `${(e.durationMs/1000).toFixed(1)}s · ${e.numTurns} turns`+(e.costUsd!=null?` · $${e.costUsd.toFixed(2)}`:'');
-        logEv('done','<span class="who">run complete</span> merged report ready →');
+        logEv('done',who('coordinator')+' run complete: merged report ready →','coordinator');
         break;
       case 'error':
-        logEv('err',`<span class="who">error</span> ${esc(e.msg)}`);break;
+        logEv('err',who('session')+` ${esc(e.msg)}`,'session');break;
     }
   }
 
@@ -920,6 +1149,13 @@ const viz=(()=>{
   document.querySelectorAll('#tabs .tab').forEach(t=>t.addEventListener('click',()=>{
     document.querySelectorAll('#tabs .tab').forEach(x=>x.classList.toggle('on',x===t));
     document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id===t.dataset.pane));
+  }));
+
+  /* log source filter */
+  document.querySelectorAll('#log-filters .fchip').forEach(c=>c.addEventListener('click',()=>{
+    logFilter=c.dataset.f;
+    document.querySelectorAll('#log-filters .fchip').forEach(x=>x.classList.toggle('on',x===c));
+    applyLogFilter();
   }));
 
   reset();

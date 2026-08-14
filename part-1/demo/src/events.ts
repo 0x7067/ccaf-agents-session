@@ -13,6 +13,8 @@ export type DemoEvent =
   | { t: "init"; model: string; tools: string[] }
   /** The coordinator "thought out loud" (assistant text in the main loop). */
   | { t: "coord_text"; text: string }
+  /** The prompt the RUN handed to the coordinator (its own starting context). */
+  | { t: "coord_prompt"; prompt: string }
   /**
    * The coordinator spawned a subagent via the Agent/Task tool.
    * `prompt` is the ACTUAL context handed to the subagent, this is the
@@ -30,7 +32,7 @@ export type DemoEvent =
   /** A subagent produced some text (its own reasoning/notes). */
   | { t: "sub_text"; parentId: string; text: string }
   /** A subagent finished, its final report travels BACK to the coordinator. */
-  | { t: "sub_done"; parentId: string; result: string }
+  | { t: "sub_done"; parentId: string; result: string; tokens?: number }
   /** The whole run finished: merged report + honest numbers. */
   | {
       t: "result";
@@ -38,6 +40,20 @@ export type DemoEvent =
       costUsd: number | null;
       durationMs: number;
       numTurns: number;
+      /** Tokens processed by the COORDINATOR itself (main loop only). */
+      coordTokens?: number;
+    }
+  /**
+   * The real agent definitions behind the demo, sent once on connection so the
+   * UI can show an honest "quick overview" of each agent in its inspector.
+   */
+  | {
+      t: "defs";
+      coordinator: { systemPrompt: string; allowedTools: string[] };
+      agents: Record<
+        string,
+        { description: string; systemPrompt: string; tools: string[]; model: string }
+      >;
     }
   /** Operational messages for the status line (never part of the lesson). */
   | { t: "status"; msg: string }

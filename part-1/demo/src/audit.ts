@@ -25,7 +25,7 @@ const READ_ONLY_TOOLS = ["Read", "Grep", "Glob"];
 /** The spawn tool is called "Agent" in current SDK versions ("Task" in older ones / the CCAF guide). */
 const SPAWN_TOOL_NAMES = new Set(["Agent", "Task"]);
 
-const subagents: NonNullable<Options["agents"]> = {
+export const SUBAGENTS: NonNullable<Options["agents"]> = {
   "a11y-auditor": {
     description:
       "Accessibility specialist. Reviews UI components and pages for WCAG issues: semantics, keyboard access, contrast, screen-reader friendliness.",
@@ -34,9 +34,11 @@ const subagents: NonNullable<Options["agents"]> = {
       "Look for concrete, verifiable issues: misused headings, interactive elements with wrong semantics (e.g. buttons inside links), missing labels, keyboard traps, contrast risks.",
       "Only report what you can point to in a specific file and line. No speculation.",
       "Be fast: read only the files you need. Return AT MOST your 4 strongest findings.",
-      "Format each finding as: [severity] file:line | issue | why it matters | suggested fix (one line each). Never use an em dash (\u2014) anywhere in your output.",
+      "Format each finding as: [severity] file:line | issue | why it matters | suggested fix (one line each).",
     ].join("\n"),
     tools: READ_ONLY_TOOLS,
+    // Read-and-report work: the balanced model is the right default.
+    model: "sonnet",
   },
   "copy-auditor": {
     description:
@@ -46,9 +48,11 @@ const subagents: NonNullable<Options["agents"]> = {
       "Look for: spelling errors, grammar issues, inconsistent capitalization or terminology, unclear microcopy, and en/es translation mismatches.",
       "Only report what you can point to in a specific file and key. No speculation.",
       "Be fast: start from the messages/ directory. Return AT MOST your 4 strongest findings.",
-      "Format each finding as: [severity] file (key) | issue | suggested rewrite (one line each). Never use an em dash (\u2014) anywhere in your output.",
+      "Format each finding as: [severity] file (key) | issue | suggested rewrite (one line each).",
     ].join("\n"),
     tools: READ_ONLY_TOOLS,
+    // Mechanical string checks: the cheap, fast model earns its keep here.
+    model: "haiku",
   },
   "code-auditor": {
     description:
@@ -58,13 +62,20 @@ const subagents: NonNullable<Options["agents"]> = {
       "Look for: plaintext secrets/passwords, injection risks, race conditions, dead or no-op code, and framework misuse.",
       "Only report what you can point to in a specific file and line. No speculation.",
       "Be fast: read only the files you need. Return AT MOST your 4 strongest findings.",
-      "Format each finding as: [severity] file:line | issue | why it matters | suggested fix (one line each). Never use an em dash (\u2014) anywhere in your output.",
+      "Format each finding as: [severity] file:line | issue | why it matters | suggested fix (one line each).",
     ].join("\n"),
     tools: READ_ONLY_TOOLS,
+    // Read-and-report work: the balanced model is the right default.
+    model: "sonnet",
   },
 };
 
-const COORDINATOR_PROMPT = [
+export const COORDINATOR_SYSTEM_PROMPT =
+  "You are a software audit coordinator. You delegate to subagents and synthesize their findings. You never modify files.";
+
+export const COORDINATOR_ALLOWED_TOOLS = ["Agent", "Task", ...READ_ONLY_TOOLS];
+
+export const COORDINATOR_PROMPT = [
   "Audit the web application in the current working directory.",
   "",
   "You are the COORDINATOR. Do not read any project files yourself.",
@@ -74,7 +85,7 @@ const COORDINATOR_PROMPT = [
   "   - Start with a 2-sentence executive summary.",
   "   - Then a prioritized list (most severe first, across all three dimensions).",
   "   - Keep every finding to 2 lines max. Credit which auditor found it.",
-  "Do not invent findings the subagents did not report. Never use an em dash (\u2014) anywhere in your output.",
+  "Do not invent findings the subagents did not report.",
 ].join("\n");
 
 export interface AuditHandle {
@@ -89,16 +100,26 @@ export interface AuditHandle {
 export function runAudit(repoPath: string, emit: (e: DemoEvent) => void): AuditHandle {
   /** tool_use_id → subagent name, so results can be routed back to a lane. */
   const spawned = new Map<string, string>();
+  /** tool_use_id → the subagent's most recent text (its report, in background mode). */
+  const lastText = new Map<string, string>();
+  /** Guard against double completion (sync tool_result + async task_notification). */
+  const doneIds = new Set<string>();
 
+  // Stop must kill EVERYTHING, including background subagents; an interrupt
+  // alone only stops the main loop. Aborting tears down the whole CLI process.
+  const abort = new AbortController();
+
+  // The coordinator sets no model: it inherits the session default, so the
+  // judgment-heavy merge runs on the strongest model you are logged in with.
   const q = query({
     prompt: COORDINATOR_PROMPT,
     options: {
+      abortController: abort,
       cwd: repoPath,
-      systemPrompt:
-        "You are a software audit coordinator. You delegate to subagents and synthesize their findings. You never modify files.",
-      agents: subagents,
+      systemPrompt: COORDINATOR_SYSTEM_PROMPT,
+      agents: SUBAGENTS,
       // The coordinator may only spawn subagents; the read-only tools are for the subagents.
-      allowedTools: ["Agent", "Task", ...READ_ONLY_TOOLS],
+      allowedTools: COORDINATOR_ALLOWED_TOOLS,
       // Deterministic guardrail (the "hooks, not prompts" lesson): even if a
       // prompt goes wrong, no write/execute tool can ever run in this demo.
       canUseTool: async (toolName) => {
@@ -118,27 +139,66 @@ export function runAudit(repoPath: string, emit: (e: DemoEvent) => void): AuditH
     },
   });
 
+  let initSent = false;
   const done = (async () => {
     try {
       for await (const message of q) {
-        for (const event of translate(message, spawned)) emit(event);
+        for (const event of translate(message, spawned, lastText)) {
+          // Subagent sessions emit their own init events in live runs;
+          // only the first one describes the run the class is watching.
+          if (event.t === "init") {
+            if (initSent) continue;
+            initSent = true;
+          }
+          if (event.t === "sub_done") {
+            if (doneIds.has(event.parentId)) continue;
+            doneIds.add(event.parentId);
+          }
+          emit(event);
+        }
       }
     } catch (err) {
-      emit({ t: "error", msg: err instanceof Error ? err.message : String(err) });
+      const msg = err instanceof Error ? err.message : String(err);
+      // A user-initiated stop is not an error worth alarming the class with.
+      if (!abort.signal.aborted) emit({ t: "error", msg });
     }
   })();
 
-  return { interrupt: () => q.interrupt(), done };
+  return {
+    interrupt: async () => {
+      abort.abort();
+      try {
+        q.close();
+      } catch {
+        // already closed
+      }
+    },
+    done,
+  };
 }
 
 /** Turn one SDKMessage into zero or more DemoEvents. */
-function translate(message: SDKMessage, spawned: Map<string, string>): DemoEvent[] {
+function translate(
+  message: SDKMessage,
+  spawned: Map<string, string>,
+  lastText: Map<string, string>,
+): DemoEvent[] {
   const events: DemoEvent[] = [];
 
   switch (message.type) {
     case "system": {
       if (message.subtype === "init") {
         events.push({ t: "init", model: message.model, tools: message.tools });
+      } else if (message.subtype === "task_notification") {
+        // Background subagents finish HERE, not in their launch tool_result.
+        const id = message.tool_use_id;
+        if (id && spawned.has(id)) {
+          const result =
+            message.status === "completed"
+              ? (lastText.get(id) ?? message.summary)
+              : `Subagent ${message.status}: ${message.summary}`;
+          events.push({ t: "sub_done", parentId: id, result, tokens: message.usage?.total_tokens });
+        }
       }
       break;
     }
@@ -150,11 +210,12 @@ function translate(message: SDKMessage, spawned: Map<string, string>): DemoEvent
 
       for (const block of blocks) {
         if (block.type === "text" && block.text.trim()) {
-          events.push(
-            fromSubagent
-              ? { t: "sub_text", parentId: message.parent_tool_use_id!, text: block.text }
-              : { t: "coord_text", text: block.text },
-          );
+          if (fromSubagent) {
+            lastText.set(message.parent_tool_use_id!, block.text);
+            events.push({ t: "sub_text", parentId: message.parent_tool_use_id!, text: block.text });
+          } else {
+            events.push({ t: "coord_text", text: block.text });
+          }
         } else if (block.type === "tool_use") {
           if (!fromSubagent && SPAWN_TOOL_NAMES.has(block.name)) {
             const input = block.input as {
@@ -201,11 +262,18 @@ function translate(message: SDKMessage, spawned: Map<string, string>): DemoEvent
           "tool_use_id" in block &&
           spawned.has(block.tool_use_id as string)
         ) {
-          events.push({
-            t: "sub_done",
-            parentId: block.tool_use_id as string,
-            result: extractResultText(block.content),
-          });
+          const text = extractResultText(block.content);
+          // A background launch acknowledgment is a receipt, not the report.
+          const isLaunchStub =
+            text.includes("Async agent launched successfully") ||
+            (text.includes("agentId:") && text.includes("background"));
+          if (!isLaunchStub) {
+            events.push({
+              t: "sub_done",
+              parentId: block.tool_use_id as string,
+              result: text,
+            });
+          }
         }
       }
       break;
@@ -213,12 +281,20 @@ function translate(message: SDKMessage, spawned: Map<string, string>): DemoEvent
 
     case "result": {
       if (message.subtype === "success") {
+        // usage covers the MAIN loop only (the coordinator), per the SDK docs.
+        const u = message.usage;
+        const coordTokens =
+          (u?.input_tokens ?? 0) +
+          (u?.output_tokens ?? 0) +
+          (u?.cache_read_input_tokens ?? 0) +
+          (u?.cache_creation_input_tokens ?? 0);
         events.push({
           t: "result",
           report: message.result,
           costUsd: message.total_cost_usd ?? null,
           durationMs: message.duration_ms,
           numTurns: message.num_turns,
+          coordTokens,
         });
       } else {
         events.push({ t: "error", msg: `Run ended: ${message.subtype}` });
