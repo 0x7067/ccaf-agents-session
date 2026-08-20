@@ -6,7 +6,7 @@
   Foundations exam, plus colleagues who do not build agents every day.
 - Job: make MCP concrete enough that the audience can reason through exam
   scenarios and recognize the protocol in a real tool call.
-- Form: 30-minute browser-native deck with one deterministic local demo.
+- Form: 40-minute browser-native deck with one deterministic local demo.
 - Register: the same direct, conversational style as Part 1, pitched at the
   half of the room that does not build agents daily. Puncture the buzzword
   first, reach for the everyday analogy before the schema, and let the payloads
@@ -24,6 +24,23 @@
 
 https://ravnhq.github.io/claude-certified-architect/guides/en.html
 
+The specific guide sections behind this deck are:
+
+- [Chapter 2.1: What is `tool_use`](https://ravnhq.github.io/claude-certified-architect/guides/en.html#2-1-what-is-tool-use)
+  — the model emits a structured request and application code executes it.
+- [Chapter 2.2: Tool Definition](https://ravnhq.github.io/claude-certified-architect/guides/en.html#2-2-tool-definition)
+  — descriptions, schemas, and built-in-versus-MCP tool selection.
+- [Chapter 2.3: The `tool_choice` Parameter](https://ravnhq.github.io/claude-certified-architect/guides/en.html#2-3-the-tool-choice-parameter)
+  — `auto`, `any`, and forced named-tool selection.
+- [Chapter 2.4: JSON Schemas for Structured Output](https://ravnhq.github.io/claude-certified-architect/guides/en.html#2-4-json-schemas-for-structured-output)
+  — explicit structure, nullable fields, and an `other` enum value for honest
+  edge cases.
+- [Chapter 4: Model Context Protocol (MCP)](https://ravnhq.github.io/claude-certified-architect/guides/en.html#chapter-4-model-context-protocol-mcp)
+  — MCP concepts, servers, configuration, errors, and resources.
+- [Domain 2: Tool Design and MCP Integration](https://ravnhq.github.io/claude-certified-architect/guides/en.html#domain-2-tool-design-and-mcp-integration-18)
+  — the exam framing for descriptions, structured errors, `tool_choice`, MCP
+  integration, and built-in tools.
+
 Chapter 4 and Domain 2 supply the scope, and the deck stays inside it:
 
 - MCP exposes tools, resources, and prompts.
@@ -34,11 +51,11 @@ Chapter 4 and Domain 2 supply the scope, and the deck stays inside it:
 - Tool failures use `isError: true`; useful failures include enough context for
   retry, correction, or escalation.
 - A resource can provide a catalog or schema without exploratory tool calls.
-- Chapter 2.3 and Domain 2.3 supply slide 8: `tool_choice` is `auto`, `any`, or
+- Chapter 2.3 and Domain 2.3 supply slide 9: `tool_choice` is `auto`, `any`, or
   a forced named tool. Part 1 deferred this on the record, so Part 2 owes it.
-- Chapter 2.2 adds the point slide 7 carries: an agent will prefer a built-in
+- Chapter 2.2 adds the point slide 8 carries: an agent will prefer a built-in
   tool such as `Grep` over an MCP tool that sounds the same, so an MCP
-  description has to name the data the built-in tool cannot reach. Domain 2.4
+  description has to name the data the built-in tool cannot reach. Domain 2.5
   states the same skill.
 
 ### Deliberate exclusions

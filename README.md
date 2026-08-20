@@ -62,7 +62,7 @@ npm install
 npm run demo        # → open http://127.0.0.1:4848/part-2/slides.html
 ```
 
-On slide 14, click **Run live** to trace MCP discovery, a resource read, a
+On slide 15, click **Run live** to trace MCP discovery, a resource read, a
 successful tool call, a valid zero-result call, and a structured tool error.
 Run `npm run protocol` for the same trace as newline-delimited JSON.
 

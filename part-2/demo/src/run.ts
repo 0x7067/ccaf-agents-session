@@ -46,7 +46,7 @@ export async function runProtocol(emit: Emit, signal?: AbortSignal, delayMs = 65
   });
 
   try {
-    emit({ t: 'status', msg: 'launching a real stdio MCP server…' });
+    emit({ t: 'status', msg: 'launching a real stdio MCP server...' });
     emit({ t: 'connect', transport: 'stdio', command: `npx tsx ${path.relative(demoDir, serverPath)}` });
     await client.connect(transport);
     await sleep(delayMs, signal);

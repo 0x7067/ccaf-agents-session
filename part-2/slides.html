@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Part 2 · MCP and Tool Calling</title>
 <style>
   :root{
@@ -63,12 +63,20 @@
   .foot{position:absolute;left:84px;right:84px;bottom:24px;display:flex;justify-content:space-between;color:var(--faint);font-size:13px;letter-spacing:.04em}
   #hud{position:fixed;bottom:0;left:0;right:0;height:4px;background:#1c2438;z-index:50}#hudbar{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .2s}
   #pager{position:fixed;right:22px;bottom:13px;color:var(--faint);font:13px var(--mono);z-index:51}
+  #touch-nav{display:none;position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);align-items:center;gap:9px;padding:6px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px #0005;z-index:55}
+  #touch-nav button{min-width:80px;min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--ink);font-weight:800;cursor:pointer;touch-action:manipulation}
+  #touch-nav button:active{background:#31527a}#touch-nav button:disabled{opacity:.45;cursor:not-allowed}
+  #touch-nav button:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}#touch-nav span{color:var(--faint);font:11px var(--mono);white-space:nowrap}
   .keys b{font-family:var(--mono);color:var(--dim)}
   .click{cursor:pointer;background:none;border:0;border-bottom:1px dashed var(--acc);color:var(--acc);font:inherit}.click:hover{color:var(--acc2)}
   #modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:90;padding:24px}
   #modal.on{display:flex}.modal-box{width:min(900px,92vw);max-height:84vh;overflow:auto;background:var(--panel);border:1px solid #3a4b76;border-radius:17px;padding:24px}
   #modal-close{float:right;background:none;border:0;color:var(--dim);font-size:25px;cursor:pointer}.modal-box h3{margin-bottom:12px}.modal-box pre{background:#0b0e15;border:1px solid #232c44;border-radius:12px;padding:16px;font-size:13px;line-height:1.55;overflow:auto}
   .quote{font-size:26px;line-height:1.4;font-weight:720;border-left:4px solid var(--acc2);padding:12px 0 12px 23px}.quote small{display:block;color:var(--dim);font-size:15px;margin-top:12px;font-weight:500}
+  .chat-demo{background:var(--bg2);border:1px solid #232c44;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:11px;min-height:0;flex:1;justify-content:center}
+  .chat-head{display:flex;align-items:center;gap:9px;padding:0 2px 11px;border-bottom:1px solid #263049}.chat-avatar{width:27px;height:27px;border-radius:8px;background:var(--acc2);color:#0d1322;display:grid;place-items:center;font-weight:850;font-size:14px}.chat-head b{font-size:14px}.chat-head small{display:block;color:var(--dim);font:11px var(--mono);margin-top:2px}.chat-state{margin-left:auto;color:var(--acc2);font:10px var(--mono);text-transform:uppercase;letter-spacing:.1em}
+  .chat-messages{display:flex;flex-direction:column;gap:8px;min-height:0}.chat-row{display:flex}.chat-row.user{justify-content:flex-end}.chat-bubble{max-width:92%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 11px;font-size:14px;line-height:1.42}.chat-row.user .chat-bubble{background:#243352;border-color:#31527a}.chat-row.tool .chat-bubble{background:#233c37;border-color:#2e4a49}.chat-label{display:block;color:var(--faint);font:10px var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}.chat-bubble p{margin:0}.chat-call{margin-top:8px;background:#0b0e15;border:1px solid #2e4a49;border-radius:9px;padding:8px 9px}.chat-call-top{display:flex;align-items:center;gap:7px;font:12px var(--mono)}.chat-call-top b{color:var(--acc2);font-size:10px;letter-spacing:.08em;text-transform:uppercase}.chat-call-arg{display:flex;justify-content:space-between;gap:12px;margin-top:6px;color:var(--dim);font:12px var(--mono)}.chat-call-arg code{font-size:12px;padding:0;border:0;background:none}.chat-handoff{display:flex;align-items:center;gap:8px;color:var(--acc2);font:10px var(--mono);letter-spacing:.07em;text-transform:uppercase}.chat-handoff::before,.chat-handoff::after{content:'';height:1px;background:#2e4a49;flex:1}
+  .chat-call-button{width:100%;font:inherit;color:inherit;text-align:left;cursor:pointer;transition:border-color .15s,background .15s}.chat-call-button:hover{border-color:var(--acc2);background:#101a22}.chat-call-button:focus-visible,.chat-inspect:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}.chat-inspect{margin-left:8px;border:0;border-bottom:1px dashed var(--acc2);padding:0;background:none;color:var(--acc2);font:10px var(--mono);cursor:pointer;text-transform:uppercase;letter-spacing:.05em}
   .wire{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch;flex:1}
   .wire .card pre{font-size:13px;line-height:1.55;overflow:auto;flex:1;background:#0b0e15;border-radius:10px;padding:13px;border:1px solid #232c44}
   .trace{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;font:15px var(--mono);margin-top:20px}.trace span{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 13px}.trace i{color:var(--acc2);font-style:normal}
@@ -91,8 +99,8 @@
 
   @media (prefers-reduced-motion:reduce){.slide.on{animation:none}*{scroll-behavior:auto!important}}
   @media (max-width:900px){
-    .slide{padding:32px 26px 84px;overflow:auto}h1{font-size:44px}h2{font-size:33px}.body{flex-direction:column}.cards,.two,.wire{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.foot{display:none}.sub{font-size:18px}.cards{padding-bottom:24px}.topics{width:100%;align-items:stretch}.topics span{overflow-wrap:anywhere}.topics code{white-space:normal;overflow-wrap:anywhere}
-    .slide.demo{padding:22px 20px 84px;overflow:auto}.demo-head{flex-wrap:wrap}.demo-head h2{flex:0 0 100%}.demo-head .spacer{display:none}.demo-head .btn{font-size:12px;padding:7px 10px}.demo-grid{display:flex;flex-direction:column;flex:none}.demo-left,.demo-right{min-height:470px}.protocol-map{grid-template-columns:1fr 16px 1fr 16px 1fr;gap:3px;padding:10px}.pnode{min-width:0;padding:8px 3px}.pnode b{font-size:11px}.pnode small{font-size:8px}.parrow{font-size:14px}.cap{grid-template-columns:1fr}.pane{min-height:320px}
+    #touch-nav{display:flex;top:max(12px,env(safe-area-inset-top));bottom:auto}#pager{display:none}.slide{padding:92px 26px 32px;overflow:auto}h1{font-size:44px}h2{font-size:33px}.body{flex-direction:column}.cards,.two,.wire{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.foot{display:none}.sub{font-size:18px}.cards{padding-bottom:24px}.topics{width:100%;align-items:stretch}.topics span{overflow-wrap:anywhere}.topics code{white-space:normal;overflow-wrap:anywhere}.intro-tool .body .col:last-child{order:-1}.intro-tool .chat-demo{flex:none;min-height:390px}table{table-layout:fixed;font-size:14px}th,td{padding:9px 6px;overflow-wrap:anywhere}th:nth-child(1),td:nth-child(1){width:20%}th:nth-child(2),td:nth-child(2){width:43%}th:nth-child(3),td:nth-child(3){width:37%}
+    .slide.demo{padding:84px 20px 32px;overflow:auto}.demo-head{flex-wrap:wrap}.demo-head h2{flex:0 0 100%}.demo-head .spacer{display:none}.demo-head .btn{font-size:12px;padding:7px 10px}.demo-grid{display:flex;flex-direction:column;flex:none}.demo-left,.demo-right{min-height:470px}.protocol-map{grid-template-columns:1fr 16px 1fr 16px 1fr;gap:3px;padding:10px}.pnode{min-width:0;padding:8px 3px}.pnode b{font-size:11px}.pnode small{font-size:8px}.parrow{font-size:14px}.cap{grid-template-columns:1fr}.pane{min-height:320px}
   }
 </style>
 </head>
@@ -103,65 +111,63 @@
   <div class="body" style="flex-direction:column;justify-content:center;gap:24px">
     <div class="kicker">CCAF crash course · Part 2</div>
     <h1>MCP and Tool Calling</h1>
-    <p class="sub">Last session we gave Claude hands. Today: where the hands come from, and what happens when one of them says no.</p>
+    <p class="sub">Last session we gave Claude hands. Today we see how MCP supplies them, then watch one tool succeed and fail.</p>
   </div>
   <div class="foot"><span>Ravn AI Development Office Hours</span><span class="keys">navigate: <b>←</b> <b>→</b> · fullscreen: <b>F</b></span></div>
 </section>
 
 <section class="slide divider">
   <div class="body">
-    <h1>What we are actually learning</h1>
+    <h1>What you will be able to explain</h1>
     <div class="topics">
-      <span>How a model that only writes text gets anything done</span>
-      <span>MCP as a contract between a host and external systems</span>
+      <span>How a text-only model gets work done</span>
+      <span>MCP's contract between a host and external systems</span>
       <span>The difference between <b>tools</b>, <b>resources</b>, and <b>prompts</b></span>
-      <span>Who decides that a tool runs: the description, and <code>tool_choice</code></span>
-      <span>Project vs personal configuration</span>
-      <span>A real tool call, live: one that works, and one that fails</span>
+      <span>How descriptions guide selection, and how <code>tool_choice</code> can force a call</span>
+      <span>Where project and personal servers belong</span>
+      <span>A live trace with a successful call and a failed call</span>
     </div>
   </div>
 </section>
 
-<section class="slide">
-  <div class="kicker">Start here · Claude only reads and writes text</div>
-  <h2>So how does it run code, or call a service?</h2>
+<section class="slide intro-tool">
+  <div class="kicker">Start here · Claude asks. Your application acts.</div>
+  <h2>If Claude only writes text, who runs the tool?</h2>
   <div class="body">
     <div class="col">
-      <div class="point"><span class="dot"></span><span>It does not. Claude cannot run code, open a file, or reach a service.</span></div>
-      <div class="point"><span class="dot"></span><span>When it needs something done, it writes a <b>request</b>: a tool name and some JSON.</span></div>
-      <div class="point"><span class="dot"></span><span><b>Your code</b> reads it, does the real work, and writes the answer back as more text.</span></div>
-      <div class="point good"><span class="dot"></span><span>Claude never touches your systems. It asks. Your side acts.</span></div>
-      <div class="analogy"><span class="tag">Kid version</span>Claude is behind a glass window. It can pass notes, nothing else. A <b>tool</b> is a note both sides agreed on.</div>
+      <div class="point"><span class="dot"></span><span>Claude sends a structured tool request. It does not execute code or call a service directly.</span></div>
+      <div class="point"><span class="dot"></span><span>Your application receives the request and invokes the MCP server.</span></div>
+      <div class="point"><span class="dot"></span><span>The MCP server runs the code and returns a structured result.</span></div>
+      <div class="point good"><span class="dot"></span><span>Your application puts that result back in Claude's context. Claude chooses the next step.</span></div>
+      <div class="analogy"><span class="tag">Analogy</span>Claude places the order. Your application takes it to the MCP server, which fulfills it and hands back the result.</div>
     </div>
     <div class="col">
-      <pre class="code"><span class="c">// our example all session: a service catalog</span>
-
-<span class="c">// the note Claude writes</span>
-{
-  <span class="f">"name"</span>: <span class="s">"lookup-service"</span>,
-  <span class="f">"input"</span>: { <span class="f">"service"</span>: <span class="s">"checkout-api"</span> }
-}
-
-<span class="c">// the note your code writes back</span>
-{
-  <span class="f">"content"</span>: <span class="s">"owner: Payments team, tier 1"</span>
-}</pre>
+      <div class="chat-demo" aria-label="Mock Claude conversation showing a tool call">
+        <div class="chat-head"><span class="chat-avatar">C</span><div><b>Claude</b><small>tool calling</small></div><span class="chat-state">click to inspect</span></div>
+        <div class="chat-messages">
+          <div class="chat-row user"><div class="chat-bubble"><span class="chat-label">You</span><p>Who owns <code>checkout-api</code>?</p></div></div>
+          <div class="chat-row"><div class="chat-bubble"><span class="chat-label">Claude</span><p>I'll look up the service.</p><button class="chat-call chat-call-button" type="button" data-dialog="toolcall" aria-label="Inspect the lookup-service tool request"><span class="chat-call-top"><b>tool use</b><code>lookup-service</code></span><span class="chat-call-arg"><span>service</span><code>"checkout-api"</code></span></button></div></div>
+          <div class="chat-handoff">your application calls the MCP server</div>
+          <div class="chat-row tool"><div class="chat-bubble"><span class="chat-label">Tool result <button class="chat-inspect" type="button" data-dialog="toolresult">inspect</button></span><p><b>Payments team</b> · tier 1</p></div></div>
+          <div class="chat-row"><div class="chat-bubble"><span class="chat-label">Claude</span><p><b>Payments team</b> owns <code>checkout-api</code>.</p></div></div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
 <section class="slide">
   <div class="kicker">The mental model · 1 of 3</div>
-  <h2>MCP is a contract, not an integration</h2>
+  <h2>MCP is like USB-C for tools</h2>
   <div class="body">
     <div class="col">
-      <div class="callout">Before MCP, every AI app needed a <em>custom adapter</em> for every external system.</div>
-      <div class="point"><span class="dot"></span><span>MCP standardizes how capabilities are <b>discovered</b>, called, and returned.</span></div>
-      <div class="point"><span class="dot"></span><span>The server does not need to know which model is using it.</span></div>
-      <div class="point"><span class="dot"></span><span>The model does not need custom code for every server.</span></div>
+      <div class="callout">Without a shared protocol, each AI app needs its own <em>adapter</em> for each external system.</div>
+      <div class="point"><span class="dot"></span><span>MCP standardizes how a client discovers a capability, calls it, and reads the result.</span></div>
+      <div class="point"><span class="dot"></span><span>A server does not need model-specific code.</span></div>
+      <div class="point"><span class="dot"></span><span>A client can connect to different servers without a new model integration for each one.</span></div>
     </div>
     <div class="col">
-      <div class="analogy"><span class="tag">Kid version</span><b>MCP is the shape of the plug.</b> The lamp and the wall can come from different companies. They work because both sides agree on the socket.</div>
+      <div class="analogy"><span class="tag">Analogy</span>An MCP server is like a phone full of apps. The apps do the work; Claude chooses which one to use through the host.</div>
       <pre class="code">host  ⇄  MCP client  ⇄  MCP server
 
 Claude Code              Jira
@@ -178,37 +184,37 @@ an agent                  your database</pre>
     <article class="card win">
       <div class="icon">tools/call</div>
       <h3>Tools act</h3>
-      <p>The model chooses a function and sends structured arguments.</p>
-      <p><code>process_refund</code><br><code>lookup_service</code></p>
+      <p>The model chooses a tool and sends structured arguments.</p>
+      <p><code>lookup-service</code><br><code>search-runbooks</code></p>
     </article>
     <article class="card">
       <div class="icon">resources/read</div>
       <h3>Resources inform</h3>
-      <p>The host reads data by URI and adds it to context. No side effect required.</p>
-      <p><code>db://schema/main</code><br><code>docs://catalog</code></p>
+      <p>The host reads data by URI and adds it to context. The read does not change the system.</p>
+      <p><button class="click" data-dialog="resource"><code>ravn://services/catalog</code></button><br><code>docs://catalog</code></p>
     </article>
     <article class="card">
       <div class="icon">prompts/get</div>
       <h3>Prompts start</h3>
       <p>A person chooses a reusable message template from a menu or command.</p>
-      <p><code>/triage-incident</code><br><code>/review-code</code></p>
+      <p><button class="click" data-dialog="prompt"><code>/triage-incident</code></button><br><code>/review-code</code></p>
     </article>
   </div>
-  <div class="foot"><span>Same test as last session, who decides? The model reaches for a tool, the app for a resource, a person for a prompt.</span><span>5</span></div>
+  <div class="foot"><span>The same question from last session: who decides? The model chooses a tool. The host reads a resource. A person selects a prompt.</span><span>5</span></div>
 </section>
 
 <section class="slide">
   <div class="kicker">The mental model · 3 of 3</div>
-  <h2>The host owns the whole loop</h2>
+  <h2>The host runs the whole loop</h2>
   <div class="flow">
-    <div class="node"><span class="pill a">host</span><strong>Claude Code</strong><span>Runs the model and decides what reaches its context.</span></div>
+    <div class="node"><span class="pill a">host</span><strong>Claude Code</strong><span>Runs the model and decides which results enter its context.</span></div>
     <div class="arrow">⇄</div>
-    <div class="node"><span class="pill b">client</span><strong>MCP client</strong><span>Negotiates, discovers, calls, and returns typed results.</span></div>
+    <div class="node"><span class="pill b">client</span><strong>MCP client</strong><span>Connects to the server, discovers its capabilities, sends calls, and returns results.</span></div>
     <div class="arrow">⇄</div>
     <div class="node"><span class="pill w">server</span><strong>Your system</strong><span>Exposes tools, resources, and prompts to the client.</span></div>
   </div>
   <div class="trace"><span>discover</span><i>→</i><span>model chooses</span><i>→</i><span>tools/call</span><i>→</i><span>tool result</span><i>→</i><span>model continues</span></div>
-  <div class="analogy" style="margin-top:14px"><span class="tag">Nothing new here</span>This is the same while loop from last session. MCP does not change the loop. It changes <b>where the tools come from</b>.</div>
+  <div class="analogy" style="margin-top:14px"><span class="tag">Analogy</span>This is the same while loop from last session. MCP does not change the loop. It changes <b>where the tools come from</b>.</div>
 </section>
 
 <section class="slide">
@@ -216,27 +222,36 @@ an agent                  your database</pre>
   <h2>The call starts before the call</h2>
   <div class="body">
     <div class="col">
-      <div class="point"><span class="dot"></span><span>The client runs <code>tools/list</code>.</span></div>
+      <div class="point"><span class="dot"></span><span>The MCP client sends <code>tools/list</code>.</span></div>
       <div class="point"><span class="dot"></span><span>The model receives each tool's <b>name</b>, <b>description</b>, and <b>input schema</b>.</span></div>
-      <div class="point"><span class="dot"></span><span>The model returns the chosen tool name plus JSON arguments.</span></div>
+      <div class="point"><span class="dot"></span><span>The model returns the chosen tool name plus structured JSON input.</span></div>
       <div class="point"><span class="dot"></span><span>The host passes those values to <code>tools/call</code>.</span></div>
-      <div class="analogy"><span class="tag">The important bit</span>Same as last session: the model asks, <b>your code runs it</b>. MCP only means that code now lives in a server someone else can reuse.</div>
+      <div class="analogy"><span class="tag">Analogy</span>Same as last session: the model asks, <b>your code runs the tool</b>. MCP puts that tool behind a server boundary so another host can use it too.</div>
     </div>
     <div class="col">
       <pre class="code"><span class="c">// what the model can see</span>
 {
   <span class="f">"name"</span>: <span class="s">"lookup-service"</span>,
-  <span class="f">"description"</span>: <span class="s">"Look up one service..."</span>,
+<span class="f">"description"</span>: <span class="s">"Look up one service..."</span>,
   <span class="f">"inputSchema"</span>: {
-    <span class="f">"service"</span>: <span class="s">"string"</span>
+    <span class="f">"type"</span>: <span class="s">"object"</span>,
+    <span class="f">"properties"</span>: {
+      <span class="f">"service"</span>: { <span class="f">"type"</span>: <span class="s">"string"</span> }
+    },
+    <span class="f">"required"</span>: [<span class="s">"service"</span>]
   }
 }
 
-<span class="c">// what the host calls</span>
-tools/call({
-  name: <span class="s">"lookup-service"</span>,
-  arguments: { service: <span class="s">"checkout-api"</span> }
-})</pre>
+<span class="c">// simplified JSON-RPC request; the SDK adds request metadata</span>
+{
+  <span class="f">"jsonrpc"</span>: <span class="s">"2.0"</span>,
+  <span class="f">"id"</span>: <span class="n">7</span>,
+  <span class="f">"method"</span>: <span class="s">"tools/call"</span>,
+  <span class="f">"params"</span>: {
+    <span class="f">"name"</span>: <span class="s">"lookup-service"</span>,
+    <span class="f">"arguments"</span>: { <span class="f">"service"</span>: <span class="s">"checkout-api"</span> }
+  }
+}</pre>
     </div>
   </div>
 </section>
@@ -250,27 +265,28 @@ tools/call({
       <h3>"Gets service information"</h3>
       <p>Which identifier? What comes back? Should it search? When is another tool better?</p>
       <div class="point bad"><span class="dot"></span><span>The model has to guess.</span></div>
+      <div class="point bad"><span class="dot"></span><span>It may call the wrong tool—or skip tools and guess.</span></div>
     </article>
     <article class="card win">
-      <span class="pill b">discriminating</span>
+      <span class="pill b">specific</span>
       <h3>"Look up one service by exact catalog name"</h3>
       <p>Returns owner, tier, runbook, and health signals. Read the catalog resource first if the name is uncertain.</p>
       <div class="point good"><span class="dot"></span><span>The boundary tells the model when <b>not</b> to call it.</span></div>
     </article>
   </div>
-  <div class="analogy" style="margin-top:14px"><span class="tag">Exam instinct</span>An agent reaches for a built-in tool like <b>Grep</b> before an MCP tool that sounds the same. Name the data or context your server has that the built-in one cannot reach.</div>
-  <div class="foot"><span><button class="click" data-dialog="description">Open the five-part description checklist</button></span><span>8</span></div>
+  <div class="analogy" style="margin-top:14px"><span class="tag">Analogy</span>An agent reaches for a built-in tool like <b>Grep</b> before an MCP tool that sounds the same. Name the data or context your server has that the built-in one cannot reach.</div>
+  <div class="foot"><span><button class="click" data-dialog="description">Open the description + JSON schema example</button></span><span>8</span></div>
 </section>
 
 <section class="slide">
   <div class="kicker">Tool calling · 3 of 4</div>
-  <h2><code>tool_choice</code> decides who decides</h2>
+  <h2>What <code>tool_choice</code> controls</h2>
   <div class="cards">
     <article class="card win">
       <div class="icon">auto</div>
       <h3><code>{"type":"auto"}</code></h3>
       <p>The model decides whether to call a tool at all, or just answer in text.</p>
-      <div class="point good"><span class="dot"></span><span>The default. What you want for a conversational agent.</span></div>
+      <div class="point good"><span class="dot"></span><span>The default for a conversational agent.</span></div>
     </article>
     <article class="card">
       <div class="icon">any</div>
@@ -280,12 +296,12 @@ tools/call({
     </article>
     <article class="card">
       <div class="icon">forced</div>
-      <h3><code>{"type":"tool","name":"…"}</code></h3>
+      <h3><code>{"type":"tool","name":"..."}</code></h3>
       <p>The model must call that exact tool.</p>
-      <div class="point"><span class="dot"></span><span>Use it to guarantee a first step, such as <code>extract_metadata</code> before enrichment.</span></div>
+      <div class="point"><span class="dot"></span><span>Use it when a particular tool must run first, such as <code>extract_metadata</code> before enrichment.</span></div>
     </article>
   </div>
-  <div class="analogy" style="margin-top:14px"><span class="tag">Exam instinct</span>A good description makes the right tool <b>likely</b>. <code>tool_choice</code> makes a tool call <b>certain</b>. The host sets it on the API request; the MCP server never sees it.</div>
+  <div class="analogy" style="margin-top:14px"><span class="tag">Analogy</span>A good description makes the right tool <b>likely</b>. <code>tool_choice</code> makes a tool call <b>certain</b>. The host sets it on the API request; the MCP server never sees it.</div>
 </section>
 
 <section class="slide">
@@ -295,17 +311,17 @@ tools/call({
     <article class="card">
       <span class="pill b">resource</span>
       <h3><code>ravn://services/catalog</code></h3>
-      <p>One read shows every known service, owner, tier, and runbook.</p>
-      <div class="point good"><span class="dot"></span><span>Immediate context without a chain of exploratory calls.</span></div>
+      <p>One read returns the service names, owners, tiers, and runbooks.</p>
+      <div class="point good"><span class="dot"></span><span>The host gets the catalog in one read instead of making exploratory calls.</span></div>
     </article>
     <article class="card win">
       <span class="pill a">tool</span>
       <h3><code>lookup-service</code></h3>
-      <p>One call asks for a specific record after the exact name is known.</p>
-      <div class="point good"><span class="dot"></span><span>Small input, small result, clear intent.</span></div>
+      <p>One call returns a specific record after the exact name is known.</p>
+      <div class="point good"><span class="dot"></span><span>It takes one exact name and returns one record.</span></div>
     </article>
   </div>
-  <div class="analogy" style="margin-top:16px"><span class="tag">Exam instinct</span>Last session, tools gave Claude hands. A resource gives it a <b>map</b>. If the agent is opening every drawer just to learn what exists, it needs the map, not more hands.</div>
+  <div class="analogy" style="margin-top:16px"><span class="tag">Analogy</span>Last session, tools gave Claude hands. A resource gives it a <b>map</b>. If the model has to open every drawer to learn what exists, give it the map first.</div>
 </section>
 
 <section class="slide">
@@ -315,10 +331,10 @@ tools/call({
     <div class="col">
       <table>
         <tr><th>Scope</th><th>Who gets it</th><th>Where</th></tr>
-        <tr><td>user</td><td>You, personal and experimental</td><td><code>~/.claude.json</code></td></tr>
-        <tr><td>project</td><td>Every contributor, through version control</td><td><code>.mcp.json</code></td></tr>
+        <tr><td>user</td><td>You. Personal or experimental.</td><td><code>~/.claude.json</code></td></tr>
+        <tr><td>project</td><td>Everyone on the project, through version control</td><td><code>.mcp.json</code></td></tr>
       </table>
-      <div class="analogy"><span class="tag">Exam answer</span>Team setup belongs in <b><code>.mcp.json</code></b>, personal experiments in <b><code>~/.claude.json</code></b>. In plain terms: the toolbox bolted into the shared van, or the one in your own garage.</div>
+      <div class="analogy"><span class="tag">Analogy</span>Team setup belongs in <b><code>.mcp.json</code></b>, personal experiments in <b><code>~/.claude.json</code></b>. The team toolbox is bolted into the shared van. Your experiments stay in your own garage.</div>
     </div>
     <div class="col">
       <pre class="code">{
@@ -332,7 +348,7 @@ tools/call({
     }
   }
 }</pre>
-      <div class="point bad"><span class="dot"></span><span>Commit the reference, <b>never the secret</b>.</span></div>
+      <div class="point bad"><span class="dot"></span><span><button class="click" data-dialog="secrets">Commit the config, <b>never the secret</b>.</button></span></div>
     </div>
   </div>
 </section>
@@ -347,7 +363,7 @@ tools/call({
   "isError": true,
   "content": "Operation failed"
 }</pre>
-      <p>This is last session&rsquo;s &ldquo;refund unsuccessful&rdquo;. Retry? Fix the input? Ask for access? Claude cannot tell, so the loop ends.</p>
+      <p>Last session's "refund unsuccessful" response leaves the model with no next step. Should it retry, fix the input, or ask for access? It cannot tell.</p>
     </article>
     <article class="card win">
       <span class="pill b">recoverable</span>
@@ -361,6 +377,7 @@ tools/call({
     "partialResults": null
   }
 }</pre>
+      <p>The model knows what failed and how to recover.</p>
     </article>
   </div>
   <div class="foot"><span>The model reads tool errors. The client handles protocol errors.</span><span>12</span></div>
@@ -386,20 +403,20 @@ tools/call({
   <span class="f">"errorCategory"</span>: <span class="s">"permission"</span>,
   <span class="f">"isRetryable"</span>: <span class="n">false</span>
 }</pre>
-      <p>The search never ran. The agent needs another route, or a human.</p>
+      <p>The search did not complete. Use another route or ask a human.</p>
     </article>
   </div>
-  <div class="foot"><span>&ldquo;There is no toilet paper&rdquo; is an answer. &ldquo;I could not get into the bathroom&rdquo; is not. Confuse them and the agent goes shopping instead of asking for a key.</span><span>13</span></div>
+  <div class="foot"><span>"No toilet paper" is an answer. "The door is locked" is not. Confuse them and the agent goes shopping instead of asking for a key.</span><span>13</span></div>
 </section>
 
 <section class="slide divider">
   <div class="body">
-    <h1>Live protocol, no hand waving</h1>
+    <h1>Let's trace the real protocol</h1>
     <div class="topics">
       <span>A client launches a real MCP server over stdio</span>
       <span><code>tools/list</code>, <code>resources/list</code>, and <code>prompts/list</code></span>
-      <span>One resource read and three real tool calls</span>
-      <span>Success, empty success, then <code>isError: true</code></span>
+      <span>One resource read, followed by three tool calls</span>
+      <span>A successful result, an empty result, then <code>isError: true</code></span>
     </div>
   </div>
 </section>
@@ -407,7 +424,7 @@ tools/call({
 <section class="slide demo">
   <div class="demo-head">
     <h2>Live MCP trace</h2>
-    <span id="demo-status">connecting…</span>
+    <span id="demo-status">connecting...</span>
     <span class="spacer"></span>
     <span id="demo-counts">0 discovered · 0 calls · 0 errors</span>
     <button class="btn" id="run-live">Run live</button>
@@ -430,7 +447,7 @@ tools/call({
         <button class="tab on" data-pane="payload-pane">Payload</button>
         <button class="tab" data-pane="cap-pane">Discovered</button>
       </div>
-      <div class="pane on" id="payload-pane"><h3>Click any event to inspect it</h3><pre id="payload">Run the demo, then narrate each request and result.</pre></div>
+      <div class="pane on" id="payload-pane"><h3>Click an event to inspect it</h3><pre id="payload">Run the demo, then inspect each request and result.</pre></div>
       <div class="pane" id="cap-pane"><h3>Server capabilities</h3><div class="cap" id="capabilities"><div class="mini"><b>Tools</b><span>waiting</span></div><div class="mini"><b>Resources</b><span>waiting</span></div><div class="mini"><b>Prompts</b><span>waiting</span></div></div></div>
     </div>
   </div>
@@ -442,13 +459,13 @@ tools/call({
   <div class="body">
     <div class="col">
       <div class="point good"><span class="dot"></span><span>The client launched the server and completed the initialize handshake.</span></div>
-      <div class="point good"><span class="dot"></span><span>Discovery returned plain schemas. That is the toolbox a model receives.</span></div>
-      <div class="point good"><span class="dot"></span><span>The resource gave us the map before we asked for one service.</span></div>
-      <div class="point good"><span class="dot"></span><span><code>tools/call</code> returned ordinary content on success.</span></div>
-      <div class="point good"><span class="dot"></span><span>The failed call stayed inside the loop as readable <code>isError: true</code> content.</span></div>
+      <div class="point good"><span class="dot"></span><span>Discovery returned the names, descriptions, and schemas the model can use.</span></div>
+      <div class="point good"><span class="dot"></span><span>The resource gave us the catalog before we asked for one service.</span></div>
+      <div class="point good"><span class="dot"></span><span>The successful <code>tools/call</code> returned the service record.</span></div>
+      <div class="point good"><span class="dot"></span><span>The failed call returned <code>isError: true</code> with a recovery message, so the loop could continue.</span></div>
     </div>
     <div class="col">
-      <div class="quote">Nothing magical crossed the wire. Names, schemas, JSON arguments, and typed results did.<small>The model adds judgment. MCP supplies the contract.</small></div>
+      <div class="quote">The wire carried names, schemas, JSON arguments, and results.<small>The model supplied judgment. MCP supplied the contract.</small></div>
     </div>
   </div>
 </section>
@@ -458,10 +475,10 @@ tools/call({
   <h2>Use the smallest server that solves the real gap</h2>
   <div class="cards">
     <article class="card win"><div class="icon">reuse</div><h3>Standard integration?</h3><p>Start with an existing maintained server. Jira does not become special because your agent calls it.</p></article>
-    <article class="card"><div class="icon">build</div><h3>Unique team workflow?</h3><p>Build a narrow server with clear permissions and descriptions.</p></article>
+    <article class="card"><div class="icon">build</div><h3>Unique team workflow?</h3><p>Build a narrow server for the team-specific gap, with clear permissions and descriptions.</p></article>
     <article class="card"><div class="icon">remove</div><h3>No longer useful?</h3><p>Disconnect it. Every loaded tool definition consumes context and adds another choice.</p></article>
   </div>
-  <div class="analogy" style="margin-top:16px"><span class="tag">Exam smell</span>Eighteen overlapping tools are not flexibility. They are a multiple-choice test you force the model to take on every turn.</div>
+  <div class="analogy" style="margin-top:16px"><span class="tag">Analogy</span>Eighteen overlapping tools turn every turn into a multiple-choice test. Add a tool when it gives the model access to something it cannot get another way.</div>
 </section>
 
 <section class="slide divider">
@@ -469,8 +486,8 @@ tools/call({
     <h1>Exam summary</h1>
     <div class="topics">
       <span>Tool design and MCP integration carry <b>18%</b> of the exam</span>
-      <span>Most questions test the trade-off, not the command</span>
-      <span>Choose the answer that makes recovery and scope explicit</span>
+      <span>Most questions test the trade-off, not the syntax</span>
+      <span>Choose the answer that makes scope and recovery explicit</span>
     </div>
   </div>
 </section>
@@ -479,7 +496,7 @@ tools/call({
   <div class="kicker">Summary · 1 of 2</div>
   <h2>Match the primitive to the job</h2>
   <div class="cards">
-    <article class="card win"><div class="icon">tool</div><h3>Let the model act</h3><p>Use a tool with a discriminating description, narrow schema, and useful errors.</p></article>
+    <article class="card win"><div class="icon">tool</div><h3>Let the model act</h3><p>Use a tool with a specific description, narrow schema, and useful errors.</p></article>
     <article class="card"><div class="icon">resource</div><h3>Give the host a map</h3><p>Use a resource for read-only context, catalogs, schemas, and documents.</p></article>
     <article class="card"><div class="icon">prompt</div><h3>Give people a starting point</h3><p>Use a prompt for reusable workflows people choose from a menu or command.</p></article>
   </div>
@@ -489,14 +506,14 @@ tools/call({
   <div class="kicker">Summary · 2 of 2</div>
   <h2>Match the configuration to the owner</h2>
   <div class="two">
-    <article class="card win"><span class="pill b">team</span><h3><code>.mcp.json</code></h3><p>Project-scoped, version-controlled, reviewed, and approved after cloning.</p><div class="point bad"><span class="dot"></span><span>References environment variables. Contains no secret values.</span></div></article>
-    <article class="card"><span class="pill a">you</span><h3><code>~/.claude.json</code></h3><p>User-scoped servers for personal use and experiments.</p><div class="point"><span class="dot"></span><span>Lives in your home directory. Never shared through version control.</span></div></article>
+    <article class="card win"><span class="pill b">team</span><h3><code>.mcp.json</code></h3><p>Project-scoped and version-controlled. Review the server command before running it from a cloned project.</p><div class="point bad"><span class="dot"></span><span>Use environment variables for secrets. Keep the secret values out of the file.</span></div></article>
+    <article class="card"><span class="pill a">you</span><h3><code>~/.claude.json</code></h3><p>User-scoped servers for personal use and experiments.</p><div class="point"><span class="dot"></span><span>Stays in your home directory. Do not put it in version control.</span></div></article>
   </div>
 </section>
 
 <section class="slide">
   <div class="kicker">If you remember seven sentences</div>
-  <h2>That is enough to reason through the questions</h2>
+  <h2>Seven sentences are enough for the exam questions</h2>
   <div class="body">
     <div class="col">
       <div class="point"><span class="dot"></span><span>MCP is a protocol, not a vendor integration.</span></div>
@@ -506,14 +523,20 @@ tools/call({
     </div>
     <div class="col">
       <div class="point"><span class="dot"></span><span>Project servers go in <code>.mcp.json</code>. Personal servers stay in <code>~/.claude.json</code>.</span></div>
-      <div class="point"><span class="dot"></span><span>Secrets come from the environment, never version control.</span></div>
+      <div class="point"><span class="dot"></span><span>Keep secrets in environment variables, not in version control.</span></div>
       <div class="point"><span class="dot"></span><span><code>isError: true</code> must include enough context to recover.</span></div>
-      <div class="analogy"><span class="tag">Questions?</span>If an answer adds complexity without improving scope, selection, or recovery, it is probably not the best answer.</div>
+      <div class="analogy"><span class="tag">Exam</span>Prefer the answer that makes scope, tool selection, or recovery explicit.</div>
     </div>
   </div>
 </section>
 
 </main>
+
+<nav id="touch-nav" aria-label="Slide navigation">
+  <button type="button" id="prev-slide">Previous</button>
+  <span id="touch-hint" aria-live="polite">Slide 1</span>
+  <button type="button" id="next-slide">Next</button>
+</nav>
 
 <div id="hud"><div id="hudbar"></div></div>
 <footer id="pager" aria-live="polite"></footer>
@@ -525,14 +548,18 @@ tools/call({
 const slides=[...document.querySelectorAll('.slide')];
 let current=Math.max(0,Math.min(slides.length-1,(Number(location.hash.slice(1))||1)-1));
 const pager=document.getElementById('pager'),hudbar=document.getElementById('hudbar');
+const previousButton=document.getElementById('prev-slide'),nextButton=document.getElementById('next-slide'),touchHint=document.getElementById('touch-hint');
 function show(index){
   current=Math.max(0,Math.min(slides.length-1,index));
   slides.forEach((slide,i)=>slide.classList.toggle('on',i===current));
   pager.textContent=`${current+1} / ${slides.length}`;
+  touchHint.textContent=`${current+1} / ${slides.length}`;
   hudbar.style.width=`${((current+1)/slides.length)*100}%`;
+  previousButton.disabled=current===0;nextButton.disabled=current===slides.length-1;
   history.replaceState(null,'',`#${current+1}`);
 }
 function next(){show(current+1)}function previous(){show(current-1)}
+previousButton.addEventListener('click',previous);nextButton.addEventListener('click',next);
 document.addEventListener('keydown',event=>{
   if(document.getElementById('modal').classList.contains('on')){if(event.key==='Escape')closeModal();return}
   if(['ArrowRight','PageDown',' '].includes(event.key)){event.preventDefault();next()}
@@ -540,18 +567,133 @@ document.addEventListener('keydown',event=>{
   if(event.key.toLowerCase()==='f')document.documentElement.requestFullscreen?.();
   if(event.key==='Home')show(0);if(event.key==='End')show(slides.length-1);
 });
+let touchStart=null;
+const swipeIgnore='button,a,input,textarea,select,pre,[data-no-swipe]';
+document.getElementById('deck').addEventListener('touchstart',event=>{
+  if(event.touches.length!==1||document.getElementById('modal').classList.contains('on')||event.target.closest?.(swipeIgnore)){touchStart=null;return}
+  const touch=event.touches[0];touchStart={x:touch.clientX,y:touch.clientY,at:Date.now()};
+},{passive:true});
+document.getElementById('deck').addEventListener('touchend',event=>{
+  if(!touchStart||document.getElementById('modal').classList.contains('on')){touchStart=null;return}
+  const touch=event.changedTouches[0],dx=touch.clientX-touchStart.x,dy=touch.clientY-touchStart.y,elapsed=Date.now()-touchStart.at;touchStart=null;
+  if(elapsed>800||Math.abs(dx)<48||Math.abs(dx)<Math.abs(dy)*1.2)return;
+  if(dx<0)next();else previous();
+},{passive:true});
+document.getElementById('deck').addEventListener('touchcancel',()=>{touchStart=null},{passive:true});
 show(current);
 
 const dialogs={
-  description:{title:'The five-part tool description',html:`<pre>1. Purpose: what the tool does.
+  description:{title:'Description + JSON schema',html:`<pre>1. Purpose: what the tool does.
 2. Output: what comes back.
 3. Input: formats plus one example value.
 4. Edge cases: empty results, limits, and permissions.
-5. Boundary: when to use the neighboring tool instead.
+5. Boundary: when to use another tool instead.
 
-The boundary is the part most teams skip. It is also the sentence that stops misrouting.</pre>`}
+The boundary tells the model when to choose another tool.</pre><p>Then make the expected structure explicit with JSON Schema:</p><pre>{
+  "type": "object",
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": ["bug", "feature", "other"]
+    },
+    "category_detail": {
+      "type": ["string", "null"]
+    }
+  },
+  "required": ["category"]
+}</pre><p>If a value can fall outside the known enum, include <code>other</code> and a detail field. Do not force the model to choose a false match.</p>`},
+  resource:{title:'What a real resource contains',html:`<p>A resource is read-only context addressed by a URI. A <code>resources/read</code> response wraps its contents:</p><pre>{
+  "contents": [{
+    "uri": "ravn://services/catalog",
+    "mimeType": "application/json",
+    "text": "service names, owners, tiers, runbooks"
+  }]
+}</pre><p>It gives the model a map of what exists without making exploratory tool calls.</p>`},
+  prompt:{title:'What a real prompt returns',html:`<p>A prompt is a reusable starting point that a person chooses. A <code>prompts/get</code> response returns messages:</p><pre>{
+  "messages": [{
+    "role": "user",
+    "content": {
+      "type": "text",
+      "text": "Triage checkout-api using its runbook."
+    }
+  }]
+}</pre><p>The person starts the workflow; the prompt does not perform the tool call itself.</p>`},
+  toolcall:{title:'The request Claude cannot run',html:`<p>Claude returns a client-side <code>tool_use</code> block. Your application still has to invoke the MCP server.</p><pre>Claude response content block
+{
+  "type": "tool_use",
+  "id": "toolu_01ABC",
+  "name": "lookup-service",
+  "input": { "service": "checkout-api" }
+}
+
+MCP JSON-RPC request; SDK metadata omitted
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "method": "tools/call",
+  "params": {
+    "name": "lookup-service",
+    "arguments": { "service": "checkout-api" }
+  }
+}</pre><p>The model supplies intent and input. The application sends the MCP request and runs the tool.</p>`},
+  toolresult:{title:'The result Claude can read',html:`<p>The MCP server returns a tool result with a <code>content</code> array. Your application maps that result back to Claude as a <code>tool_result</code>.</p><pre>MCP tools/call result
+{
+  "content": [{
+    "type": "text",
+    "text": "{ \\\"service\\\": \\\"checkout-api\\\", \\\"owner\\\": \\\"Payments team\\\" }"
+  }]
+}</pre><pre>Anthropic user message content
+{
+  "type": "tool_result",
+  "tool_use_id": "toolu_01ABC",
+  "content": "Payments team owns checkout-api."
+}</pre><p>If execution fails, the MCP result can include <code>isError: true</code> so the model gets actionable recovery context.</p>`}
+  ,secrets:{title:'Reference secrets; do not commit them',html:`<p>The project config names the environment variable, not its value:</p><pre>{
+  "env": {
+    "ORDERS_TOKEN": "\${ORDERS_TOKEN}"
+  }
+}</pre><p>Your local environment supplies <code>ORDERS_TOKEN</code>—often through a local <code>.env</code> workflow that stays out of version control. Commit <code>.mcp.json</code>; keep the token and <code>.env</code> file private.</p>`}
 };
-function openModal(key){const item=dialogs[key];if(!item)return;document.getElementById('modal-title').textContent=item.title;document.getElementById('modal-body').innerHTML=item.html;document.getElementById('modal').classList.add('on')}
+const syntaxKeywords=new Set(['tool_use','tools/list','tools/call','resources/list','resources/read','prompts/list','prompts/get','true','false','null']);
+function escapeHtml(value){return value.replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
+function highlightCode(source){
+  let output='',index=0;
+  const token=(className,value)=>`<span class="${className}">${escapeHtml(value)}</span>`;
+  while(index<source.length){
+    const rest=source.slice(index);
+    if(rest.startsWith('//')){
+      const end=source.indexOf('\n',index);const stop=end<0?source.length:end;
+      output+=token('c',source.slice(index,stop));index=stop;continue;
+    }
+    if(rest.startsWith('/*')){
+      const end=source.indexOf('*/',index+2);const stop=end<0?source.length:end+2;
+      output+=token('c',source.slice(index,stop));index=stop;continue;
+    }
+    if(source[index]==='"'){
+      let end=index+1,escaped=false;
+      while(end<source.length){
+        const char=source[end];
+        if(char==='"'&&!escaped){end++;break}
+        escaped=char==='\\'&&!escaped; if(char!=='\\')escaped=false; end++;
+      }
+      let cursor=end;while(/\s/.test(source[cursor]||''))cursor++;
+      output+=token(source[cursor]===':'?'f':'s',source.slice(index,end));index=end;continue;
+    }
+    const number=rest.match(/^-?(?:\d+(?:\.\d+)?|\.\d+)/);
+    if(number){output+=token('n',number[0]);index+=number[0].length;continue}
+    const word=rest.match(/^[A-Za-z_][\w/-]*/);
+    if(word){output+=syntaxKeywords.has(word[0])?token(word[0]==='true'||word[0]==='false'||word[0]==='null'?'n':'k',word[0]):escapeHtml(word[0]);index+=word[0].length;continue}
+    output+=escapeHtml(source[index]);index++;
+  }
+  return output;
+}
+function highlightPre(pre){
+  if(pre.dataset.syntaxHighlighted==='true')return;
+  if(pre.querySelector('span')){pre.dataset.syntaxHighlighted='true';return}
+  pre.innerHTML=highlightCode(pre.textContent||'');pre.dataset.syntaxHighlighted='true';
+}
+function highlightAll(root=document){root.querySelectorAll('pre').forEach(highlightPre)}
+function openModal(key){const item=dialogs[key];if(!item)return;document.getElementById('modal-title').textContent=item.title;const body=document.getElementById('modal-body');body.innerHTML=item.html;highlightAll(body);document.getElementById('modal').classList.add('on')}
 function closeModal(){document.getElementById('modal').classList.remove('on')}
 document.querySelectorAll('[data-dialog]').forEach(el=>el.addEventListener('click',()=>openModal(el.dataset.dialog)));
 document.getElementById('modal-close').addEventListener('click',closeModal);
@@ -559,8 +701,9 @@ document.getElementById('modal').addEventListener('click',event=>{if(event.targe
 
 const log=document.getElementById('event-log'),payload=document.getElementById('payload');
 const counts={discovered:0,calls:0,errors:0};
+function setPayloadText(text){payload.textContent=text;delete payload.dataset.syntaxHighlighted;highlightPre(payload)}
 function resetDemo(){
-  log.innerHTML='';payload.textContent='Waiting for the first event…';counts.discovered=0;counts.calls=0;counts.errors=0;renderCounts();
+  log.innerHTML='';setPayloadText('Waiting for the first event...');counts.discovered=0;counts.calls=0;counts.errors=0;renderCounts();
   document.getElementById('capabilities').innerHTML='<div class="mini"><b>Tools</b><span>waiting</span></div><div class="mini"><b>Resources</b><span>waiting</span></div><div class="mini"><b>Prompts</b><span>waiting</span></div>';
   document.querySelectorAll('.pnode').forEach(node=>node.classList.remove('hot','good'));
 }
@@ -570,7 +713,7 @@ function inspectEvent(event){
   if(typeof view.text==='string'&&view.text.trim().startsWith('{')){
     try{view.content=JSON.parse(view.text);delete view.text}catch{}
   }
-  payload.textContent=JSON.stringify(view,null,2);
+  setPayloadText(JSON.stringify(view,null,2));
   document.querySelector('[data-pane="payload-pane"]').click();
 }
 function addEvent(event,kind,label){
@@ -595,21 +738,64 @@ function handle(event){
     case 'error':counts.errors++;renderCounts();document.getElementById('demo-status').textContent=event.msg;addEvent(event,'err',`<b>error</b> ${event.msg}`);break;
   }
 }
+const rehearsalEvents=[
+  {t:'status',msg:'rehearsal replay, no process spawned'},
+  {t:'connect',transport:'stdio',command:'npx tsx src/mcp-server.ts'},
+  {t:'initialized',client:'ccaf-live-demo',server:'ravn-service-catalog',protocol:'negotiated by SDK'},
+  {t:'discovery',tools:[
+    {name:'lookup-service',description:'Look up one Ravn service by its exact catalog name. Returns the owning team, service tier, runbook URL, and key health signals.',inputSchema:{type:'object',properties:{service:{type:'string',minLength:1,description:'Exact service name, for example checkout-api'}},required:['service'],$schema:'https://json-schema.org/draft/2020-12/schema'}},
+    {name:'search-runbooks',description:'Search the runbook catalog by a short incident keyword. Returns zero or more matching service names and runbook URLs.',inputSchema:{type:'object',properties:{query:{type:'string',minLength:2,description:'Incident or service keyword, for example checkout or login'}},required:['query'],$schema:'https://json-schema.org/draft/2020-12/schema'}}
+  ],resources:[{name:'service-catalog',uri:'ravn://services/catalog',description:'A read-only map of service names, owners, tiers, runbooks, and key signals.'}],prompts:[{name:'triage-incident',description:'Start an incident triage with a known service and symptom.',arguments:[{name:'service',description:'Exact service name',required:true},{name:'symptom',description:'Observed failure or degraded signal',required:true}]}]},
+  {t:'resource_request',method:'resources/read',uri:'ravn://services/catalog'},
+  {t:'resource_result',uri:'ravn://services/catalog',contents:[{uri:'ravn://services/catalog',mimeType:'application/json',text:'{ "checkout-api": { "owner": "Payments team", "tier": 1, "runbook": "https://runbooks.ravn.example/checkout-api", "signals": ["payment_authorization_rate", "checkout_latency_p95"] } }'}]},
+  {t:'tool_request',method:'tools/call',call:{name:'lookup-service',arguments:{service:'checkout-api'}},note:'valid call'},
+  {t:'tool_result',name:'lookup-service',isError:false,text:'{ "service": "checkout-api", "owner": "Payments team", "tier": 1 }'},
+  {t:'tool_request',method:'tools/call',call:{name:'search-runbooks',arguments:{query:'fax'}},note:'valid empty result'},
+  {t:'tool_result',name:'search-runbooks',isError:false,text:'{ "resultCount": 0, "matches": [] }'},
+  {t:'tool_request',method:'tools/call',call:{name:'lookup-service',arguments:{service:'ghost-api'}},note:'recoverable tool error'},
+  {t:'tool_result',name:'lookup-service',isError:true,text:'{ "errorCategory": "validation", "isRetryable": true, "message": "Read the catalog and retry with an exact name." }'},
+  {t:'prompt_result',name:'triage-incident',messages:[{role:'user',content:{type:'text',text:'Triage this incident. First look up the service, then use its runbook and signals.\n\nService: checkout-api\nSymptom: payment authorization rate dropped below 90%'}}]},
+  {t:'done',msg:'rehearsal complete'}
+];
+let mockTimer=null,mockRun=0;
+function stopMock(){mockRun++;if(mockTimer){clearTimeout(mockTimer);mockTimer=null}}
+function replayMock(){
+  stopMock();resetDemo();
+  const run=mockRun;let index=0;
+  const step=()=>{
+    if(run!==mockRun)return;
+    const event=rehearsalEvents[index++];
+    if(!event)return;
+    handle(event);
+    if(index<rehearsalEvents.length)mockTimer=setTimeout(step,420);else mockTimer=null;
+  };
+  step();
+}
 document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===tab));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id===tab.dataset.pane))}));
 
 let ws;
 function connect(){
+  if(location.protocol==='file:'||location.hostname==='tot.page'){
+    document.getElementById('demo-status').textContent='static page · rehearse available';
+    return;
+  }
   const host=location.protocol.startsWith('http')?location.host:'127.0.0.1:4848';
-  ws=new WebSocket(`ws://${host}/ws`);
+  const protocol=location.protocol==='https:'?'wss':'ws';
+  ws=new WebSocket(`${protocol}://${host}/ws`);
   ws.onopen=()=>document.getElementById('demo-status').textContent='connected, ready';
-  ws.onclose=()=>{document.getElementById('demo-status').textContent='disconnected, retrying…';setTimeout(connect,1200)};
+  ws.onclose=()=>{document.getElementById('demo-status').textContent='disconnected, retrying...';setTimeout(connect,1200)};
   ws.onmessage=message=>{try{handle(JSON.parse(message.data))}catch{}}
 }
 connect();
 function send(cmd){if(ws?.readyState===WebSocket.OPEN)ws.send(JSON.stringify({cmd}))}
-document.getElementById('run-live').addEventListener('click',()=>{resetDemo();send('start')});
-document.getElementById('run-mock').addEventListener('click',()=>{resetDemo();send('mock')});
-document.getElementById('stop-demo').addEventListener('click',()=>send('stop'));
+document.getElementById('run-live').addEventListener('click',()=>{
+  stopMock();resetDemo();
+  if(ws?.readyState===WebSocket.OPEN)send('start');
+  else handle({t:'error',msg:'Run live needs the local demo server. Use Rehearse for the static deck.'});
+});
+document.getElementById('run-mock').addEventListener('click',replayMock);
+document.getElementById('stop-demo').addEventListener('click',()=>{stopMock();if(ws?.readyState===WebSocket.OPEN)send('stop');else handle({t:'status',msg:'stopped'})});
+highlightAll();
 resetDemo();
 </script>
 </body>
