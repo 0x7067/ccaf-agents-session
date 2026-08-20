@@ -50,7 +50,7 @@ export async function runProtocol(emit: Emit, signal?: AbortSignal, delayMs = 65
     emit({ t: 'connect', transport: 'stdio', command: `npx tsx ${path.relative(demoDir, serverPath)}` });
     await client.connect(transport);
     await sleep(delayMs, signal);
-    emit({ t: 'initialized', client: 'ccaf-live-demo', server: 'ravn-service-catalog', protocol: 'negotiated by SDK' });
+    emit({ t: 'initialized', client: 'ccaf-live-demo', server: 'basil-bistro', protocol: 'negotiated by SDK' });
 
     const [{ tools }, { resources }, { prompts }] = await Promise.all([
       client.listTools(),
@@ -66,12 +66,12 @@ export async function runProtocol(emit: Emit, signal?: AbortSignal, delayMs = 65
     });
 
     await sleep(delayMs, signal);
-    emit({ t: 'resource_request', method: 'resources/read', uri: 'ravn://services/catalog' });
-    const catalog = await client.readResource({ uri: 'ravn://services/catalog' });
-    emit({ t: 'resource_result', uri: 'ravn://services/catalog', contents: catalog.contents });
+    emit({ t: 'resource_request', method: 'resources/read', uri: 'restaurant://menu' });
+    const menu = await client.readResource({ uri: 'restaurant://menu' });
+    emit({ t: 'resource_result', uri: 'restaurant://menu', contents: menu.contents });
 
     await sleep(delayMs, signal);
-    const successCall = { name: 'lookup-service', arguments: { service: 'checkout-api' } };
+    const successCall = { name: 'place-order', arguments: { itemId: 'margherita-pizza', quantity: 1 } };
     emit({ t: 'tool_request', method: 'tools/call', call: successCall, note: 'valid call' });
     const success = await client.callTool(successCall);
     emit({
@@ -82,7 +82,7 @@ export async function runProtocol(emit: Emit, signal?: AbortSignal, delayMs = 65
     });
 
     await sleep(delayMs, signal);
-    const emptyCall = { name: 'search-runbooks', arguments: { query: 'fax' } };
+    const emptyCall = { name: 'search-menu', arguments: { query: 'sushi' } };
     emit({ t: 'tool_request', method: 'tools/call', call: emptyCall, note: 'valid empty result' });
     const empty = await client.callTool(emptyCall);
     emit({
@@ -93,7 +93,7 @@ export async function runProtocol(emit: Emit, signal?: AbortSignal, delayMs = 65
     });
 
     await sleep(delayMs, signal);
-    const failureCall = { name: 'lookup-service', arguments: { service: 'ghost-api' } };
+    const failureCall = { name: 'place-order', arguments: { itemId: 'truffle-pizza', quantity: 1 } };
     emit({ t: 'tool_request', method: 'tools/call', call: failureCall, note: 'recoverable tool error' });
     const failure = await client.callTool(failureCall);
     emit({
@@ -105,10 +105,10 @@ export async function runProtocol(emit: Emit, signal?: AbortSignal, delayMs = 65
 
     await sleep(delayMs, signal);
     const prompt = await client.getPrompt({
-      name: 'triage-incident',
-      arguments: { service: 'checkout-api', symptom: 'payment authorization rate dropped below 90%' }
+      name: 'plan-lunch',
+      arguments: { partySize: '4', dietaryNeeds: 'one vegetarian' }
     });
-    emit({ t: 'prompt_result', name: 'triage-incident', messages: prompt.messages });
+    emit({ t: 'prompt_result', name: 'plan-lunch', messages: prompt.messages });
     emit({ t: 'done', msg: 'connection closed cleanly' });
   } finally {
     await client.close().catch(() => undefined);

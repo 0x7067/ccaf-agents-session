@@ -13,7 +13,7 @@ every part.
 | Part | Topic | Status |
 |---|---|---|
 | [Part 1](part-1/) | Agentic Architecture and Orchestration: the Claude API request body, the agent loop, multi-agent hub-and-spoke (live demo), and a full exam summary | ✅ ready |
-| [Part 2](part-2/) | Model Context Protocol and Tool Calling: hosts, clients, servers, tools/resources/prompts, tool descriptions and `tool_choice`, project vs personal configuration, structured errors, and a live protocol trace | ✅ ready |
+| [Part 2](part-2/) | Model Context Protocol and Tool Calling: a restaurant-themed path through hosts, clients, servers, tools/resources/prompts, tool descriptions and `tool_choice`, project vs personal configuration, structured errors, and a live protocol trace | ✅ ready |
 | Part 3+ | yours to add | |
 
 Each part is a self-contained folder:
@@ -26,9 +26,10 @@ part-1/
 └── demo/                # runnable demo (Claude Agent SDK, TypeScript)
 ```
 
-Part 2 follows the same structure. Its demo is deterministic and token-free: a
-real MCP client launches a real local server, discovers its capabilities, reads
-a resource, and performs three tool calls.
+Part 2 follows the same structure. Its deterministic, token-free restaurant
+demo launches a real local MCP server, reads the menu resource, places one
+order, performs a successful search with no matches, and returns one structured
+tool error.
 
 ## Running Part 1 (5 minutes)
 
@@ -62,7 +63,7 @@ npm install
 npm run demo        # → open http://127.0.0.1:4848/part-2/slides.html
 ```
 
-On slide 15, click **Run live** to trace MCP discovery, a resource read, a
+On slide 13, click **Run live** to trace MCP discovery, a resource read, a
 successful tool call, a valid zero-result call, and a structured tool error.
 Run `npm run protocol` for the same trace as newline-delimited JSON.
 

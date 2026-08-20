@@ -46,25 +46,25 @@ function broadcast(event: DemoEvent): void {
 const mockEvents: DemoEvent[] = [
   { t: 'status', msg: 'rehearsal replay, no process spawned' },
   { t: 'connect', transport: 'stdio', command: 'npx tsx src/mcp-server.ts' },
-  { t: 'initialized', client: 'ccaf-live-demo', server: 'ravn-service-catalog', protocol: 'negotiated by SDK' },
+  { t: 'initialized', client: 'ccaf-live-demo', server: 'basil-bistro', protocol: 'negotiated by SDK' },
   {
     t: 'discovery',
     tools: [
-      { name: 'lookup-service', description: 'Look up one Ravn service by its exact catalog name.', inputSchema: { type: 'object', properties: { service: { type: 'string' } }, required: ['service'] } },
-      { name: 'search-runbooks', description: 'Search the runbook catalog by a short incident keyword.', inputSchema: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'] } }
+      { name: 'place-order', description: 'Place one restaurant order by exact item ID from restaurant://menu.', inputSchema: { type: 'object', properties: { itemId: { type: 'string' }, quantity: { type: 'integer' } }, required: ['itemId', 'quantity'] } },
+      { name: 'search-menu', description: 'Search menu names, descriptions, and dietary tags.', inputSchema: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'] } }
     ],
-    resources: [{ name: 'service-catalog', uri: 'ravn://services/catalog' }],
-    prompts: [{ name: 'triage-incident', description: 'Start an incident triage with a known service and symptom.' }]
+    resources: [{ name: 'menu', uri: 'restaurant://menu' }],
+    prompts: [{ name: 'plan-lunch', description: 'Start a lunch plan for a group with dietary needs.' }]
   },
-  { t: 'resource_request', method: 'resources/read', uri: 'ravn://services/catalog' },
-  { t: 'resource_result', uri: 'ravn://services/catalog', contents: [{ uri: 'ravn://services/catalog', text: '{ "checkout-api": { "owner": "Payments team", "tier": 1 } }' }] },
-  { t: 'tool_request', method: 'tools/call', call: { name: 'lookup-service', arguments: { service: 'checkout-api' } }, note: 'valid call' },
-  { t: 'tool_result', name: 'lookup-service', isError: false, text: '{ "service": "checkout-api", "owner": "Payments team", "tier": 1 }' },
-  { t: 'tool_request', method: 'tools/call', call: { name: 'search-runbooks', arguments: { query: 'fax' } }, note: 'valid empty result' },
-  { t: 'tool_result', name: 'search-runbooks', isError: false, text: '{ "resultCount": 0, "matches": [] }' },
-  { t: 'tool_request', method: 'tools/call', call: { name: 'lookup-service', arguments: { service: 'ghost-api' } }, note: 'recoverable tool error' },
-  { t: 'tool_result', name: 'lookup-service', isError: true, text: '{ "errorCategory": "validation", "isRetryable": true, "message": "Read the catalog and retry with an exact name." }' },
-  { t: 'prompt_result', name: 'triage-incident', messages: [{ role: 'user', content: { type: 'text', text: 'Triage checkout-api. First look up the service, then use its runbook and signals.' } }] },
+  { t: 'resource_request', method: 'resources/read', uri: 'restaurant://menu' },
+  { t: 'resource_result', uri: 'restaurant://menu', contents: [{ uri: 'restaurant://menu', text: '{ "margherita-pizza": { "name": "Margherita pizza", "price": 14 } }' }] },
+  { t: 'tool_request', method: 'tools/call', call: { name: 'place-order', arguments: { itemId: 'margherita-pizza', quantity: 1 } }, note: 'valid call' },
+  { t: 'tool_result', name: 'place-order', isError: false, text: '{ "orderId": "ord-1042", "status": "accepted", "total": 14, "etaMinutes": 18 }' },
+  { t: 'tool_request', method: 'tools/call', call: { name: 'search-menu', arguments: { query: 'sushi' } }, note: 'valid empty result' },
+  { t: 'tool_result', name: 'search-menu', isError: false, text: '{ "resultCount": 0, "matches": [] }' },
+  { t: 'tool_request', method: 'tools/call', call: { name: 'place-order', arguments: { itemId: 'truffle-pizza', quantity: 1 } }, note: 'recoverable tool error' },
+  { t: 'tool_result', name: 'place-order', isError: true, text: '{ "errorCategory": "validation", "isRetryable": true, "message": "Read restaurant://menu and retry with an exact item ID." }' },
+  { t: 'prompt_result', name: 'plan-lunch', messages: [{ role: 'user', content: { type: 'text', text: 'Plan lunch for 4 people. Dietary needs: one vegetarian. Read restaurant://menu before suggesting items.' } }] },
   { t: 'done', msg: 'rehearsal complete' }
 ];
 

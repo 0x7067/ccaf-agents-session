@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "ccaf-service-catalog": {
+    "ccaf-restaurant": {
       "command": "npm",
       "args": [
         "--prefix",

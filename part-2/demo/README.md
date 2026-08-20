@@ -4,13 +4,14 @@ This demo starts a real local MCP server over stdio, connects a real MCP client,
 discovers the server's tools, resources, and prompts, and then performs three
 tool calls:
 
-1. a successful `lookup-service` call;
-2. a successful search with zero results;
-3. a failed lookup returned as structured `isError: true` content.
+1. a successful `place-order` call for a margherita pizza;
+2. a successful `search-menu` call with zero results for sushi;
+3. a failed order for an unknown item, returned as structured `isError: true`
+   content.
 
 No model or API key is involved. During the presentation, the room plays the
-host and chooses the calls. The client/server protocol exchange is real and
-uses the official MCP TypeScript SDK.
+host and follows an order through the restaurant MCP. The client/server
+protocol exchange is real and uses the official MCP TypeScript SDK.
 
 ## Run the deck
 

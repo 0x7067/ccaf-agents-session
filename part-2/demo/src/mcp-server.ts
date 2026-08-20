@@ -2,58 +2,59 @@ import { McpServer } from '@modelcontextprotocol/server';
 import { serveStdio } from '@modelcontextprotocol/server/stdio';
 import * as z from 'zod/v4';
 
-const services = {
-  'checkout-api': {
-    owner: 'Payments team',
-    tier: 1,
-    runbook: 'https://runbooks.ravn.example/checkout-api',
-    signals: ['payment_authorization_rate', 'checkout_latency_p95']
+const menu = {
+  'margherita-pizza': {
+    name: 'Margherita pizza',
+    description: 'Tomato, mozzarella, and basil',
+    price: 14,
+    tags: ['vegetarian', 'pizza']
   },
-  'catalog-worker': {
-    owner: 'Commerce team',
-    tier: 2,
-    runbook: 'https://runbooks.ravn.example/catalog-worker',
-    signals: ['catalog_queue_depth', 'catalog_job_age']
+  'mushroom-risotto': {
+    name: 'Mushroom risotto',
+    description: 'Arborio rice, mushrooms, parmesan, and herbs',
+    price: 17,
+    tags: ['vegetarian', 'gluten-free']
   },
-  'identity-gateway': {
-    owner: 'Platform team',
-    tier: 1,
-    runbook: 'https://runbooks.ravn.example/identity-gateway',
-    signals: ['login_success_rate', 'token_refresh_errors']
+  'chocolate-cake': {
+    name: 'Chocolate cake',
+    description: 'Dark chocolate cake with vanilla cream',
+    price: 8,
+    tags: ['dessert', 'vegetarian']
   }
 } as const;
 
-type ServiceName = keyof typeof services;
+type MenuItemId = keyof typeof menu;
 
 export function createServer(): McpServer {
-  const server = new McpServer({ name: 'ravn-service-catalog', version: '1.0.0' });
+  const server = new McpServer({ name: 'basil-bistro', version: '1.0.0' });
 
   server.registerResource(
-    'service-catalog',
-    'ravn://services/catalog',
+    'menu',
+    'restaurant://menu',
     {
-      title: 'Ravn service catalog',
-      description: 'A read-only map of service names, owners, tiers, runbooks, and key signals.',
+      title: 'Basil Bistro menu',
+      description: 'A read-only menu with item IDs, names, descriptions, prices, and dietary tags.',
       mimeType: 'application/json'
     },
     async uri => ({
-      contents: [{ uri: uri.href, mimeType: 'application/json', text: JSON.stringify(services, null, 2) }]
+      contents: [{ uri: uri.href, mimeType: 'application/json', text: JSON.stringify(menu, null, 2) }]
     })
   );
 
   server.registerTool(
-    'lookup-service',
+    'place-order',
     {
-      title: 'Look up one service',
+      title: 'Place one restaurant order',
       description:
-        'Look up one Ravn service by its exact catalog name. Returns the owning team, service tier, runbook URL, and key health signals. Use this when the service name is already known. Do not use it to search vague incident text; read the service catalog resource first when the name is uncertain.',
+        'Place one restaurant order by exact item ID from restaurant://menu. Returns the order ID, accepted items, total, and ETA. Read the menu first when the item ID is uncertain. Do not use this tool to browse or search the menu.',
       inputSchema: z.object({
-        service: z.string().min(1).describe('Exact service name, for example checkout-api')
+        itemId: z.string().min(1).describe('Exact item ID, for example margherita-pizza'),
+        quantity: z.number().int().min(1).max(12).describe('Number of this item to order, from 1 to 12')
       })
     },
-    async ({ service }) => {
-      const record = services[service as ServiceName];
-      if (!record) {
+    async ({ itemId, quantity }) => {
+      const item = menu[itemId as MenuItemId];
+      if (!item) {
         return {
           isError: true,
           content: [{
@@ -61,8 +62,8 @@ export function createServer(): McpServer {
             text: JSON.stringify({
               errorCategory: 'validation',
               isRetryable: true,
-              message: `Unknown service "${service}". Read ravn://services/catalog and retry with an exact name.`,
-              attemptedInput: { service },
+              message: `Unknown item "${itemId}". Read restaurant://menu and retry with an exact item ID.`,
+              attemptedInput: { itemId, quantity },
               partialResults: null
             }, null, 2)
           }]
@@ -70,26 +71,36 @@ export function createServer(): McpServer {
       }
 
       return {
-        content: [{ type: 'text', text: JSON.stringify({ service, ...record }, null, 2) }]
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            orderId: 'ord-1042',
+            status: 'accepted',
+            items: [{ itemId, name: item.name, quantity }],
+            total: item.price * quantity,
+            etaMinutes: 18
+          }, null, 2)
+        }]
       };
     }
   );
 
   server.registerTool(
-    'search-runbooks',
+    'search-menu',
     {
-      title: 'Search runbook titles',
+      title: 'Search the menu',
       description:
-        'Search the runbook catalog by a short incident keyword. Returns zero or more matching service names and runbook URLs. A zero-result response is a successful search, not an error. Use lookup-service when you already know the exact service name.',
+        'Search menu names, descriptions, and dietary tags by a short food keyword. Returns zero or more matching item IDs. A zero-result response is a successful search, not an error. Use place-order when the exact item ID is already known.',
       inputSchema: z.object({
-        query: z.string().min(2).describe('Incident or service keyword, for example checkout or login')
+        query: z.string().min(2).describe('Food or dietary keyword, for example pizza or vegetarian')
       })
     },
     async ({ query }) => {
       const normalized = query.toLowerCase();
-      const matches = Object.entries(services)
-        .filter(([name, record]) => `${name} ${record.owner} ${record.signals.join(' ')}`.toLowerCase().includes(normalized))
-        .map(([service, record]) => ({ service, runbook: record.runbook }));
+      const matches = Object.entries(menu)
+        .filter(([itemId, item]) =>
+          `${itemId} ${item.name} ${item.description} ${item.tags.join(' ')}`.toLowerCase().includes(normalized))
+        .map(([itemId, item]) => ({ itemId, name: item.name, price: item.price, tags: item.tags }));
 
       return {
         content: [{ type: 'text', text: JSON.stringify({ resultCount: matches.length, matches }, null, 2) }]
@@ -98,21 +109,21 @@ export function createServer(): McpServer {
   );
 
   server.registerPrompt(
-    'triage-incident',
+    'plan-lunch',
     {
-      title: 'Triage an incident',
-      description: 'Start an incident triage with a known service and symptom.',
+      title: 'Plan lunch for a group',
+      description: 'Start a lunch plan for a group with dietary needs.',
       argsSchema: z.object({
-        service: z.string().describe('Exact service name'),
-        symptom: z.string().describe('Observed failure or degraded signal')
+        partySize: z.string().describe('Number of people'),
+        dietaryNeeds: z.string().describe('Dietary needs or none')
       })
     },
-    ({ service, symptom }) => ({
+    ({ partySize, dietaryNeeds }) => ({
       messages: [{
         role: 'user',
         content: {
           type: 'text',
-          text: `Triage this incident. First look up the service, then use its runbook and signals.\n\nService: ${service}\nSymptom: ${symptom}`
+          text: `Plan lunch for ${partySize} people. Dietary needs: ${dietaryNeeds}. Read restaurant://menu before suggesting items.`
         }
       }]
     })
@@ -122,4 +133,4 @@ export function createServer(): McpServer {
 }
 
 void serveStdio(createServer);
-console.error('ravn-service-catalog MCP server running on stdio');
+console.error('basil-bistro MCP server running on stdio');

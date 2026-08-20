@@ -1,30 +1,29 @@
 # Run of show, 40 minutes
 
-This is a rough outline, not a script. Hit the bold ideas and explain the gaps
-in your own words. The deck is deliberately light enough to leave room for the
-room.
+The restaurant is the teaching thread. Stay with it until the live demo ends.
+The menu is a resource. Ordering and searching are tools. Planning lunch is a
+prompt. Claude writes the ticket, Claude Code carries it, and the restaurant
+MCP server does the work.
 
-Part 1 ran about 38 minutes of content inside a 57-minute slot, and this one is
-budgeted about the same. The two check-in stops below are part of the plan, not
-padding: both of Part 1's best moments came out of a stop.
+The deck now has 18 slides. It opens on the unanswered question from Part 1,
+walks one restaurant order through MCP, covers configuration and recovery, and
+then proves the whole story with the real server. `tool_choice` comes after
+the demo as a short exam aside because it is easier to understand once the room
+has seen an actual call.
 
 ## Register
 
-The room is mixed. Some people build agents every day and some have never
-called a tool. Assume the second group and the first group still learns
-something.
+The room is mixed. Some people build agents every day. Others have never called
+a tool. Start with the second group.
 
-- Slide 3 does the puncturing, the way Part 1 did it with agents. Do not skip
-  it because it looks basic. For half the room, "how does a thing that only
-  writes text edit my files?" is the actual unanswered question, and every
-  schema after it floats without the answer.
-- Reach for the analogy before the schema. Every band tagged **Analogy** is there
-  to be narrated for thirty seconds, not read out.
-- Say "last session" out loud whenever the deck calls back to Part 1. The
-  callbacks only work if you name them: hands and map, the while loop, your code
-  runs the tool, "refund unsuccessful".
-- Trade-offs, not commandments. Part 1's closing line applies here too: find the
-  simplest solution possible and only increase complexity when it is needed.
+- Say "Claude writes the ticket; your application sends it" every time the
+  model and host start to blur together.
+- Use the restaurant before the schema. Once the room can picture the order,
+  show the JSON that carries it.
+- Keep Claude Code and the MCP client distinct. Claude Code is the host. Its MCP
+  client is the part that connects to the server.
+- Treat trade-offs as choices. Match the primitive to the job, the scope to the
+  owner, and the error to the next safe action.
 
 ## Before class
 
@@ -34,74 +33,88 @@ npm install
 npm run demo
 ```
 
-Open http://127.0.0.1:4848/part-2/slides.html, press `F`, and run **Rehearse**
-once. Then run `npm run protocol` in a terminal. It must finish with a `done`
-event and exit without leaving the MCP server alive.
+Open http://127.0.0.1:4848/part-2/slides.html, press `F`, and run
+**Rehearse** once. Then run `npm run protocol` in a terminal. It must finish
+with a `done` event and exit without leaving the MCP server alive.
 
-When presenting from the published static link, use **Rehearse**. **Run live**
-needs the local demo server started by `npm run demo`.
+Use **Rehearse** from the published static link. **Run live** needs the local
+demo server.
 
 ## Timing
 
 | Time | Slides | Must-hit beat |
 |---|---|---|
-| 0:00-0:02 | 1-2 | Name the promise: by the end, the room will watch a real MCP tool call succeed and fail. Open on the callback, we gave Claude hands last time, today we find out where the hands come from. |
-| 0:02-0:05 | 3 | The question underneath everything. Claude chooses a tool but does not execute it. It emits a structured request; your application invokes the MCP server and puts the result back. Use the `checkout-api` lookup to make the loop concrete. |
-| 0:05-0:10 | 4-6 | MCP is like USB-C for tools. Host, client, server. Land slide 6 on the callback: the loop has not changed since last session, only where the tools come from. |
-| 0:10-0:17 | 7-10 | Walk one tool call from discovery to result. On slide 7, remind them your code runs the tool, not Claude. Spend the time on descriptions: the boundary sentence stops misrouting. On slide 9, say plainly that Part 1 deferred `tool_choice` and this is it. Close on hands and map. |
-| 0:17-0:19 | — | **Stop. Ask the room.** "Any questions before we talk about where these servers live?" Wait through the silence. |
-| 0:19-0:23 | 11 | Team setup means `.mcp.json`; personal setup means `~/.claude.json`. Secrets stay in environment variables. The room meets this as a binary choice on the test, so make the van and the garage stick. |
-| 0:23-0:27 | 12-13 | A tool error stays readable by the model: category, retryability, attempted input, recovery guidance. Slide 12 is last session's "refund unsuccessful", so say so. Then slide 13: no toilet paper is an answer, a locked door is not. |
-| 0:27-0:29 | — | **Stop. Ask the room.** Best place to catch anyone the schemas lost. |
-| 0:29-0:34 | 14-15 | Land on slide 15. Locally, click **Run live**. From the published static link, click **Rehearse**. Read discovery, the resource read, the successful call, the empty result, the failed call, and the final prompt result. Click events to expose their payloads. |
-| 0:34-0:35 | 16 | Debrief: schemas and JSON crossed the wire. The model supplies judgment; MCP supplies the contract. |
-| 0:35-0:37 | 17 | Prefer an existing maintained server for a standard integration. Build only the unique team-specific gap. Disconnect what you do not need. Quote it the way Part 1 did: simplest solution first, complexity only when it is needed. |
-| 0:37-0:40 | 18-21 | Close with exam reasoning. Primitive matches job; scope matches owner; structured errors make recovery possible. Leave slide 21 on screen for questions. |
+| 0:00-0:02 | 1 | Promise one complete trip: menu, order ticket, kitchen, receipt. Call back to Part 1: last time we gave Claude hands; today we find where those hands come from. |
+| 0:02-0:05 | 2 | Ask who places the order if Claude only writes text. Click the tool request and result. Claude writes structured intent. Claude Code sends it. The MCP server runs it. |
+| 0:05-0:08 | 3 | Define MCP through the standard order counter. Different systems expose different work, but discovery, requests, and results follow one protocol. |
+| 0:08-0:11 | 4 | Resolve the naming problem. Claude Code is the host. The MCP client lives inside it. The restaurant MCP server is outside and runs the integration code. |
+| 0:11-0:14 | 5 | Open the server. Tools act, resources inform, prompts start. Ask the room which primitive the menu should be before revealing it. |
+| 0:14-0:17 | 6 | Follow discovery into `tools/call`. The model sees name, description, and schema, then writes the order ticket. It does not send the request itself. |
+| 0:17-0:20 | 7 | Compare "Orders food" with the specific `place-order` description. The boundary sentence tells Claude when to read or search instead. |
+| 0:20-0:22 | 8 | Land resources with the cleanest restaurant distinction: reading the menu does not create an order. |
+| 0:22-0:24 | 9 | Show scope as containment. Your personal setup spans projects. A project config lives inside one shared project. Secrets stay in environment variables. |
+| 0:24-0:28 | 10-11 | Make recovery concrete. Unknown item means read the menu and retry. No sushi means the search worked. Menu access denied means it did not. |
+| 0:28-0:30 | 12 | Stop before the demo. Ask the room to predict the event order: discovery, menu read, successful order, empty search, failed order. |
+| 0:30-0:35 | 13-14 | Run the trace. Read the sequence, then debrief it. Inspect one request, the successful receipt, and the structured error. |
+| 0:35-0:37 | 15 | Pay back Part 1's `tool_choice` debt in one pass. `auto` allows text or a call, `any` requires some call, and a named tool requires that tool. |
+| 0:37-0:38 | 16 | Prefer an existing maintained server for standard integrations. Build the narrow team-specific gap. Disconnect tools that no longer earn their place. |
+| 0:38-0:40 | 17-18 | Close on exam reasoning. Primitive matches job. Scope matches owner. Structured errors support recovery. Leave slide 18 on screen for questions. |
 
-## Improvisation openings
+## Spoken segues
 
-- On slide 1, ask who was here last time, so you know how hard to lean on the
-  callbacks.
-- On slide 3, ask whether anyone has wondered how Claude actually edits a file.
-  Somebody always has. Most people have never heard the answer.
-- On slide 3, click the tool call and the result to show what crosses the boundary.
-- On slide 4, ask what integrations people have configured by hand before.
-- On slide 5, ask whether a database schema should be a tool or a resource. Open the resource and prompt examples, then ask what each gives the host or the person using it.
-- On slide 8, ask the room which description they would trust with a refund,
-  then ask which of their MCP tools an agent would skip in favor of `Grep`.
-  Open the description and JSON Schema example. Point out `other` and the detail field.
-- On slide 9, ask who has forced a first tool call, and what broke without it.
-- On slide 11, ask which of their team's servers belong in `.mcp.json` and which
-  are personal enough to stay in `~/.claude.json`. Open the secret note and make
-  the environment-variable boundary explicit.
-- On slide 15, let the room choose whether to inspect discovery, the successful
-  call, the empty result, or the failed call first.
+Use these as handoffs, not as lines to memorize.
+
+- Slide 2 to 3: "We know who does the work. Now we need a standard way to hand
+  that work over."
+- Slide 3 to 4: "The protocol is the counter. Who is standing on each side of
+  it?"
+- Slide 4 to 5: "Now open the restaurant server and look at what it can expose."
+- Slide 5 to 6: "Having a menu of capabilities is useful only if Claude can
+  discover it."
+- Slide 6 to 7: "Claude can see every tool. The description is what gets the
+  order to the right station."
+- Slide 7 to 8: "Before we place an order, Claude may need to know what the
+  restaurant serves."
+- Slide 8 to 9: "The server makes sense. The exam now asks who should receive
+  its configuration."
+- Slide 9 to 10: "Once the server is connected, the next design question is
+  what happens when the kitchen says no."
+- Slide 11 to 12: "We have the pieces. Let's watch the real protocol carry
+  them."
+- Slide 14 to 15: "The demo let Claude choose the calls. The API can also
+  require one."
+- Slide 16 to 17: "Implementation choices change. The exam rules stay small."
+
+## Interaction openings
+
+- Slide 2: ask who thought Claude itself executed tools.
+- Slide 5: ask whether a menu should be a tool or a resource.
+- Slide 7: ask which description they would trust with a real payment.
+- Slide 9: ask which team MCP belongs in `.mcp.json` and which personal
+  experiment belongs in `~/.claude.json`.
+- Slide 11: ask whether "no sushi" should trigger a retry.
+- Slide 13: let the room choose which event payload to inspect first.
 
 ## Live demo recovery
 
-- When presenting locally, if **Run live** fails, click **Stop**, check the error
-  event, then run it once more.
-- When presenting from the published static link, use **Rehearse** from the
-  start. **Run live** needs the local WebSocket server. Do not debug that on
-  stage.
-- **Rehearse** replays the same event shapes without starting a process, so it
-  is the right fallback for a projector check or a static copy of the deck.
+- If **Run live** fails locally, click **Stop**, read the error event, and try
+  once more.
+- Use **Rehearse** from the start on a static link. It replays the same event
+  shapes without starting a process.
+- Do not remove **Rehearse**. It is the stage fallback.
 - The demo does not call a model or external API. A failure is local process or
   dependency setup, not API quota.
 
 ## Debts from Part 1
 
-Part 1 deferred three topics on the record. Slide 9 pays back the first one, so
-name it out loud: *"last session I said we would come back to `tool_choice`
-later. This is later."*
+Slide 15 pays back `tool_choice`. Say this out loud: "Last session I said we
+would come back to `tool_choice`. This is it."
 
-Hooks and context management are still owed. Hooks are the sharper debt: the
-Part 1 deck has the material (slide 12, the hooks dialog, and the `canUseTool`
-callback in the demo code) but it was never walked on stage. Say when it is
-coming rather than letting it lapse a second time.
+Hooks and context management remain separate topics. Name when they are coming
+instead of squeezing them into this session.
 
 ## Questions worth leaving open
 
 - When does a resource beat a discovery tool for your data?
-- Which server would you share at project scope today?
-- Which error in your current system is indistinguishable from zero results?
+- Which server would your team share at project scope today?
+- Which error in your current system looks exactly like an empty result?
