@@ -114,6 +114,7 @@
     <div class="topics">
       <span>MCP as a contract between a host and external systems</span>
       <span>The difference between <b>tools</b>, <b>resources</b>, and <b>prompts</b></span>
+      <span>Who decides that a tool runs: the description, and <code>tool_choice</code></span>
       <span>Project vs personal configuration</span>
       <span>A real <code>tools/call</code>, including failure</span>
     </div>
@@ -175,13 +176,13 @@ an agent                  your database</pre>
     <div class="arrow">⇄</div>
     <div class="node"><span class="pill b">client</span><strong>MCP client</strong><span>Negotiates, discovers, calls, and returns typed results.</span></div>
     <div class="arrow">⇄</div>
-    <div class="node"><span class="pill w">server</span><strong>Your system</strong><span>Exposes tools, resources, and prompts over a transport.</span></div>
+    <div class="node"><span class="pill w">server</span><strong>Your system</strong><span>Exposes tools, resources, and prompts to the client.</span></div>
   </div>
   <div class="trace"><span>discover</span><i>→</i><span>model chooses</span><i>→</i><span>tools/call</span><i>→</i><span>tool result</span><i>→</i><span>model continues</span></div>
 </section>
 
 <section class="slide">
-  <div class="kicker">Tool calling · 1 of 3</div>
+  <div class="kicker">Tool calling · 1 of 4</div>
   <h2>The call starts before the call</h2>
   <div class="body">
     <div class="col">
@@ -211,7 +212,7 @@ tools/call({
 </section>
 
 <section class="slide">
-  <div class="kicker">Tool calling · 2 of 3</div>
+  <div class="kicker">Tool calling · 2 of 4</div>
   <h2>The description is the router</h2>
   <div class="vs">
     <article class="card">
@@ -227,11 +228,38 @@ tools/call({
       <div class="point good"><span class="dot"></span><span>The boundary tells the model when <b>not</b> to call it.</span></div>
     </article>
   </div>
+  <div class="analogy" style="margin-top:14px"><span class="tag">Exam instinct</span>An agent reaches for a built-in tool like <b>Grep</b> before an MCP tool that sounds the same. Name the data or context your server has that the built-in one cannot reach.</div>
   <div class="foot"><span><button class="click" data-dialog="description">Open the five-part description checklist</button></span><span>7</span></div>
 </section>
 
 <section class="slide">
-  <div class="kicker">Tool calling · 3 of 3</div>
+  <div class="kicker">Tool calling · 3 of 4</div>
+  <h2><code>tool_choice</code> decides who decides</h2>
+  <div class="cards">
+    <article class="card win">
+      <div class="icon">auto</div>
+      <h3><code>{"type":"auto"}</code></h3>
+      <p>The model decides whether to call a tool at all, or just answer in text.</p>
+      <div class="point good"><span class="dot"></span><span>The default. What you want for a conversational agent.</span></div>
+    </article>
+    <article class="card">
+      <div class="icon">any</div>
+      <h3><code>{"type":"any"}</code></h3>
+      <p>The model must call some tool. It still picks which one.</p>
+      <div class="point"><span class="dot"></span><span>Use it when you need structured output and several schemas fit.</span></div>
+    </article>
+    <article class="card">
+      <div class="icon">forced</div>
+      <h3><code>{"type":"tool","name":"…"}</code></h3>
+      <p>The model must call that exact tool.</p>
+      <div class="point"><span class="dot"></span><span>Use it to guarantee a first step, such as <code>extract_metadata</code> before enrichment.</span></div>
+    </article>
+  </div>
+  <div class="analogy" style="margin-top:14px"><span class="tag">Exam instinct</span>A good description makes the right tool <b>likely</b>. <code>tool_choice</code> makes a tool call <b>certain</b>. The host sets it on the API request; the MCP server never sees it.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Tool calling · 4 of 4</div>
   <h2>Resources are the map. Tools are the hands.</h2>
   <div class="two">
     <article class="card">
@@ -251,38 +279,14 @@ tools/call({
 </section>
 
 <section class="slide">
-  <div class="kicker">Connection · 1 of 2</div>
-  <h2>Pick the transport from the deployment</h2>
-  <div class="vs">
-    <article class="card win">
-      <span class="pill b">stdio</span>
-      <h3>Local process</h3>
-      <p>The host launches the server and owns its lifetime.</p>
-      <pre class="code">command: "npx"
-args: ["tsx", "server.ts"]</pre>
-      <div class="point"><span class="dot"></span><span>Filesystem, browser, local database socket.</span></div>
-    </article>
-    <article class="card">
-      <span class="pill a">HTTP</span>
-      <h3>Remote service</h3>
-      <p>Many clients connect to one hosted endpoint.</p>
-      <pre class="code">type: "http"
-url: "https://example.com/mcp"</pre>
-      <div class="point"><span class="dot"></span><span>Shared service, OAuth, centralized operations.</span></div>
-    </article>
-  </div>
-</section>
-
-<section class="slide">
-  <div class="kicker">Connection · 2 of 2</div>
+  <div class="kicker">Configuration</div>
   <h2>Put the server at the right scope</h2>
   <div class="body">
     <div class="col">
       <table>
         <tr><th>Scope</th><th>Who gets it</th><th>Where</th></tr>
-        <tr><td>local</td><td>You, in this project</td><td><code>~/.claude.json</code></td></tr>
-        <tr><td>user</td><td>You, in every project</td><td><code>~/.claude.json</code></td></tr>
-        <tr><td>project</td><td>The team, after approval</td><td><code>.mcp.json</code></td></tr>
+        <tr><td>user</td><td>You, personal and experimental</td><td><code>~/.claude.json</code></td></tr>
+        <tr><td>project</td><td>Every contributor, through version control</td><td><code>.mcp.json</code></td></tr>
       </table>
       <div class="analogy"><span class="tag">Exam answer</span>Team setup belongs in <b><code>.mcp.json</code></b>. Personal experiments belong in <b><code>~/.claude.json</code></b>.</div>
     </div>
@@ -455,7 +459,7 @@ url: "https://example.com/mcp"</pre>
   <h2>Match the configuration to the owner</h2>
   <div class="two">
     <article class="card win"><span class="pill b">team</span><h3><code>.mcp.json</code></h3><p>Project-scoped, version-controlled, reviewed, and approved after cloning.</p><div class="point bad"><span class="dot"></span><span>References environment variables. Contains no secret values.</span></div></article>
-    <article class="card"><span class="pill a">you</span><h3><code>~/.claude.json</code></h3><p>Local or user-scoped servers for personal use and experiments.</p><div class="point"><span class="dot"></span><span>Use local scope for one project. Use user scope for all projects.</span></div></article>
+    <article class="card"><span class="pill a">you</span><h3><code>~/.claude.json</code></h3><p>User-scoped servers for personal use and experiments.</p><div class="point"><span class="dot"></span><span>Lives in your home directory. Never shared through version control.</span></div></article>
   </div>
 </section>
 
@@ -467,7 +471,7 @@ url: "https://example.com/mcp"</pre>
       <div class="point"><span class="dot"></span><span>MCP is a protocol, not a vendor integration.</span></div>
       <div class="point"><span class="dot"></span><span>The host owns the model loop and the MCP client.</span></div>
       <div class="point"><span class="dot"></span><span>Tools act. Resources inform. Prompts start workflows.</span></div>
-      <div class="point"><span class="dot"></span><span>Tool descriptions decide routing.</span></div>
+      <div class="point"><span class="dot"></span><span>Tool descriptions decide routing. <code>tool_choice</code> decides whether a tool runs at all.</span></div>
     </div>
     <div class="col">
       <div class="point"><span class="dot"></span><span>Project servers go in <code>.mcp.json</code>. Personal servers stay in <code>~/.claude.json</code>.</span></div>

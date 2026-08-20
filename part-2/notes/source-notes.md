@@ -16,35 +16,47 @@
 
 https://ravnhq.github.io/claude-certified-architect/guides/en.html
 
-Chapter 4 supplies the exam-level scope:
+Chapter 4 and Domain 2 supply the scope, and the deck stays inside it:
 
 - MCP exposes tools, resources, and prompts.
 - Project configuration belongs in `.mcp.json`; personal or experimental
-  configuration belongs in `~/.claude.json`.
+  configuration belongs in `~/.claude.json`. The guide knows those two scopes
+  and no others.
 - Secrets are referenced through environment variables.
 - Tool failures use `isError: true`; useful failures include enough context for
   retry, correction, or escalation.
 - A resource can provide a catalog or schema without exploratory tool calls.
+- Chapter 2.3 and Domain 2.3 supply slide 8: `tool_choice` is `auto`, `any`, or
+  a forced named tool. Part 1 deferred this on the record, so Part 2 owes it.
+- Chapter 2.2 adds the point slide 7 carries: an agent will prefer a built-in
+  tool such as `Grep` over an MCP tool that sounds the same, so an MCP
+  description has to name the data the built-in tool cannot reach. Domain 2.4
+  states the same skill.
 
-### Claude Code MCP documentation
+### Deliberate exclusions
 
-https://code.claude.com/docs/en/mcp
+Two topics that an MCP session would normally cover are left out on purpose,
+because the exam guide does not carry them and the session exists to close exam
+gaps:
 
-Current Claude Code adds three practical details beyond the exam guide:
+- **Transports.** stdio versus HTTP is real and useful, but the guide never
+  poses the trade-off, and its out-of-scope list rules out deploying or hosting
+  MCP servers. The deck still says the demo runs over stdio, because it does.
+- **Claude Code's `local` scope.** Current Claude Code has local, user, and
+  project scopes. The guide has two, and the exam answer is binary:
+  `.mcp.json` for the team, `~/.claude.json` for you. A third row taught on the
+  day is a third option in the room's head on test day.
 
-- local scope is private to one user in one project;
-- user scope is private to one user across projects;
-- project scope writes `.mcp.json` and requires workspace trust and server
-  approval after cloning.
-
-The deck keeps the exam answer prominent and labels local scope as current
-Claude Code behavior.
+If this material is ever wanted, it belongs in a separate practitioner session,
+not in the exam crash course.
 
 ### Official MCP TypeScript SDK
 
 https://github.com/modelcontextprotocol/typescript-sdk
 
-The demo uses the v2 packages implementing the 2026-07-28 MCP specification:
+The demo runs on the v2 packages implementing the 2026-07-28 MCP
+specification. This is provenance for the code, not material taught on the
+day:
 
 - `@modelcontextprotocol/server`
 - `@modelcontextprotocol/client`

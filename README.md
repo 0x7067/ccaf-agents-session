@@ -13,7 +13,7 @@ every part.
 | Part | Topic | Status |
 |---|---|---|
 | [Part 1](part-1/) | Agentic Architecture and Orchestration: the Claude API request body, the agent loop, multi-agent hub-and-spoke (live demo), and a full exam summary | ✅ ready |
-| [Part 2](part-2/) | Model Context Protocol and Tool Calling: hosts, clients, servers, tools/resources/prompts, configuration scopes, structured errors, and a live stdio protocol trace | ✅ ready |
+| [Part 2](part-2/) | Model Context Protocol and Tool Calling: hosts, clients, servers, tools/resources/prompts, tool descriptions and `tool_choice`, project vs personal configuration, structured errors, and a live protocol trace | ✅ ready |
 | Part 3+ | yours to add | |
 
 Each part is a self-contained folder:
@@ -78,6 +78,6 @@ Run `npm run protocol` for the same trace as newline-delimited JSON.
 ## Studying for the CCAF?
 
 This course maps to the exam guide at
-https://github.com/paullarionov/claude-certified-architect. The code is
+https://ravnhq.github.io/claude-certified-architect/. The code is
 annotated with the exam-relevant reasoning: start with
 `part-1/demo/src/audit.ts`.
