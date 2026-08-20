@@ -31,6 +31,7 @@
   .point{display:flex;gap:13px;align-items:flex-start;font-size:19px;line-height:1.45}
   .dot{width:9px;height:9px;border-radius:50%;background:var(--acc);margin-top:9px;flex:0 0 9px}
   .point.good .dot{background:var(--ok)}.point.bad .dot{background:var(--bad)}
+  .dot.num{width:22px;height:22px;flex:0 0 22px;margin-top:3px;display:grid;place-items:center;font:800 12px var(--mono);color:#0d1322}
   .point b{color:#fff}
   code{font-family:var(--mono);font-size:.86em;font-weight:650;color:var(--acc);background:#18213a;border:1px solid #26335a;border-radius:6px;padding:1px 6px}
   pre{font-family:var(--mono);white-space:pre-wrap}
@@ -168,11 +169,13 @@
     </div>
     <div class="col">
       <div class="analogy"><span class="tag">Restaurant model</span>The counter accepts a standard order ticket. Each kitchen still decides what it can cook and how it cooks it.</div>
-      <pre class="code">host  ⇄  MCP client  ⇄  MCP server
+      <pre class="code"><span class="c">// why a protocol beats adapters</span>
+without MCP   3 apps × 3 systems = <span class="n">9</span> custom adapters
+with MCP      3 apps + 3 systems = <span class="n">6</span> connections
 
-Claude Code              restaurant
-your app                  Jira
-an agent                  your database</pre>
+Claude Code ─┐             ┌─ restaurant
+your app    ─┼─ one MCP  ──┼─ Jira
+an agent    ─┘  protocol   └─ your database</pre>
     </div>
   </div>
 </section>
@@ -184,18 +187,21 @@ an agent                  your database</pre>
     <article class="card win">
       <div class="icon">tools/call</div>
       <h3>Tools act</h3>
+      <span class="pill a">the model decides</span>
       <p>The model chooses a tool and sends structured arguments.</p>
       <p><code>place-order</code><br><code>search-menu</code></p>
     </article>
     <article class="card">
       <div class="icon">resources/read</div>
       <h3>Resources inform</h3>
+      <span class="pill b">the host decides</span>
       <p>The host reads data by URI and adds it to context. The read does not change the system.</p>
       <p><button class="click" data-dialog="resource"><code>restaurant://menu</code></button><br><code>restaurant://hours</code></p>
     </article>
     <article class="card">
       <div class="icon">prompts/get</div>
       <h3>Prompts start</h3>
+      <span class="pill w">a person decides</span>
       <p>A person chooses a reusable message template from a menu or command.</p>
       <p><button class="click" data-dialog="prompt"><code>/plan-lunch</code></button><br><code>/feed-the-team</code></p>
     </article>
@@ -220,10 +226,10 @@ an agent                  your database</pre>
   <h2>Before Claude can order, it reads the restaurant's capabilities</h2>
   <div class="body">
     <div class="col">
-      <div class="point"><span class="dot"></span><span>The MCP client sends <code>tools/list</code>.</span></div>
-      <div class="point"><span class="dot"></span><span>The model receives each tool's <b>name</b>, <b>description</b>, and <b>input schema</b>.</span></div>
-      <div class="point"><span class="dot"></span><span>Claude writes the chosen tool name plus JSON arguments. That is the order ticket.</span></div>
-      <div class="point"><span class="dot"></span><span>The host passes those values to <code>tools/call</code>.</span></div>
+      <div class="point"><span class="dot num">1</span><span>The MCP client sends <code>tools/list</code>.</span></div>
+      <div class="point"><span class="dot num">2</span><span>The model receives each tool's <b>name</b>, <b>description</b>, and <b>input schema</b>.</span></div>
+      <div class="point"><span class="dot num">3</span><span>Claude writes the chosen tool name plus JSON arguments. That is the order ticket.</span></div>
+      <div class="point"><span class="dot num">4</span><span>The host passes those values to <code>tools/call</code>.</span></div>
       <div class="analogy"><span class="tag">Segue</span>Now Claude knows what is available. The next question is how it picks the right tool.</div>
     </div>
     <div class="col">
@@ -306,8 +312,8 @@ an agent                  your database</pre>
       <div class="scope-project"><span class="pill b">team project</span><strong><code>.mcp.json</code></strong><p>Version-controlled. Everyone working in this project gets the restaurant server.</p></div>
     </div>
     <div class="scope-notes">
-      <div class="point"><span class="dot"></span><span>Use personal scope for experiments that only you need.</span></div>
-      <div class="point good"><span class="dot"></span><span>Use project scope when the team needs the same server and configuration.</span></div>
+      <div class="point"><span class="dot"></span><span>Personal scope is your <b>private notebook</b>: experiments only you need.</span></div>
+      <div class="point good"><span class="dot"></span><span>Project scope is the <b>team recipe book</b>: committed, so everyone gets the same server.</span></div>
       <pre class="code">{
   <span class="f">"mcpServers"</span>: {
     <span class="f">"restaurant"</span>: {
@@ -344,13 +350,13 @@ an agent                  your database</pre>
     "errorCategory": "validation",
     "isRetryable": true,
     "message": "Unknown item. Read restaurant://menu and retry",
-    "attemptedInput": { "itemId": "truffle-pizza" },
-    "partialResults": null
+    "attemptedInput": { "itemId": "truffle-pizza" }
   }
 }</pre>
       <p>The model knows what failed and how to recover.</p>
     </article>
   </div>
+  <div class="analogy" style="margin-top:12px;padding:12px 22px"><span class="tag">Restaurant model</span>A good waiter never just says "no". They say <b>why</b> ("we're out of truffle") and <b>what to try</b> ("check the menu").</div>
   <div class="foot"><span>The model reads tool errors. The client handles protocol errors.</span><span>12</span></div>
 </section>
 
@@ -378,6 +384,7 @@ an agent                  your database</pre>
       <p>The search did not complete. Use another route or ask a human.</p>
     </article>
   </div>
+  <div class="analogy" style="margin-top:14px"><span class="tag">Restaurant model</span>"We checked, and there's no sushi today" is the waiter <b>answering</b>. "The kitchen door is locked" means nobody could check at all.</div>
   <div class="foot"><span>Empty data means the operation completed. An error means it did not.</span><span>13</span></div>
 </section>
 
@@ -450,7 +457,7 @@ an agent                  your database</pre>
       <div class="icon">auto</div>
       <h3><code>{"type":"auto"}</code></h3>
       <p>Claude decides whether to call a tool or answer in text.</p>
-      <div class="point good"><span class="dot"></span><span>Use this for the normal conversational flow.</span></div>
+      <div class="point good"><span class="dot"></span><span>Think: "order only if the guest needs something." The normal flow.</span></div>
     </article>
     <article class="card">
       <div class="icon">any</div>
@@ -495,15 +502,15 @@ an agent                  your database</pre>
   <h2>Seven sentences are enough for the exam questions</h2>
   <div class="body">
     <div class="col">
-      <div class="point"><span class="dot"></span><span>MCP is a protocol, not a vendor integration.</span></div>
-      <div class="point"><span class="dot"></span><span>The host owns the model loop and the MCP client.</span></div>
-      <div class="point"><span class="dot"></span><span>Tools act. Resources inform. Prompts start workflows.</span></div>
-      <div class="point"><span class="dot"></span><span>Tool descriptions guide routing. <code>tool_choice</code> controls whether a call is optional or required.</span></div>
+      <div class="point"><span class="dot num">1</span><span>MCP is a protocol, not a vendor integration.</span></div>
+      <div class="point"><span class="dot num">2</span><span>The host owns the model loop and the MCP client.</span></div>
+      <div class="point"><span class="dot num">3</span><span>Tools act. Resources inform. Prompts start workflows.</span></div>
+      <div class="point"><span class="dot num">4</span><span>Tool descriptions guide routing. <code>tool_choice</code> controls whether a call is optional or required.</span></div>
     </div>
     <div class="col">
-      <div class="point"><span class="dot"></span><span>Project servers go in <code>.mcp.json</code>. Personal servers stay in <code>~/.claude.json</code>.</span></div>
-      <div class="point"><span class="dot"></span><span>Keep secrets in environment variables, not in version control.</span></div>
-      <div class="point"><span class="dot"></span><span><code>isError: true</code> must include enough context to recover.</span></div>
+      <div class="point"><span class="dot num">5</span><span>Project servers go in <code>.mcp.json</code>. Personal servers stay in <code>~/.claude.json</code>.</span></div>
+      <div class="point"><span class="dot num">6</span><span>Keep secrets in environment variables, not in version control.</span></div>
+      <div class="point"><span class="dot num">7</span><span><code>isError: true</code> must include enough context to recover.</span></div>
       <div class="analogy"><span class="tag">Exam</span>Prefer the answer that makes scope, tool selection, or recovery explicit.</div>
     </div>
   </div>
