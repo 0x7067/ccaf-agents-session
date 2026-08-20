@@ -103,7 +103,7 @@
   <div class="body" style="flex-direction:column;justify-content:center;gap:24px">
     <div class="kicker">CCAF crash course · Part 2</div>
     <h1>MCP and Tool Calling</h1>
-    <p class="sub">How Claude discovers a toolbox, calls it, and recovers when a tool says no.</p>
+    <p class="sub">Last session we gave Claude hands. Today: where the hands come from, and what happens when one of them says no.</p>
   </div>
   <div class="foot"><span>Ravn AI Development Office Hours</span><span class="keys">navigate: <b>←</b> <b>→</b> · fullscreen: <b>F</b></span></div>
 </section>
@@ -165,7 +165,7 @@ an agent                  your database</pre>
       <p><code>/triage-incident</code><br><code>/review-code</code></p>
     </article>
   </div>
-  <div class="foot"><span>Tool: model-controlled · Resource: host-controlled · Prompt: user-controlled</span><span>4</span></div>
+  <div class="foot"><span>Same test as last session, who decides? The model reaches for a tool, the app for a resource, a person for a prompt.</span><span>4</span></div>
 </section>
 
 <section class="slide">
@@ -179,6 +179,7 @@ an agent                  your database</pre>
     <div class="node"><span class="pill w">server</span><strong>Your system</strong><span>Exposes tools, resources, and prompts to the client.</span></div>
   </div>
   <div class="trace"><span>discover</span><i>→</i><span>model chooses</span><i>→</i><span>tools/call</span><i>→</i><span>tool result</span><i>→</i><span>model continues</span></div>
+  <div class="analogy" style="margin-top:14px"><span class="tag">Nothing new here</span>This is the same while loop from last session. MCP does not change the loop. It changes <b>where the tools come from</b>.</div>
 </section>
 
 <section class="slide">
@@ -190,7 +191,7 @@ an agent                  your database</pre>
       <div class="point"><span class="dot"></span><span>The model receives each tool's <b>name</b>, <b>description</b>, and <b>input schema</b>.</span></div>
       <div class="point"><span class="dot"></span><span>The model returns the chosen tool name plus JSON arguments.</span></div>
       <div class="point"><span class="dot"></span><span>The host passes those values to <code>tools/call</code>.</span></div>
-      <div class="analogy"><span class="tag">The important bit</span>The model does not execute the function. <b>Your server does.</b></div>
+      <div class="analogy"><span class="tag">The important bit</span>Same as last session: the model asks, <b>your code runs it</b>. MCP only means that code now lives in a server someone else can reuse.</div>
     </div>
     <div class="col">
       <pre class="code"><span class="c">// what the model can see</span>
@@ -275,7 +276,7 @@ tools/call({
       <div class="point good"><span class="dot"></span><span>Small input, small result, clear intent.</span></div>
     </article>
   </div>
-  <div class="analogy" style="margin-top:16px"><span class="tag">Exam instinct</span>If the agent is blindly opening every drawer to learn what exists, give it a <b>catalog resource</b>.</div>
+  <div class="analogy" style="margin-top:16px"><span class="tag">Exam instinct</span>Last session, tools gave Claude hands. A resource gives it a <b>map</b>. If the agent is opening every drawer just to learn what exists, it needs the map, not more hands.</div>
 </section>
 
 <section class="slide">
@@ -288,7 +289,7 @@ tools/call({
         <tr><td>user</td><td>You, personal and experimental</td><td><code>~/.claude.json</code></td></tr>
         <tr><td>project</td><td>Every contributor, through version control</td><td><code>.mcp.json</code></td></tr>
       </table>
-      <div class="analogy"><span class="tag">Exam answer</span>Team setup belongs in <b><code>.mcp.json</code></b>. Personal experiments belong in <b><code>~/.claude.json</code></b>.</div>
+      <div class="analogy"><span class="tag">Exam answer</span>Team setup belongs in <b><code>.mcp.json</code></b>, personal experiments in <b><code>~/.claude.json</code></b>. In plain terms: the toolbox bolted into the shared van, or the one in your own garage.</div>
     </div>
     <div class="col">
       <pre class="code">{
@@ -317,7 +318,7 @@ tools/call({
   "isError": true,
   "content": "Operation failed"
 }</pre>
-      <p>Retry? Fix input? Ask for access? Give up? The model cannot tell.</p>
+      <p>This is last session&rsquo;s &ldquo;refund unsuccessful&rdquo;. Retry? Fix the input? Ask for access? Claude cannot tell, so the loop ends.</p>
     </article>
     <article class="card win">
       <span class="pill b">recoverable</span>
@@ -359,6 +360,7 @@ tools/call({
       <p>The search never completed. The agent needs another route or human help.</p>
     </article>
   </div>
+  <div class="analogy" style="margin-top:14px"><span class="tag">Kid version</span>An empty result means you opened the fridge and there was no cheese. A failure means the fridge was <b>locked</b>. Only one of those is worth asking someone about.</div>
 </section>
 
 <section class="slide divider">

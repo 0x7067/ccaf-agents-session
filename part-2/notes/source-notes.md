@@ -7,8 +7,16 @@
 - Job: make MCP concrete enough that the audience can reason through exam
   scenarios and recognize the protocol in a real tool call.
 - Form: 30-minute browser-native deck with one deterministic local demo.
-- Register: the same direct, conversational style as Part 1. Use one simple
-  analogy, real payloads, and enough open space for improvisation.
+- Register: the same direct, conversational style as Part 1, pitched at the
+  half of the room that does not build agents daily. Puncture the buzzword
+  first, reach for the everyday analogy before the schema, and let the payloads
+  follow. Slang stays in the delivery, not on the slides: the deck gets shared
+  as a link afterwards.
+- Continuity: the deck names its callbacks to Part 1 rather than assuming them.
+  Tools gave Claude hands, so a resource gives it a map. The loop is the same
+  while loop. Your code runs the tool, not Claude. A dead-end `isError` is last
+  session's "refund unsuccessful". The empty-versus-failed search extends the
+  fridge the chef was already sent to.
 
 ## Sources
 
