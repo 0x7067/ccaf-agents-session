@@ -112,11 +112,40 @@
   <div class="body">
     <h1>What we are actually learning</h1>
     <div class="topics">
+      <span>How a model that only writes text gets anything done</span>
       <span>MCP as a contract between a host and external systems</span>
       <span>The difference between <b>tools</b>, <b>resources</b>, and <b>prompts</b></span>
       <span>Who decides that a tool runs: the description, and <code>tool_choice</code></span>
       <span>Project vs personal configuration</span>
-      <span>A real <code>tools/call</code>, including failure</span>
+      <span>A real tool call, live: one that works, and one that fails</span>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Start here · Claude only reads and writes text</div>
+  <h2>So how does it run code, or call a service?</h2>
+  <div class="body">
+    <div class="col">
+      <div class="point"><span class="dot"></span><span>It does not. Claude cannot run code, open a file, or reach a service.</span></div>
+      <div class="point"><span class="dot"></span><span>When it needs something done, it writes a <b>request</b>: a tool name and some JSON.</span></div>
+      <div class="point"><span class="dot"></span><span><b>Your code</b> reads it, does the real work, and writes the answer back as more text.</span></div>
+      <div class="point good"><span class="dot"></span><span>Claude never touches your systems. It asks. Your side acts.</span></div>
+      <div class="analogy"><span class="tag">Kid version</span>Claude is behind a glass window. It can pass notes, nothing else. A <b>tool</b> is a note both sides agreed on.</div>
+    </div>
+    <div class="col">
+      <pre class="code"><span class="c">// our example all session: a service catalog</span>
+
+<span class="c">// the note Claude writes</span>
+{
+  <span class="f">"name"</span>: <span class="s">"lookup-service"</span>,
+  <span class="f">"input"</span>: { <span class="f">"service"</span>: <span class="s">"checkout-api"</span> }
+}
+
+<span class="c">// the note your code writes back</span>
+{
+  <span class="f">"content"</span>: <span class="s">"owner: Payments team, tier 1"</span>
+}</pre>
     </div>
   </div>
 </section>
@@ -165,7 +194,7 @@ an agent                  your database</pre>
       <p><code>/triage-incident</code><br><code>/review-code</code></p>
     </article>
   </div>
-  <div class="foot"><span>Same test as last session, who decides? The model reaches for a tool, the app for a resource, a person for a prompt.</span><span>4</span></div>
+  <div class="foot"><span>Same test as last session, who decides? The model reaches for a tool, the app for a resource, a person for a prompt.</span><span>5</span></div>
 </section>
 
 <section class="slide">
@@ -230,7 +259,7 @@ tools/call({
     </article>
   </div>
   <div class="analogy" style="margin-top:14px"><span class="tag">Exam instinct</span>An agent reaches for a built-in tool like <b>Grep</b> before an MCP tool that sounds the same. Name the data or context your server has that the built-in one cannot reach.</div>
-  <div class="foot"><span><button class="click" data-dialog="description">Open the five-part description checklist</button></span><span>7</span></div>
+  <div class="foot"><span><button class="click" data-dialog="description">Open the five-part description checklist</button></span><span>8</span></div>
 </section>
 
 <section class="slide">
@@ -334,7 +363,7 @@ tools/call({
 }</pre>
     </article>
   </div>
-  <div class="foot"><span>The model reads tool errors. The client handles protocol errors.</span><span>11</span></div>
+  <div class="foot"><span>The model reads tool errors. The client handles protocol errors.</span><span>12</span></div>
 </section>
 
 <section class="slide">
@@ -348,7 +377,7 @@ tools/call({
   <span class="f">"resultCount"</span>: <span class="n">0</span>,
   <span class="f">"matches"</span>: []
 }</pre>
-      <p>The search ran. There were no matches. Do not retry forever.</p>
+      <p>The search ran. Nothing matched. Do not retry.</p>
     </article>
     <article class="card">
       <span class="pill w">failed search</span>
@@ -357,10 +386,10 @@ tools/call({
   <span class="f">"errorCategory"</span>: <span class="s">"permission"</span>,
   <span class="f">"isRetryable"</span>: <span class="n">false</span>
 }</pre>
-      <p>The search never completed. The agent needs another route or human help.</p>
+      <p>The search never ran. The agent needs another route, or a human.</p>
     </article>
   </div>
-  <div class="analogy" style="margin-top:14px"><span class="tag">Kid version</span>An empty result means you opened the fridge and there was no cheese. A failure means the fridge was <b>locked</b>. Only one of those is worth asking someone about.</div>
+  <div class="foot"><span>&ldquo;There is no toilet paper&rdquo; is an answer. &ldquo;I could not get into the bathroom&rdquo; is not. Confuse them and the agent goes shopping instead of asking for a key.</span><span>13</span></div>
 </section>
 
 <section class="slide divider">
