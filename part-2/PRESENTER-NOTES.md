@@ -38,6 +38,9 @@ Open http://127.0.0.1:4848/part-2/slides.html, press `F`, and run **Rehearse**
 once. Then run `npm run protocol` in a terminal. It must finish with a `done`
 event and exit without leaving the MCP server alive.
 
+When presenting from the published static link, use **Rehearse**. **Run live**
+needs the local demo server started by `npm run demo`.
+
 ## Timing
 
 | Time | Slides | Must-hit beat |
@@ -50,7 +53,7 @@ event and exit without leaving the MCP server alive.
 | 0:19-0:23 | 11 | Team setup means `.mcp.json`; personal setup means `~/.claude.json`. Secrets stay in environment variables. The room meets this as a binary choice on the test, so make the van and the garage stick. |
 | 0:23-0:27 | 12-13 | A tool error stays readable by the model: category, retryability, attempted input, recovery guidance. Slide 12 is last session's "refund unsuccessful", so say so. Then slide 13: no toilet paper is an answer, a locked door is not. |
 | 0:27-0:29 | — | **Stop. Ask the room.** Best place to catch anyone the schemas lost. |
-| 0:29-0:34 | 14-15 | Land on slide 15 and click **Run live** immediately. The room plays the host. Read the discovery result, then narrate each `tools/call`. Click events to expose their payloads. |
+| 0:29-0:34 | 14-15 | Land on slide 15. Locally, click **Run live**. From the published static link, click **Rehearse**. Read discovery, the resource read, the successful call, the empty result, the failed call, and the final prompt result. Click events to expose their payloads. |
 | 0:34-0:35 | 16 | Debrief: schemas and JSON crossed the wire. The model supplies judgment; MCP supplies the contract. |
 | 0:35-0:37 | 17 | Prefer an existing maintained server for a standard integration. Build only the unique team-specific gap. Disconnect what you do not need. Quote it the way Part 1 did: simplest solution first, complexity only when it is needed. |
 | 0:37-0:40 | 18-21 | Close with exam reasoning. Primitive matches job; scope matches owner; structured errors make recovery possible. Leave slide 21 on screen for questions. |
@@ -63,21 +66,26 @@ event and exit without leaving the MCP server alive.
   Somebody always has. Most people have never heard the answer.
 - On slide 3, click the tool call and the result to show what crosses the boundary.
 - On slide 4, ask what integrations people have configured by hand before.
-- On slide 5, ask whether a database schema should be a tool or a resource.
+- On slide 5, ask whether a database schema should be a tool or a resource. Open the resource and prompt examples, then ask what each gives the host or the person using it.
 - On slide 8, ask the room which description they would trust with a refund,
   then ask which of their MCP tools an agent would skip in favor of `Grep`.
+  Open the description and JSON Schema example. Point out `other` and the detail field.
 - On slide 9, ask who has forced a first tool call, and what broke without it.
 - On slide 11, ask which of their team's servers belong in `.mcp.json` and which
-  are personal enough to stay in `~/.claude.json`.
+  are personal enough to stay in `~/.claude.json`. Open the secret note and make
+  the environment-variable boundary explicit.
 - On slide 15, let the room choose whether to inspect discovery, the successful
   call, the empty result, or the failed call first.
 
 ## Live demo recovery
 
-- If **Run live** fails, click **Stop**, check the error event, then run it once
-  more.
-- If it fails again, use **Rehearse** and say clearly that the UI is replaying
-  the same event shapes. Do not debug package installation on stage.
+- When presenting locally, if **Run live** fails, click **Stop**, check the error
+  event, then run it once more.
+- When presenting from the published static link, use **Rehearse** from the
+  start. **Run live** needs the local WebSocket server. Do not debug that on
+  stage.
+- **Rehearse** replays the same event shapes without starting a process, so it
+  is the right fallback for a projector check or a static copy of the deck.
 - The demo does not call a model or external API. A failure is local process or
   dependency setup, not API quota.
 
