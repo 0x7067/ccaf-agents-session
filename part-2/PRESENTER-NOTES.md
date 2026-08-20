@@ -5,18 +5,20 @@ The menu is a resource. Ordering and searching are tools. Planning lunch is a
 prompt. Claude writes the ticket, Claude Code carries it, and the restaurant
 MCP server does the work.
 
-The deck now has 18 slides. It opens on the unanswered question from Part 1,
-walks one restaurant order through MCP, covers configuration and recovery, and
-then proves the whole story with the real server. `tool_choice` comes after
-the demo as a short exam aside because it is easier to understand once the room
-has seen an actual call.
+The deck now has 18 slides. It opens with the MCP counter and the three
+primitives, then the host/client/server cast. Only then does it return to the
+question underneath Part 1 — if Claude only writes text, who places the order —
+before it walks one restaurant order through MCP, covers configuration and
+recovery, and proves the whole story with the real server. `tool_choice` comes
+after the demo as a short exam aside because it is easier to understand once
+the room has seen an actual call.
 
 ## Register
 
 The room is mixed. Some people build agents every day. Others have never called
 a tool. Start with the second group.
 
-- Say "Claude writes the ticket; your application sends it" every time the
+- Say "Claude writes the ticket; the host sends it" every time the
   model and host start to blur together.
 - Use the restaurant before the schema. Once the room can picture the order,
   show the JSON that carries it.
@@ -44,15 +46,15 @@ demo server.
 
 | Time | Slides | Must-hit beat |
 |---|---|---|
-| 0:00-0:02 | 1 | Promise one complete trip: menu, order ticket, kitchen, receipt. Call back to Part 1: last time we gave Claude hands; today we find where those hands come from. |
-| 0:02-0:05 | 2 | Ask who places the order if Claude only writes text. Click the tool request and result. Claude writes structured intent. Claude Code sends it. The MCP server runs it. |
-| 0:05-0:08 | 3 | Define MCP through the standard order counter. Different systems expose different work, but discovery, requests, and results follow one protocol. |
+| 0:00-0:02 | 1 | Promise one complete trip: menu, order ticket, kitchen, receipt. Call back to Part 1: last time we gave Claude hands; today we find where those hands order from. |
+| 0:02-0:05 | 2 | Define MCP through the standard order counter. Different systems expose different work, but discovery, requests, and results follow one protocol. |
+| 0:05-0:08 | 3 | Open the server. Tools act, resources inform, prompts start. Ask the room which primitive the menu should be before revealing it. |
 | 0:08-0:11 | 4 | Resolve the naming problem. Claude Code is the host. The MCP client lives inside it. The restaurant MCP server is outside and runs the integration code. |
-| 0:11-0:14 | 5 | Open the server. Tools act, resources inform, prompts start. Ask the room which primitive the menu should be before revealing it. |
-| 0:14-0:17 | 6 | Follow discovery into `tools/call`. The model sees name, description, and schema, then writes the order ticket. It does not send the request itself. |
+| 0:11-0:14 | 5 | Ask who places the order if Claude only writes text. Click the tool request and result. Claude writes structured intent. The host sends it. The MCP server runs it. |
+| 0:14-0:17 | 6 | Follow discovery into `tools/call`. The model sees name, description, and schema, then writes the order ticket. The SDK wraps that ticket in the JSON-RPC envelope. |
 | 0:17-0:20 | 7 | Compare "Orders food" with the specific `place-order` description. The boundary sentence tells Claude when to read or search instead. |
 | 0:20-0:22 | 8 | Land resources with the cleanest restaurant distinction: reading the menu does not create an order. |
-| 0:22-0:24 | 9 | Show scope as containment. Your personal setup spans projects. A project config lives inside one shared project. Secrets stay in environment variables. |
+| 0:22-0:24 | 9 | Show scope as two files: `~/.claude.json` at your home, `.mcp.json` inside the repo. Both load when you open the project; only the repo's file is shared. Secrets stay in environment variables. |
 | 0:24-0:28 | 10-11 | Make recovery concrete. Unknown item means read the menu and retry. No sushi means the search worked. Menu access denied means it did not. |
 | 0:28-0:30 | 12 | Stop before the demo. Ask the room to predict the event order: discovery, menu read, successful order, empty search, failed order. |
 | 0:30-0:35 | 13-14 | Run the trace. Read the sequence, then debrief it. Inspect one request, the successful receipt, and the structured error. |
@@ -64,13 +66,16 @@ demo server.
 
 Use these as handoffs, not as lines to memorize.
 
-- Slide 2 to 3: "We know who does the work. Now we need a standard way to hand
-  that work over."
-- Slide 3 to 4: "The protocol is the counter. Who is standing on each side of
-  it?"
-- Slide 4 to 5: "Now open the restaurant server and look at what it can expose."
-- Slide 5 to 6: "Having a menu of capabilities is useful only if Claude can
-  discover it."
+- Slide 1 to 2: "Last session we gave Claude hands. Today we find the counter
+  those hands order from."
+- Slide 2 to 3: "The protocol is the counter. Now open the restaurant server
+  and look at what it can expose."
+- Slide 3 to 4: "Three kinds of things live behind the counter. So who stands
+  on each side of it?"
+- Slide 4 to 5: "You know the cast. Back to the question underneath it: if
+  Claude only writes text, who places the order?"
+- Slide 5 to 6: "The loop is clear. Start at the beginning: how did Claude know
+  `place-order` exists?"
 - Slide 6 to 7: "Claude can see every tool. The description is what gets the
   order to the right station."
 - Slide 7 to 8: "Before we place an order, Claude may need to know what the
@@ -87,8 +92,8 @@ Use these as handoffs, not as lines to memorize.
 
 ## Interaction openings
 
-- Slide 2: ask who thought Claude itself executed tools.
-- Slide 5: ask whether a menu should be a tool or a resource.
+- Slide 5: ask who thought Claude itself executed tools.
+- Slide 3: ask whether a menu should be a tool or a resource.
 - Slide 7: ask which description they would trust with a real payment.
 - Slide 9: ask which team MCP belongs in `.mcp.json` and which personal
   experiment belongs in `~/.claude.json`.

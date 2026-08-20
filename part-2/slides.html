@@ -41,16 +41,15 @@
   .analogy{background:linear-gradient(135deg,#1c2440,#182034);border:1px solid #2c3a5e;border-radius:16px;padding:18px 22px;font-size:18px;line-height:1.5}
   .analogy .tag{display:block;width:max-content;font-size:11px;letter-spacing:.17em;text-transform:uppercase;color:var(--acc2);border:1px solid #2e4a49;border-radius:99px;padding:3px 10px;margin-bottom:8px;font-weight:750}
   .analogy b{color:var(--acc2)}
-  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;flex:1;align-content:center}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;flex:1;align-content:center;align-items:start}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:22px;display:flex;flex-direction:column;gap:11px;min-width:0}
   .card .icon{font-family:var(--mono);font-size:14px;font-weight:800;color:var(--acc2);letter-spacing:.1em;text-transform:uppercase}
   .card p{color:var(--dim);font-size:16px;line-height:1.5}
   .card.win{background:linear-gradient(160deg,#1b2743,#141b2c);border-color:#31527a}
   .pill{display:inline-block;width:max-content;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;border-radius:99px;padding:4px 11px}
   .pill.a{background:#243352;color:var(--acc)}.pill.b{background:#233c37;color:var(--acc2)}.pill.w{background:#35291d;color:var(--warn)}
-  .two{display:grid;grid-template-columns:1fr 1fr;gap:24px;flex:1;align-content:center;min-height:0}
-  .vs{display:flex;gap:22px;flex:1;align-items:stretch}
-  .vs>.card{flex:1}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:24px;flex:1;align-content:center;align-items:start;min-height:0}
+  .vs{display:grid;grid-template-columns:1fr 1fr;gap:22px;flex:1;align-content:center;align-items:start;min-height:0}
   table{border-collapse:collapse;width:100%;font-size:16px}
   th,td{border-bottom:1px solid #263049;padding:10px 13px;text-align:left;vertical-align:top}
   th{color:var(--dim);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
@@ -65,12 +64,20 @@
   .client-core strong{font-size:19px}.client-core p{grid-column:1/-1;color:var(--dim);font-size:15px;line-height:1.4}
   .server-box{background:linear-gradient(160deg,#1b2743,#141b2c);border:1px solid #31527a;border-radius:18px;padding:26px;min-height:250px;display:flex;flex-direction:column;justify-content:center;gap:13px}
   .server-box strong{font-size:25px}.server-box p{color:var(--dim);font-size:16px;line-height:1.45}
-  .scope-stage{display:grid;grid-template-columns:1fr .9fr;gap:34px;align-items:center;flex:1;min-height:0}
-  .scope-user{position:relative;min-height:350px;border:1px solid #3a4b76;border-radius:50%;background:#151c2b;display:grid;place-items:center;padding:70px 56px 42px}
-  .scope-label{position:absolute;top:34px;left:50%;transform:translateX(-50%);text-align:center}
-  .scope-label strong{display:block;font-size:22px}.scope-label small{color:var(--dim);font-size:14px}
-  .scope-project{width:78%;min-height:190px;background:linear-gradient(160deg,#1b2743,#141b2c);border:1px solid #31527a;border-radius:16px;padding:24px;display:flex;flex-direction:column;justify-content:center;gap:10px;text-align:center}
-  .scope-project strong{font-size:22px}.scope-project p{color:var(--dim);line-height:1.45}
+  .scope-stage{display:grid;grid-template-columns:.95fr 1.05fr;gap:34px;align-items:center;flex:1;min-height:0}
+  .scope-tree{background:#0b0e15;border:1px solid #232c44;border-radius:16px;padding:20px 24px;display:flex;flex-direction:column;gap:9px;font-family:var(--mono);font-size:15px}
+  .scope-branch{display:flex;align-items:center;gap:10px;color:var(--faint);font-size:14px}
+  .scope-branch b{color:var(--dim);font-weight:600}
+  .scope-file{display:flex;align-items:center;gap:13px;border-radius:12px;padding:13px 16px;margin-left:10px}
+  .scope-file .glyph{color:var(--faint);flex:0 0 auto}
+  .scope-file.personal{background:#1a2132;border:1px solid #2c3a5e}
+  .scope-file.project{background:linear-gradient(160deg,#1b2743,#141b2c);border:1px solid #31527a;margin-left:44px}
+  .scope-file .meta{display:flex;flex-direction:column;gap:4px;min-width:0}
+  .scope-file .line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .scope-file code{background:none;border:0;padding:0;font-size:15px}
+  .scope-file small{color:var(--dim);font-family:var(--sans);font-size:13px;line-height:1.35}
+  .scope-merge{margin-top:7px;border-top:1px dashed #2c3a5e;padding-top:13px;font-family:var(--sans);color:var(--dim);font-size:15px;line-height:1.5}
+  .scope-merge b{color:var(--acc2)}
   .scope-notes{display:flex;flex-direction:column;gap:16px}
   .divider .body{flex-direction:column;align-items:center;justify-content:center;text-align:center}
   .divider h1{font-size:52px}.topics{width:min(100%,48rem);margin-top:27px;display:flex;flex-direction:column;gap:12px;font-size:19px;color:var(--dim);align-items:flex-start;text-align:left}
@@ -88,7 +95,7 @@
   #modal.on{display:flex}.modal-box{width:min(900px,92vw);max-height:84vh;overflow:auto;background:var(--panel);border:1px solid #3a4b76;border-radius:17px;padding:24px}
   #modal-close{float:right;background:none;border:0;color:var(--dim);font-size:25px;cursor:pointer}.modal-box h3{margin-bottom:12px}.modal-box pre{background:#0b0e15;border:1px solid #232c44;border-radius:12px;padding:16px;font-size:13px;line-height:1.55;overflow:auto}
   .quote{font-size:26px;line-height:1.4;font-weight:720;border:1px solid #2e4a49;border-radius:14px;padding:20px 22px}.quote small{display:block;color:var(--dim);font-size:15px;margin-top:12px;font-weight:500}
-  .chat-demo{background:var(--bg2);border:1px solid #232c44;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:11px;min-height:0;flex:1;justify-content:center}
+  .chat-demo{background:var(--bg2);border:1px solid #232c44;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:11px;flex:none;justify-content:center}
   .chat-head{display:flex;align-items:center;gap:9px;padding:0 2px 11px;border-bottom:1px solid #263049}.chat-avatar{width:27px;height:27px;border-radius:8px;background:var(--acc2);color:#0d1322;display:grid;place-items:center;font-weight:850;font-size:14px}.chat-head b{font-size:14px}.chat-head small{display:block;color:var(--dim);font:11px var(--mono);margin-top:2px}.chat-state{margin-left:auto;color:var(--acc2);font:10px var(--mono);text-transform:uppercase;letter-spacing:.1em}
   .chat-messages{display:flex;flex-direction:column;gap:8px;min-height:0}.chat-row{display:flex}.chat-row.user{justify-content:flex-end}.chat-bubble{max-width:92%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 11px;font-size:14px;line-height:1.42}.chat-row.user .chat-bubble{background:#243352;border-color:#31527a}.chat-row.tool .chat-bubble{background:#233c37;border-color:#2e4a49}.chat-label{display:block;color:var(--faint);font:10px var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}.chat-bubble p{margin:0}.chat-call{margin-top:8px;background:#0b0e15;border:1px solid #2e4a49;border-radius:9px;padding:8px 9px}.chat-call-top{display:flex;align-items:center;gap:7px;font:12px var(--mono)}.chat-call-top b{color:var(--acc2);font-size:10px;letter-spacing:.08em;text-transform:uppercase}.chat-call-arg{display:flex;justify-content:space-between;gap:12px;margin-top:6px;color:var(--dim);font:12px var(--mono)}.chat-call-arg code{font-size:12px;padding:0;border:0;background:none}.chat-handoff{display:flex;align-items:center;gap:8px;color:var(--acc2);font:10px var(--mono);letter-spacing:.07em;text-transform:uppercase}.chat-handoff::before,.chat-handoff::after{content:'';height:1px;background:#2e4a49;flex:1}
   .chat-call-button{width:100%;font:inherit;color:inherit;text-align:left;cursor:pointer;transition:border-color .15s,background .15s}.chat-call-button:hover{border-color:var(--acc2);background:#101a22}.chat-call-button:focus-visible,.chat-inspect:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}.chat-inspect{margin-left:8px;border:0;border-bottom:1px dashed var(--acc2);padding:0;background:none;color:var(--acc2);font:10px var(--mono);cursor:pointer;text-transform:uppercase;letter-spacing:.05em}
@@ -114,7 +121,7 @@
 
   @media (prefers-reduced-motion:reduce){.slide.on{animation:none}*{scroll-behavior:auto!important}}
   @media (max-width:900px){
-    #touch-nav{display:flex;top:max(12px,env(safe-area-inset-top));bottom:auto}#pager{display:none}.slide{padding:92px 26px 32px;overflow:auto}h1{font-size:44px}h2{font-size:33px}.body{flex-direction:column}.cards,.two,.wire,.scope-stage{grid-template-columns:1fr}.flow,.host-map{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.foot{display:none}.sub{font-size:18px}.cards{padding-bottom:24px}.topics{width:100%;align-items:stretch}.topics span{overflow-wrap:anywhere}.topics code{white-space:normal;overflow-wrap:anywhere}.intro-tool .body .col:last-child{order:-1}.intro-tool .chat-demo{flex:none;min-height:390px}.scope-user{min-height:320px}.scope-project{width:82%}table{table-layout:fixed;font-size:14px}th,td{padding:9px 6px;overflow-wrap:anywhere}th:nth-child(1),td:nth-child(1){width:20%}th:nth-child(2),td:nth-child(2){width:43%}th:nth-child(3),td:nth-child(3){width:37%}
+    #touch-nav{display:flex;top:max(12px,env(safe-area-inset-top));bottom:auto}#pager{display:none}.slide{padding:92px 26px 32px;overflow:auto}h1{font-size:44px}h2{font-size:33px}.body{flex-direction:column}.cards,.two,.wire,.vs,.scope-stage{grid-template-columns:1fr}.flow,.host-map{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.foot{display:none}.sub{font-size:18px}.cards{padding-bottom:24px}.topics{width:100%;align-items:stretch}.topics span{overflow-wrap:anywhere}.topics code{white-space:normal;overflow-wrap:anywhere}.order-ticket .body .col:last-child{order:-1}.order-ticket .chat-demo{flex:none;min-height:390px}table{table-layout:fixed;font-size:14px}th,td{padding:9px 6px;overflow-wrap:anywhere}th:nth-child(1),td:nth-child(1){width:20%}th:nth-child(2),td:nth-child(2){width:43%}th:nth-child(3),td:nth-child(3){width:37%}
     .slide.demo{padding:84px 20px 32px;overflow:auto}.demo-head{flex-wrap:wrap}.demo-head h2{flex:0 0 100%}.demo-head .spacer{display:none}.demo-head .btn{font-size:12px;padding:7px 10px}.demo-grid{display:flex;flex-direction:column;flex:none}.demo-left,.demo-right{min-height:470px}.protocol-map{grid-template-columns:1fr 16px 1fr 16px 1fr;gap:3px;padding:10px}.pnode{min-width:0;padding:8px 3px}.pnode b{font-size:11px}.pnode small{font-size:8px}.parrow{font-size:14px}.cap{grid-template-columns:1fr}.pane{min-height:320px}
   }
 </style>
@@ -129,32 +136,6 @@
     <p class="sub">Last session we gave Claude hands. Today we open a restaurant MCP and follow one order from the menu to the kitchen and back.</p>
   </div>
   <div class="foot"><span>Ravn AI Development Office Hours</span><span class="keys">navigate: <b>←</b> <b>→</b> · fullscreen: <b>F</b></span></div>
-</section>
-
-<section class="slide intro-tool">
-  <div class="kicker">Start here · Claude writes the ticket. Your application sends it.</div>
-  <h2>If Claude only writes text, who places the order?</h2>
-  <div class="body">
-    <div class="col">
-      <div class="point"><span class="dot"></span><span>Claude produces a structured request: tool name plus arguments.</span></div>
-      <div class="point"><span class="dot"></span><span>Claude Code receives that request and sends it through its MCP client.</span></div>
-      <div class="point"><span class="dot"></span><span>The restaurant MCP server runs the code and returns the result.</span></div>
-      <div class="point good"><span class="dot"></span><span>Claude Code adds the result to context. Claude can answer or choose another tool.</span></div>
-      <div class="analogy"><span class="tag">Restaurant model</span>Claude writes the order ticket. Claude Code carries it to the kitchen. The MCP server does the work and sends back a receipt.</div>
-    </div>
-    <div class="col">
-      <div class="chat-demo" aria-label="Mock Claude conversation showing a tool call">
-        <div class="chat-head"><span class="chat-avatar">C</span><div><b>Claude</b><small>tool calling</small></div><span class="chat-state">click to inspect</span></div>
-        <div class="chat-messages">
-          <div class="chat-row user"><div class="chat-bubble"><span class="chat-label">You</span><p>Order one margherita pizza.</p></div></div>
-          <div class="chat-row"><div class="chat-bubble"><span class="chat-label">Claude</span><p>I'll place the order.</p><button class="chat-call chat-call-button" type="button" data-dialog="toolcall" aria-label="Inspect the place-order tool request"><span class="chat-call-top"><b>tool use</b><code>place-order</code></span><span class="chat-call-arg"><span>item</span><code>"margherita-pizza"</code></span></button></div></div>
-          <div class="chat-handoff">your application calls the MCP server</div>
-          <div class="chat-row tool"><div class="chat-bubble"><span class="chat-label">Tool result <button class="chat-inspect" type="button" data-dialog="toolresult">inspect</button></span><p><b>Order accepted</b> · 18 min</p></div></div>
-          <div class="chat-row"><div class="chat-bubble"><span class="chat-label">Claude</span><p>Your margherita pizza is confirmed. ETA: 18 minutes.</p></div></div>
-        </div>
-      </div>
-    </div>
-  </div>
 </section>
 
 <section class="slide">
@@ -206,7 +187,7 @@ an agent    ─┘  protocol   └─ your database</pre>
       <p><button class="click" data-dialog="prompt"><code>/plan-lunch</code></button><br><code>/feed-the-team</code></p>
     </article>
   </div>
-  <div class="foot"><span>The same question from last session: who decides? The model chooses a tool. The host reads a resource. A person selects a prompt.</span><span>5</span></div>
+  <div class="foot"><span>The same question from last session: who decides? The model chooses a tool. The host reads a resource. A person selects a prompt.</span></div>
 </section>
 
 <section class="slide">
@@ -219,6 +200,32 @@ an agent    ─┘  protocol   └─ your database</pre>
   </div>
   <div class="trace"><span>discover</span><i>→</i><span>model chooses</span><i>→</i><span>tools/call</span><i>→</i><span>tool result</span><i>→</i><span>model continues</span></div>
   <div class="analogy" style="margin-top:14px"><span class="tag">Last session</span>The while loop did not change. MCP changes where the tools come from.</div>
+</section>
+
+<section class="slide order-ticket">
+  <div class="kicker">Follow one order · The ticket</div>
+  <h2>If Claude only writes text, who places the order?</h2>
+  <div class="body">
+    <div class="col">
+      <div class="point"><span class="dot"></span><span>Claude produces a structured request: tool name plus arguments. That is all it can write.</span></div>
+      <div class="point"><span class="dot"></span><span>The host, Claude Code, receives that request and sends it through its MCP client.</span></div>
+      <div class="point"><span class="dot"></span><span>The restaurant MCP server runs the code and returns the result.</span></div>
+      <div class="point good"><span class="dot"></span><span>Claude Code adds the result to context. Claude can answer or choose another tool.</span></div>
+      <div class="analogy"><span class="tag">Restaurant model</span>Claude writes the order ticket. Claude Code carries it to the kitchen. The MCP server does the work and sends back a receipt.</div>
+    </div>
+    <div class="col">
+      <div class="chat-demo" aria-label="Mock Claude conversation showing a tool call">
+        <div class="chat-head"><span class="chat-avatar">C</span><div><b>Claude</b><small>tool calling</small></div><span class="chat-state">click to inspect</span></div>
+        <div class="chat-messages">
+          <div class="chat-row user"><div class="chat-bubble"><span class="chat-label">You</span><p>Order one margherita pizza.</p></div></div>
+          <div class="chat-row"><div class="chat-bubble"><span class="chat-label">Claude</span><p>I'll place the order.</p><button class="chat-call chat-call-button" type="button" data-dialog="toolcall" aria-label="Inspect the place-order tool request"><span class="chat-call-top"><b>tool use</b><code>place-order</code></span><span class="chat-call-arg"><span>item</span><code>"margherita-pizza"</code></span></button></div></div>
+          <div class="chat-handoff">Claude Code's MCP client carries the ticket to the server</div>
+          <div class="chat-row tool"><div class="chat-bubble"><span class="chat-label">Tool result <button class="chat-inspect" type="button" data-dialog="toolresult">inspect</button></span><p><b>Order accepted</b> · 18 min</p></div></div>
+          <div class="chat-row"><div class="chat-bubble"><span class="chat-label">Claude</span><p>Your margherita pizza is confirmed. ETA: 18 minutes.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <section class="slide">
@@ -247,7 +254,8 @@ an agent    ─┘  protocol   └─ your database</pre>
   }
 }
 
-<span class="c">// simplified JSON-RPC request; the SDK adds request metadata</span>
+<span class="c">// JSON-RPC request — the SDK adds the envelope;</span>
+<span class="c">// "name" and "arguments" are the ticket Claude wrote</span>
 {
   <span class="f">"jsonrpc"</span>: <span class="s">"2.0"</span>,
   <span class="f">"id"</span>: <span class="n">7</span>,
@@ -280,7 +288,7 @@ an agent    ─┘  protocol   └─ your database</pre>
     </article>
   </div>
   <div class="analogy" style="margin-top:14px"><span class="tag">Restaurant model</span>"Make food" sends everyone running. "One margherita pizza, quantity one" reaches the pizza station with no guessing.</div>
-  <div class="foot"><span><button class="click" data-dialog="description">Open the description + JSON schema example</button></span><span>8</span></div>
+  <div class="foot"><span><button class="click" data-dialog="description">Open the description + JSON schema example</button></span></div>
 </section>
 
 <section class="slide">
@@ -307,9 +315,12 @@ an agent    ─┘  protocol   └─ your database</pre>
   <div class="kicker">Configuration</div>
   <h2>Project scope sits inside your personal setup</h2>
   <div class="scope-stage">
-    <div class="scope-user">
-      <div class="scope-label"><span class="pill a">you</span><strong><code>~/.claude.json</code></strong><small>available across your projects</small></div>
-      <div class="scope-project"><span class="pill b">team project</span><strong><code>.mcp.json</code></strong><p>Version-controlled. Everyone working in this project gets the restaurant server.</p></div>
+    <div class="scope-tree" aria-label="Where each configuration file lives">
+      <div class="scope-branch"><span>~</span><b>your machine</b></div>
+      <div class="scope-file personal"><span class="glyph">├─</span><div class="meta"><div class="line"><span class="pill a">personal</span><code>~/.claude.json</code></div><small>Private to you. Loads in every project.</small></div></div>
+      <div class="scope-branch"><span>└─</span><b>restaurant-app/</b><span>one shared repo</span></div>
+      <div class="scope-file project"><span class="glyph">└─</span><div class="meta"><div class="line"><span class="pill b">project</span><code>.mcp.json</code></div><small>Committed with the repo. Loads only in this project.</small></div></div>
+      <p class="scope-merge">Open the repo and Claude Code loads <b>both files</b>: your personal servers plus the team's committed server. The team's file travels with the repo; yours never leaves your machine.</p>
     </div>
     <div class="scope-notes">
       <div class="point"><span class="dot"></span><span>Personal scope is your <b>private notebook</b>: experiments only you need.</span></div>
@@ -357,7 +368,7 @@ an agent    ─┘  protocol   └─ your database</pre>
     </article>
   </div>
   <div class="analogy" style="margin-top:12px;padding:12px 22px"><span class="tag">Restaurant model</span>A good waiter never just says "no". They say <b>why</b> ("we're out of truffle") and <b>what to try</b> ("check the menu").</div>
-  <div class="foot"><span>The model reads tool errors. The client handles protocol errors.</span><span>12</span></div>
+  <div class="foot"><span>The model reads tool errors. The client handles protocol errors.</span></div>
 </section>
 
 <section class="slide">
@@ -385,7 +396,7 @@ an agent    ─┘  protocol   └─ your database</pre>
     </article>
   </div>
   <div class="analogy" style="margin-top:14px"><span class="tag">Restaurant model</span>"We checked, and there's no sushi today" is the waiter <b>answering</b>. "The kitchen door is locked" means nobody could check at all.</div>
-  <div class="foot"><span>Empty data means the operation completed. An error means it did not.</span><span>13</span></div>
+  <div class="foot"><span>Empty data means the operation completed. An error means it did not.</span></div>
 </section>
 
 <section class="slide divider">
@@ -599,7 +610,7 @@ Place one restaurant order by exact item ID. Returns the order ID, accepted item
     }
   }]
 }</pre><p>The person starts the workflow; the prompt does not perform the tool call itself.</p>`},
-  toolcall:{title:'The request Claude cannot run',html:`<p>Claude returns a client-side <code>tool_use</code> block. Your application still has to invoke the MCP server.</p><pre>Claude response content block
+  toolcall:{title:'The request Claude cannot run',html:`<p>Claude returns a client-side <code>tool_use</code> block. The host — Claude Code here — still has to invoke the MCP server.</p><pre>Claude response content block
 {
   "type": "tool_use",
   "id": "toolu_01ABC",
@@ -616,7 +627,7 @@ MCP JSON-RPC request; SDK metadata omitted
     "name": "place-order",
     "arguments": { "itemId": "margherita-pizza", "quantity": 1 }
   }
-}</pre><p>The model supplies intent and input. The application sends the MCP request and runs the tool.</p>`},
+}</pre><p>The model supplies intent and input. The host sends the request through its MCP client; the server runs the tool.</p>`},
   toolresult:{title:'The result Claude can read',html:`<p>The MCP server returns a tool result with a <code>content</code> array. Your application maps that result back to Claude as a <code>tool_result</code>.</p><pre>MCP tools/call result
 {
   "content": [{
