@@ -1,116 +1,118 @@
 # AGENTS.md
 
+`AGENTS.md` is the source of truth for repository instructions. Keep
+`CLAUDE.md` as a symlink to this file so the two entrypoints cannot drift.
+
 ## Course contract
 
 This repository is a teaching kit for the Ravn CCAF study group. Optimize for
-exam reasoning and a mixed room, including people who do not build agents every
-day.
+exam reasoning. The mixed audience is a permanent course constraint. Write
+first for the colleague who has never built an agent, while keeping the code,
+protocol traces, and technical claims exact enough for experienced engineers.
 
-Treat each part as one instructional unit. Before changing a part, read its
-source notes, slides, presenter notes, demo README, and demo code. A content
+Treat each course part as one instructional unit. Before changing a part, read
+its source notes, slides, presenter notes, demo README, and demo code. A content
 change is complete only when those artifacts use the same terms, examples,
 order, and claims. If a part's topic or readiness changes, update both the root
 `README.md` and `index.html`.
 
-Teach the course's stated scope, not everything that is true about the product.
-Map claims to the official study guide in the part's source notes. Record
-deliberate exclusions there so a later edit does not quietly add them back. If
-you remove a topic, remove stale notes and promises that imply the course still
-covers it. Track a deferred promise in presenter notes until a later part pays
-it back.
+Teach the course's stated scope. Map factual claims to the official study guide
+in the part's source notes. Record deliberate exclusions and their reasons
+there. If you remove a topic, remove stale notes and promises that imply the
+course still covers it. Track a deferred promise in presenter notes until a
+later part pays it back.
 
-## Teaching voice
+## Teaching model
 
-Start with the mechanism a newcomer needs, then show its schema or protocol
-payload. Use direct, conversational copy and one running analogy that does real
-explanatory work. Keep slang in presenter notes because the deck is shared as a
-standalone link.
+Keep every part inside one course-wide food and restaurant world. Part 1's
+recipe, chef, and fridge lead into Part 2's restaurant, menu, order counter, and
+kitchen. Future parts must extend that world instead of starting a new analogy
+domain.
 
-Name callbacks to earlier parts. Do not assume the audience remembers them. In
-Part 2, keep this boundary explicit:
+Give each part one main scene within that world. Introduce the scene before its
+identifiers appear, then map each technical role to one food, staff, place, or
+action. Use the same names, data, and outcomes in the slides, presenter notes,
+demo, and documentation. Connect a new scene to an established course image so
+new vocabulary attaches to a model the audience already learned. Record the
+mapping in the part's source notes. Reuse an established object only for the
+same technical responsibility.
 
-1. Claude writes a tool name and arguments.
-2. Claude Code, the host, sends the request through its MCP client.
-3. The SDK adds the JSON-RPC envelope.
-4. The MCP server runs the integration code and returns the result.
+An analogy must explain a mechanism, choice, or consequence. Cut a callback
+that is only decorative. If the restaurant model cannot carry a distinction
+cleanly, state the mechanism in plain language. Start with what a newcomer
+needs to picture, then show the schema, request, or code that carries it.
 
-Do not say or imply that Claude executes tools, touches external systems, or
-constructs the full JSON-RPC request.
+Use direct, conversational slide copy. Keep spoken slang in presenter notes
+because each deck is shared as a standalone link. Name callbacks to earlier
+parts instead of assuming the audience remembers them.
 
-## Part 2 restaurant model
+## Technical explanations
 
-Part 2 uses one restaurant MCP from first explanation through live demo. Keep
-the Basil Bistro vocabulary and data aligned across every artifact:
+Define the actors before tracing an interaction. Name who chooses, sends,
+executes, transforms, and returns each value. When an SDK or host adds protocol
+metadata, distinguish that envelope from the intent produced by the model or
+user. Keep configuration controls attached to the layer that owns them.
 
-- `restaurant://menu` is a resource. The host adds its read-only,
-  informational contents to context. Reading it does not place an order.
-- `place-order` and `search-menu` are tools. Their descriptions must state the
-  boundary between acting, searching, and reading the known menu.
-- `plan-lunch` is a reusable message template exposed by the server and chosen
-  by a person through the host.
-- `margherita-pizza` is the successful order, `sushi` is the successful empty
-  search, and `truffle-pizza` is the recoverable failed order.
+Preserve semantic boundaries in examples and demos:
 
-Preserve the difference between an empty result and a failure. The sushi search
-returns zero matches with `isError: false`. The unknown item returns
-`isError: true` with structured context that tells the model whether and how to
-retry. A permission or protocol failure is not an empty business result.
+- An empty business result is a successful result with no matches.
+- A validation or execution failure is an error with enough structured context
+  to retry, correct the input, or escalate.
+- A transport or permission failure is not an empty business result.
+- Reading context is distinct from performing an action.
 
-Keep `tool_choice` separate from MCP configuration. The host sets `auto`,
-`any`, or a forced named tool on the model API request. The MCP server does not
-see that setting.
+Teach the distinction through a consequence the audience can reason about.
+The source notes must identify any simplified or deliberately omitted product
+behavior so the exam answer stays unambiguous.
 
-Keep the exam's two configuration scopes in this session. Team configuration
-lives in `.mcp.json`; personal configuration lives in `~/.claude.json`. Mention
-stdio only when describing how the demo actually runs. Leave transport
-tradeoffs and Claude Code's additional local scope to a separate practitioner
-session unless the source notes deliberately rescope Part 2.
+## Narrative
 
-## Narrative and deck layout
-
-Introduce the protocol counter and the tools, resources, and prompts before the
-host/client/server cast. Once the cast is clear, follow the order ticket through
-discovery and execution. Show the real trace before the `tool_choice` exam
-aside. This order prevents later payloads from depending on unexplained nouns.
+State the beginner's underlying question near the opening. Introduce the
+vocabulary and cast needed to answer it, then follow one concrete scenario from
+request to result. Show a real trace before configuration details, selection
+controls, or architecture advice that depends on the trace.
 
 When slide order changes, update the run-of-show timing, spoken segues,
-interaction openings, slide count, and any navigation copy in the same change.
-Use relative segues instead of hardcoded page numbers where possible.
+interaction openings, slide count, and navigation copy in the same change. Use
+relative segues instead of hardcoded page numbers.
 
-Let cards, comparison panels, chat panels, and code blocks hug their content.
-Use top alignment inside grids and center the group when the slide needs visual
-balance. Equal-height stretching creates large empty boxes and can push content
-into headings or footers.
+## Deck layout
 
-Render every changed slide at 1600x1000, 1440x900, 1280x800, and 480px wide.
-Check headings, footers, code, and the deepest visible text elements for
-clipping or overflow. Container bounds alone missed wrapped and clipped content
-on this branch. A deck change is complete when every slide remains readable at
-all four sizes.
+Let cards, comparison panels, chat panels, and code blocks hug their content
+unless equal height communicates a real comparison. Use top alignment inside
+grids and center the group when the slide needs visual balance. Large empty
+boxes are a layout bug, especially when they push content toward headings or
+footers.
+
+Render every slide after a shared CSS or layout change. For isolated copy
+changes, render every affected slide. Check at 1600x1000, 1440x900, 1280x800,
+and 480px wide. Inspect headings, footers, code, and leaf text elements for
+clipping or overflow. Container bounds alone can miss wrapped or clipped
+content.
+
+Exercise changed navigation, dialogs, keyboard controls, and demo controls in
+the browser. A deck change is complete when the content remains readable and
+the affected interactions work at every required size.
 
 ## Demo contract
 
-The Part 2 demo must remain deterministic, local, and token-free. It uses a real
-MCP client and server but no model, API key, or external service. Preserve
-**Rehearse** as the stage fallback.
+Make the live path prove the mechanism being taught. Isolate that mechanism
+from unrelated failure sources. Use a real local integration when the protocol
+or orchestration is the subject. Add a deterministic rehearsal when live
+execution depends on credentials, a model, a child process, or the network.
+The rehearsal must preserve the live path's event order and payload shapes.
 
-The event story has several copies. Update all of them when payloads, names, or
-ordering change:
+Before changing scenario data, search the whole part for every copy of its
+identifiers, events, payloads, and visible output. Update the real
+implementation, runner, mock or rehearsal, deck examples, presenter notes,
+source notes, and demo README together. Prefer a shared data source when the
+deck can remain self-contained; otherwise treat the copies as one contract.
 
-- `part-2/demo/src/mcp-server.ts` defines the real capabilities and results.
-- `part-2/demo/src/run.ts` drives the real protocol trace.
-- `part-2/demo/src/server.ts` contains the local mock replay.
-- `part-2/slides.html` contains the static-link rehearsal data and visible
-  payload examples.
-- `part-2/demo/README.md`, `part-2/PRESENTER-NOTES.md`, and
-  `part-2/notes/source-notes.md` describe the same sequence.
+Use the demo's existing package manager and scripts. Run its typecheck plus the
+narrowest command that exercises the changed path. A process-based demo must
+reach its final event, exit cleanly, and leave no child process behind. Exercise
+both live and rehearsal controls when browser event handling changes.
 
-The stdio MCP server must reserve stdout for protocol traffic and send
-diagnostics to stderr. Keep `.mcp.json.example` free of credentials and refer to
+For a stdio protocol, reserve stdout for protocol traffic and send diagnostics
+to stderr. Keep example configuration free of credentials and reference
 environment variables for secrets.
-
-For a Part 2 demo change, run `npm run typecheck` and `npm run protocol` from
-`part-2/demo`. The protocol run must emit discovery, the menu read, the three
-tool outcomes, the prompt result, and a final `done` event, then exit without a
-server process left behind. Exercise both **Rehearse** and **Run live** when the
-deck or WebSocket event handling changes.
