@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Part 2 · MCP and Tool Calling</title>
+<style>
+  :root{
+    --bg:#0e1118;--bg2:#131826;--panel:#1a2132;--panel2:#212a40;--line:#2a3554;
+    --ink:#e8ecf6;--dim:#9aa5bd;--faint:#6b7690;--acc:#7aa2ff;--acc2:#5eead4;
+    --warn:#ffb86b;--bad:#ff7b8a;--ok:#7ce38b;--violet:#c792ea;
+    --mono:ui-monospace,'SF Mono','Cascadia Code','JetBrains Mono',Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden}
+  button{font:inherit}
+  #deck{height:100vh;position:relative}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;padding:54px 84px 68px;
+    background:linear-gradient(160deg,#111522 0%,var(--bg) 42%);overflow:hidden}
+  .slide.on{display:flex;animation:fade .28s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+  .kicker{font-size:14px;letter-spacing:.22em;text-transform:uppercase;color:var(--acc);font-weight:800;margin-bottom:13px}
+  h1{font-size:64px;line-height:1.04;font-weight:850;letter-spacing:-.035em}
+  h2{font-size:43px;line-height:1.08;font-weight:830;letter-spacing:-.025em;margin-bottom:8px}
+  h3{font-size:22px;line-height:1.15}
+  .sub{font-size:22px;color:var(--dim);margin-top:14px;line-height:1.45;max-width:28em}
+  .body{flex:1;display:flex;gap:38px;align-items:stretch;margin-top:28px;min-height:0}
+  .col{flex:1;min-width:0;display:flex;flex-direction:column;gap:15px;justify-content:center}
+  .point{display:flex;gap:13px;align-items:flex-start;font-size:19px;line-height:1.45}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--acc);margin-top:9px;flex:0 0 9px}
+  .point.good .dot{background:var(--ok)}.point.bad .dot{background:var(--bad)}
+  .dot.num{width:22px;height:22px;flex:0 0 22px;margin-top:3px;display:grid;place-items:center;font:800 12px var(--mono);color:#0d1322}
+  .point b{color:#fff}
+  code{font-family:var(--mono);font-size:.86em;font-weight:650;color:var(--acc);background:#18213a;border:1px solid #26335a;border-radius:6px;padding:1px 6px}
+  pre{font-family:var(--mono);white-space:pre-wrap}
+  pre.code{background:#0b0e15;border:1px solid #232c44;border-radius:14px;padding:18px 22px;font-size:15px;line-height:1.55;overflow:auto}
+  .k{color:var(--violet)}.s{color:#9ce7a9}.n{color:var(--warn)}.c{color:#68748e;font-style:italic}.f{color:#82aaff}
+  .callout{font-size:30px;font-weight:820;line-height:1.28}.callout em{color:var(--acc);font-style:normal}
+  .analogy{background:linear-gradient(135deg,#1c2440,#182034);border:1px solid #2c3a5e;border-radius:16px;padding:18px 22px;font-size:18px;line-height:1.5}
+  .analogy .tag{display:block;width:max-content;font-size:11px;letter-spacing:.17em;text-transform:uppercase;color:var(--acc2);border:1px solid #2e4a49;border-radius:99px;padding:3px 10px;margin-bottom:8px;font-weight:750}
+  .analogy b{color:var(--acc2)}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;flex:1;align-content:center;align-items:start}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:22px;display:flex;flex-direction:column;gap:11px;min-width:0}
+  .card .icon{font-family:var(--mono);font-size:14px;font-weight:800;color:var(--acc2);letter-spacing:.1em;text-transform:uppercase}
+  .card p{color:var(--dim);font-size:16px;line-height:1.5}
+  .card.win{background:linear-gradient(160deg,#1b2743,#141b2c);border-color:#31527a}
+  .pill{display:inline-block;width:max-content;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;border-radius:99px;padding:4px 11px}
+  .pill.a{background:#243352;color:var(--acc)}.pill.b{background:#233c37;color:var(--acc2)}.pill.w{background:#35291d;color:var(--warn)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:24px;flex:1;align-content:center;align-items:start;min-height:0}
+  .vs{display:grid;grid-template-columns:1fr 1fr;gap:22px;flex:1;align-content:center;align-items:start;min-height:0}
+  table{border-collapse:collapse;width:100%;font-size:16px}
+  th,td{border-bottom:1px solid #263049;padding:10px 13px;text-align:left;vertical-align:top}
+  th{color:var(--dim);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+  td:first-child{color:var(--warn);font-family:var(--mono)}
+  .flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:14px;align-items:center;flex:1}
+  .node{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px;text-align:center;min-height:180px;display:flex;flex-direction:column;justify-content:center;gap:10px}
+  .node strong{font-size:24px}.node span{color:var(--dim);line-height:1.45}.arrow{font-family:var(--mono);font-size:28px;color:var(--acc2)}
+  .host-map{display:grid;grid-template-columns:1.15fr auto .85fr;gap:22px;align-items:center;flex:1}
+  .host-shell{background:#151c2b;border:1px solid #31527a;border-radius:18px;padding:22px;min-height:250px;display:flex;flex-direction:column;gap:14px}
+  .host-shell>strong{font-size:25px}.host-shell>p{color:var(--dim);font-size:16px;line-height:1.45}
+  .client-core{background:var(--panel2);border:1px solid #3a4b76;border-radius:13px;padding:18px;display:grid;grid-template-columns:auto 1fr;gap:10px 14px;align-items:center;margin-top:auto}
+  .client-core strong{font-size:19px}.client-core p{grid-column:1/-1;color:var(--dim);font-size:15px;line-height:1.4}
+  .server-box{background:linear-gradient(160deg,#1b2743,#141b2c);border:1px solid #31527a;border-radius:18px;padding:26px;min-height:250px;display:flex;flex-direction:column;justify-content:center;gap:13px}
+  .server-box strong{font-size:25px}.server-box p{color:var(--dim);font-size:16px;line-height:1.45}
+  .scope-stage{display:grid;grid-template-columns:.95fr 1.05fr;gap:34px;align-items:center;flex:1;min-height:0}
+  .scope-tree{background:#0b0e15;border:1px solid #232c44;border-radius:16px;padding:20px 24px;display:flex;flex-direction:column;gap:9px;font-family:var(--mono);font-size:15px}
+  .scope-branch{display:flex;align-items:center;gap:10px;color:var(--faint);font-size:14px}
+  .scope-branch b{color:var(--dim);font-weight:600}
+  .scope-file{display:flex;align-items:center;gap:13px;border-radius:12px;padding:13px 16px;margin-left:10px}
+  .scope-file .glyph{color:var(--faint);flex:0 0 auto}
+  .scope-file.personal{background:#1a2132;border:1px solid #2c3a5e}
+  .scope-file.project{background:linear-gradient(160deg,#1b2743,#141b2c);border:1px solid #31527a;margin-left:44px}
+  .scope-file .meta{display:flex;flex-direction:column;gap:4px;min-width:0}
+  .scope-file .line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .scope-file code{background:none;border:0;padding:0;font-size:15px}
+  .scope-file small{color:var(--dim);font-family:var(--sans);font-size:13px;line-height:1.35}
+  .scope-merge{margin-top:7px;border-top:1px dashed #2c3a5e;padding-top:13px;font-family:var(--sans);color:var(--dim);font-size:15px;line-height:1.5}
+  .scope-merge b{color:var(--acc2)}
+  .scope-notes{display:flex;flex-direction:column;gap:16px}
+  .divider .body{flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .divider h1{font-size:52px}.topics{width:min(100%,48rem);margin-top:27px;display:flex;flex-direction:column;gap:12px;font-size:19px;color:var(--dim);align-items:flex-start;text-align:left}
+  .topics span{display:flex;gap:13px;align-items:center;max-width:100%;min-width:0}.topics span::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--acc);flex:0 0 8px}.topics b{color:var(--ink)}
+  .foot{position:absolute;left:84px;right:84px;bottom:24px;display:flex;justify-content:space-between;color:var(--faint);font-size:13px;letter-spacing:.04em}
+  #hud{position:fixed;bottom:0;left:0;right:0;height:4px;background:#1c2438;z-index:50}#hudbar{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+  #pager{position:fixed;right:22px;bottom:13px;color:var(--faint);font:13px var(--mono);z-index:51}
+  #touch-nav{display:none;position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);align-items:center;gap:9px;padding:6px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px #0005;z-index:55}
+  #touch-nav button{min-width:80px;min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--ink);font-weight:800;cursor:pointer;touch-action:manipulation}
+  #touch-nav button:active{background:#31527a}#touch-nav button:disabled{opacity:.45;cursor:not-allowed}
+  #touch-nav button:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}#touch-nav span{color:var(--faint);font:11px var(--mono);white-space:nowrap}
+  .keys b{font-family:var(--mono);color:var(--dim)}
+  .click{cursor:pointer;background:none;border:0;border-bottom:1px dashed var(--acc);color:var(--acc);font:inherit}.click:hover{color:var(--acc2)}
+  #modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:90;padding:24px}
+  #modal.on{display:flex}.modal-box{width:min(900px,92vw);max-height:84vh;overflow:auto;background:var(--panel);border:1px solid #3a4b76;border-radius:17px;padding:24px}
+  #modal-close{float:right;background:none;border:0;color:var(--dim);font-size:25px;cursor:pointer}.modal-box h3{margin-bottom:12px}.modal-box pre{background:#0b0e15;border:1px solid #232c44;border-radius:12px;padding:16px;font-size:13px;line-height:1.55;overflow:auto}
+  .quote{font-size:26px;line-height:1.4;font-weight:720;border:1px solid #2e4a49;border-radius:14px;padding:20px 22px}.quote small{display:block;color:var(--dim);font-size:15px;margin-top:12px;font-weight:500}
+  .chat-demo{background:var(--bg2);border:1px solid #232c44;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:11px;flex:none;justify-content:center}
+  .chat-head{display:flex;align-items:center;gap:9px;padding:0 2px 11px;border-bottom:1px solid #263049}.chat-avatar{width:27px;height:27px;border-radius:8px;background:var(--acc2);color:#0d1322;display:grid;place-items:center;font-weight:850;font-size:14px}.chat-head b{font-size:14px}.chat-head small{display:block;color:var(--dim);font:11px var(--mono);margin-top:2px}.chat-state{margin-left:auto;color:var(--acc2);font:10px var(--mono);text-transform:uppercase;letter-spacing:.1em}
+  .chat-messages{display:flex;flex-direction:column;gap:8px;min-height:0}.chat-row{display:flex}.chat-row.user{justify-content:flex-end}.chat-bubble{max-width:92%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 11px;font-size:14px;line-height:1.42}.chat-row.user .chat-bubble{background:#243352;border-color:#31527a}.chat-row.tool .chat-bubble{background:#233c37;border-color:#2e4a49}.chat-label{display:block;color:var(--faint);font:10px var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}.chat-bubble p{margin:0}.chat-call{margin-top:8px;background:#0b0e15;border:1px solid #2e4a49;border-radius:9px;padding:8px 9px}.chat-call-top{display:flex;align-items:center;gap:7px;font:12px var(--mono)}.chat-call-top b{color:var(--acc2);font-size:10px;letter-spacing:.08em;text-transform:uppercase}.chat-call-arg{display:flex;justify-content:space-between;gap:12px;margin-top:6px;color:var(--dim);font:12px var(--mono)}.chat-call-arg code{font-size:12px;padding:0;border:0;background:none}.chat-handoff{display:flex;align-items:center;gap:8px;color:var(--acc2);font:10px var(--mono);letter-spacing:.07em;text-transform:uppercase}.chat-handoff::before,.chat-handoff::after{content:'';height:1px;background:#2e4a49;flex:1}
+  .chat-call-button{width:100%;font:inherit;color:inherit;text-align:left;cursor:pointer;transition:border-color .15s,background .15s}.chat-call-button:hover{border-color:var(--acc2);background:#101a22}.chat-call-button:focus-visible,.chat-inspect:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}.chat-inspect{margin-left:8px;border:0;border-bottom:1px dashed var(--acc2);padding:0;background:none;color:var(--acc2);font:10px var(--mono);cursor:pointer;text-transform:uppercase;letter-spacing:.05em}
+  .wire{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:center;flex:1}
+  .wire .card pre{font-size:13px;line-height:1.55;overflow:auto;background:#0b0e15;border-radius:10px;padding:13px;border:1px solid #232c44}
+  .trace{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;font:15px var(--mono);margin-top:20px}.trace span{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 13px}.trace i{color:var(--acc2);font-style:normal}
+
+  /* Live demo */
+  .slide.demo{padding:28px 34px 48px}.demo-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}.demo-head h2{font-size:28px;margin:0}.spacer{flex:1}
+  .btn{border:0;border-radius:10px;padding:9px 15px;background:var(--acc);color:#0d1322;font-weight:800;cursor:pointer}.btn:hover{filter:brightness(1.1)}.btn.ghost{background:var(--panel2);color:var(--ink)}.btn.stop{background:var(--bad);color:#270a0f}
+  #demo-status{font:12px var(--mono);color:var(--faint)}#demo-counts{font:12px var(--mono);color:var(--acc2)}
+  .demo-grid{flex:1;display:grid;grid-template-columns:.9fr 1.3fr;gap:15px;min-height:0}
+  .demo-left,.demo-right{min-height:0;display:flex;flex-direction:column;gap:10px}
+  .protocol-map{background:var(--bg2);border:1px solid #232c44;border-radius:15px;padding:16px;display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:8px;align-items:center}
+  .pnode{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;transition:.2s}.pnode b{display:block;font-size:14px}.pnode small{color:var(--dim);font-size:10px}.pnode.hot{border-color:var(--acc);background:#202b43;box-shadow:0 8px 24px #0005}.pnode.good{border-color:var(--ok)}
+  .parrow{font:18px var(--mono);color:var(--acc2)}
+  #event-log{flex:1;background:var(--bg2);border:1px solid #232c44;border-radius:15px;padding:10px;overflow:auto;min-height:0}
+  .event{display:block;width:100%;text-align:left;color:var(--ink);border:1px solid var(--line);font:11.5px/1.45 var(--mono);background:var(--panel);border-radius:8px;padding:7px 9px;margin-bottom:6px;cursor:pointer}.event:hover{background:var(--panel2)}.event.req{border-color:#31527a}.event.ok{border-color:#346b44}.event.err{border-color:#7a3441}.event.disc{border-color:#60467a}
+  .event .muted{color:var(--faint)}
+  .panel-tabs{display:flex;gap:7px}.tab{font-size:12px;font-weight:800;border:1px solid transparent;border-radius:9px;padding:7px 12px;background:var(--panel);color:var(--dim);cursor:pointer}.tab.on{background:var(--panel2);border-color:#3a4b76;color:var(--ink)}
+  .pane{display:none;flex:1;background:var(--bg2);border:1px solid #232c44;border-radius:15px;padding:13px;overflow:auto;min-height:0}.pane.on{display:block}.pane pre{font-size:12px;line-height:1.5;color:var(--ink);white-space:pre-wrap}.pane h3{font-size:14px;margin-bottom:8px;color:var(--acc2)}
+  .cap{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.cap .mini{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px}.cap b{display:block;font-size:12px}.cap span{font:11px var(--mono);color:var(--dim)}
+
+  @media (prefers-reduced-motion:reduce){.slide.on{animation:none}*{scroll-behavior:auto!important}}
+  @media (max-width:900px){
+    #touch-nav{display:flex;top:max(12px,env(safe-area-inset-top));bottom:auto}#pager{display:none}.slide{padding:92px 26px 32px;overflow:auto}h1{font-size:44px}h2{font-size:33px}.body{flex-direction:column}.cards,.two,.wire,.vs,.scope-stage{grid-template-columns:1fr}.flow,.host-map{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.foot{display:none}.sub{font-size:18px}.cards{padding-bottom:24px}.topics{width:100%;align-items:stretch}.topics span{overflow-wrap:anywhere}.topics code{white-space:normal;overflow-wrap:anywhere}.order-ticket .body .col:last-child{order:-1}.order-ticket .chat-demo{flex:none;min-height:390px}table{table-layout:fixed;font-size:14px}th,td{padding:9px 6px;overflow-wrap:anywhere}th:nth-child(1),td:nth-child(1){width:20%}th:nth-child(2),td:nth-child(2){width:43%}th:nth-child(3),td:nth-child(3){width:37%}
+    .slide.demo{padding:84px 20px 32px;overflow:auto}.demo-head{flex-wrap:wrap}.demo-head h2{flex:0 0 100%}.demo-head .spacer{display:none}.demo-head .btn{font-size:12px;padding:7px 10px}.demo-grid{display:flex;flex-direction:column;flex:none}.demo-left,.demo-right{min-height:470px}.protocol-map{grid-template-columns:1fr 16px 1fr 16px 1fr;gap:3px;padding:10px}.pnode{min-width:0;padding:8px 3px}.pnode b{font-size:11px}.pnode small{font-size:8px}.parrow{font-size:14px}.cap{grid-template-columns:1fr}.pane{min-height:320px}
+  }
+</style>
+</head>
+<body>
+<main id="deck">
+
+<section class="slide">
+  <div class="body" style="flex-direction:column;justify-content:center;gap:24px">
+    <div class="kicker">CCAF crash course · Part 2</div>
+    <h1>MCP and Tool Calling</h1>
+    <p class="sub">Last session we gave Claude hands. Today we open a restaurant MCP and follow one order from the menu to the kitchen and back.</p>
+  </div>
+  <div class="foot"><span>Ravn AI Development Office Hours</span><span class="keys">navigate: <b>←</b> <b>→</b> · fullscreen: <b>F</b></span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">The mental model · 1 of 3</div>
+  <h2>MCP gives every kitchen the same order counter</h2>
+  <div class="body">
+    <div class="col">
+      <div class="callout">Without a shared protocol, every AI app needs a custom <em>adapter</em> for every external system.</div>
+      <div class="point"><span class="dot"></span><span>MCP standardizes discovery, requests, and results.</span></div>
+      <div class="point"><span class="dot"></span><span>The server exposes capabilities without model-specific code.</span></div>
+      <div class="point"><span class="dot"></span><span>The client can connect to a restaurant, Jira, GitHub, or a database through the same protocol.</span></div>
+    </div>
+    <div class="col">
+      <div class="analogy"><span class="tag">Restaurant model</span>The counter accepts a standard order ticket. Each kitchen still decides what it can cook and how it cooks it.</div>
+      <pre class="code"><span class="c">// why a protocol beats adapters</span>
+without MCP   3 apps × 3 systems = <span class="n">9</span> custom adapters
+with MCP      3 apps + 3 systems = <span class="n">6</span> connections
+
+Claude Code ─┐             ┌─ restaurant
+your app    ─┼─ one MCP  ──┼─ Jira
+an agent    ─┘  protocol   └─ your database</pre>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">The mental model · 2 of 3</div>
+  <h2>Open the restaurant MCP: three things are inside</h2>
+  <div class="cards">
+    <article class="card win">
+      <div class="icon">tools/call</div>
+      <h3>Tools act</h3>
+      <span class="pill a">the model decides</span>
+      <p>The model chooses a tool and sends structured arguments.</p>
+      <p><code>place-order</code><br><code>search-menu</code></p>
+    </article>
+    <article class="card">
+      <div class="icon">resources/read</div>
+      <h3>Resources inform</h3>
+      <span class="pill b">the host decides</span>
+      <p>The host adds it to context. It informs only — nothing runs.</p>
+      <p><button class="click" data-dialog="resource"><code>restaurant://menu</code></button><br><code>restaurant://hours</code></p>
+    </article>
+    <article class="card">
+      <div class="icon">prompts/get</div>
+      <h3>Prompts start</h3>
+      <span class="pill w">a person decides</span>
+      <p>A person chooses a reusable message template from a menu or command.</p>
+      <p><button class="click" data-dialog="prompt"><code>/plan-lunch</code></button><br><code>/feed-the-team</code></p>
+    </article>
+  </div>
+  <div class="foot"><span>The same question from last session: who decides? The model chooses a tool. The host reads a resource. A person selects a prompt.</span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">The mental model · 3 of 3</div>
+  <h2>Claude Code is the host. The client lives inside it.</h2>
+  <div class="host-map">
+    <div class="host-shell"><span class="pill a">host</span><strong>Claude Code</strong><p>Runs the model loop and decides what enters context.</p><div class="client-core"><span class="pill b">client</span><strong>MCP client</strong><p>Discovers capabilities, sends requests, and returns results.</p></div></div>
+    <div class="arrow">⇄</div>
+    <div class="server-box"><span class="pill w">server</span><strong>Restaurant MCP</strong><p>Exposes the menu, order tools, and reusable prompts. Its code does the actual work.</p></div>
+  </div>
+  <div class="trace"><span>discover</span><i>→</i><span>model chooses</span><i>→</i><span>tools/call</span><i>→</i><span>tool result</span><i>→</i><span>model continues</span></div>
+  <div class="analogy" style="margin-top:14px"><span class="tag">Last session</span>The while loop did not change. MCP changes where the tools come from.</div>
+</section>
+
+<section class="slide order-ticket">
+  <div class="kicker">Follow one order · The ticket</div>
+  <h2>If Claude only writes text, who places the order?</h2>
+  <div class="body">
+    <div class="col">
+      <div class="point"><span class="dot"></span><span>Claude produces a structured request: tool name plus arguments. That is all it can write.</span></div>
+      <div class="point"><span class="dot"></span><span>The host, Claude Code, receives that request and sends it through its MCP client.</span></div>
+      <div class="point"><span class="dot"></span><span>The restaurant MCP server runs the code and returns the result.</span></div>
+      <div class="point good"><span class="dot"></span><span>Claude Code adds the result to context. Claude can answer or choose another tool.</span></div>
+      <div class="analogy"><span class="tag">Restaurant model</span>Claude writes the order ticket. Claude Code carries it to the kitchen. The MCP server does the work and sends back a receipt.</div>
+    </div>
+    <div class="col">
+      <div class="chat-demo" aria-label="Mock Claude conversation showing a tool call">
+        <div class="chat-head"><span class="chat-avatar">C</span><div><b>Claude</b><small>tool calling</small></div><span class="chat-state">click to inspect</span></div>
+        <div class="chat-messages">
+          <div class="chat-row user"><div class="chat-bubble"><span class="chat-label">You</span><p>Order one margherita pizza.</p></div></div>
+          <div class="chat-row"><div class="chat-bubble"><span class="chat-label">Claude</span><p>I'll place the order.</p><button class="chat-call chat-call-button" type="button" data-dialog="toolcall" aria-label="Inspect the place-order tool request"><span class="chat-call-top"><b>tool use</b><code>place-order</code></span><span class="chat-call-arg"><span>item</span><code>"margherita-pizza"</code></span></button></div></div>
+          <div class="chat-handoff">Claude Code's MCP client carries the ticket to the server</div>
+          <div class="chat-row tool"><div class="chat-bubble"><span class="chat-label">Tool result <button class="chat-inspect" type="button" data-dialog="toolresult">inspect</button></span><p><b>Order accepted</b> · 18 min</p></div></div>
+          <div class="chat-row"><div class="chat-bubble"><span class="chat-label">Claude</span><p>Your margherita pizza is confirmed. ETA: 18 minutes.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Follow one order · Discovery</div>
+  <h2>Before Claude can order, it reads the restaurant's capabilities</h2>
+  <div class="body">
+    <div class="col">
+      <div class="point"><span class="dot num">1</span><span>The MCP client sends <code>tools/list</code>.</span></div>
+      <div class="point"><span class="dot num">2</span><span>The model receives each tool's <b>name</b>, <b>description</b>, and <b>input schema</b>.</span></div>
+      <div class="point"><span class="dot num">3</span><span>Claude writes the chosen tool name plus JSON arguments. That is the order ticket.</span></div>
+      <div class="point"><span class="dot num">4</span><span>The host passes those values to <code>tools/call</code>.</span></div>
+      <div class="analogy"><span class="tag">Segue</span>Now Claude knows what is available. The next question is how it picks the right tool.</div>
+    </div>
+    <div class="col">
+      <pre class="code"><span class="c">// what the model can see</span>
+{
+  <span class="f">"name"</span>: <span class="s">"place-order"</span>,
+  <span class="f">"description"</span>: <span class="s">"Order one exact menu item..."</span>,
+  <span class="f">"inputSchema"</span>: {
+    <span class="f">"type"</span>: <span class="s">"object"</span>,
+    <span class="f">"properties"</span>: {
+      <span class="f">"itemId"</span>: { <span class="f">"type"</span>: <span class="s">"string"</span> },
+      <span class="f">"quantity"</span>: { <span class="f">"type"</span>: <span class="s">"integer"</span> }
+    },
+    <span class="f">"required"</span>: [<span class="s">"itemId"</span>, <span class="s">"quantity"</span>]
+  }
+}
+
+<span class="c">// JSON-RPC request — the SDK adds the envelope;</span>
+<span class="c">// "name" and "arguments" are the ticket Claude wrote</span>
+{
+  <span class="f">"jsonrpc"</span>: <span class="s">"2.0"</span>,
+  <span class="f">"id"</span>: <span class="n">7</span>,
+  <span class="f">"method"</span>: <span class="s">"tools/call"</span>,
+  <span class="f">"params"</span>: {
+    <span class="f">"name"</span>: <span class="s">"place-order"</span>,
+    <span class="f">"arguments"</span>: { <span class="f">"itemId"</span>: <span class="s">"margherita-pizza"</span>, <span class="f">"quantity"</span>: <span class="n">1</span> }
+  }
+}</pre>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Follow one order · Selection</div>
+  <h2>The description gets the right ticket to the right station</h2>
+  <div class="vs">
+    <article class="card">
+      <span class="pill w">ambiguous</span>
+      <h3>"Orders food"</h3>
+      <p>Which item identifier? How many? What comes back? Should Claude use it to browse?</p>
+      <div class="point bad"><span class="dot"></span><span>The model has to guess.</span></div>
+      <div class="point bad"><span class="dot"></span><span>It may call the wrong tool, or skip tools and guess.</span></div>
+    </article>
+    <article class="card win">
+      <span class="pill b">specific</span>
+      <h3>"Place one order by exact menu item ID"</h3>
+      <p>Returns the order ID, accepted items, total, and ETA. Read <code>restaurant://menu</code> first if the item is uncertain.</p>
+      <div class="point good"><span class="dot"></span><span>The boundary tells the model when <b>not</b> to call it.</span></div>
+    </article>
+  </div>
+  <div class="analogy" style="margin-top:14px"><span class="tag">Restaurant model</span>"Make food" sends everyone running. "One margherita pizza, quantity one" reaches the pizza station with no guessing.</div>
+  <div class="foot"><span><button class="click" data-dialog="description">Open the description + JSON schema example</button></span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Follow one order · Context</div>
+  <h2>The menu answers "what exists?" The tool answers "do it."</h2>
+  <div class="two">
+    <article class="card">
+      <span class="pill b">resource</span>
+      <h3><code>restaurant://menu</code></h3>
+      <p>One read returns item IDs, names, prices, and dietary tags.</p>
+      <div class="point good"><span class="dot"></span><span>The host learns the menu without placing exploratory orders.</span></div>
+    </article>
+    <article class="card win">
+      <span class="pill a">tool</span>
+      <h3><code>place-order</code></h3>
+      <p>One call creates an order after the exact item ID is known.</p>
+      <div class="point good"><span class="dot"></span><span>It changes state, so it belongs in a tool.</span></div>
+    </article>
+  </div>
+  <div class="analogy" style="margin-top:16px"><span class="tag">Segue</span>Now the server is designed. The next exam question is where its configuration belongs.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Configuration</div>
+  <h2>Project scope sits inside your personal setup</h2>
+  <div class="scope-stage">
+    <div class="scope-tree" aria-label="Where each configuration file lives">
+      <div class="scope-branch"><span>~</span><b>your machine</b></div>
+      <div class="scope-file personal"><span class="glyph">├─</span><div class="meta"><div class="line"><span class="pill a">personal</span><code>~/.claude.json</code></div><small>Private to you. Loads in every project.</small></div></div>
+      <div class="scope-branch"><span>└─</span><b>restaurant-app/</b><span>one shared repo</span></div>
+      <div class="scope-file project"><span class="glyph">└─</span><div class="meta"><div class="line"><span class="pill b">project</span><code>.mcp.json</code></div><small>Committed with the repo. Loads only in this project.</small></div></div>
+      <p class="scope-merge">Open the repo and Claude Code loads <b>both files</b>: your personal servers plus the team's committed server. The team's file travels with the repo; yours never leaves your machine.</p>
+    </div>
+    <div class="scope-notes">
+      <div class="point"><span class="dot"></span><span>Personal scope is your <b>private notebook</b>: experiments only you need.</span></div>
+      <div class="point good"><span class="dot"></span><span>Project scope is the <b>team recipe book</b>: committed, so everyone gets the same server.</span></div>
+      <pre class="code">{
+  <span class="f">"mcpServers"</span>: {
+    <span class="f">"restaurant"</span>: {
+      <span class="f">"command"</span>: <span class="s">"npx"</span>,
+      <span class="f">"args"</span>: [<span class="s">"restaurant-mcp"</span>],
+      <span class="f">"env"</span>: {
+        <span class="f">"RESTAURANT_TOKEN"</span>: <span class="s">"${RESTAURANT_TOKEN}"</span>
+      }
+    }
+  }
+}</pre>
+      <div class="point bad"><span class="dot"></span><span><button class="click" data-dialog="secrets">Commit the config, <b>never the secret</b>.</button></span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Follow one order · Recovery</div>
+  <h2>When the kitchen rejects a ticket, say why and what to try</h2>
+  <div class="wire">
+    <article class="card">
+      <span class="pill w">dead end</span>
+      <pre>{
+  "isError": true,
+  "content": "Order failed"
+}</pre>
+      <p>The model cannot tell whether to retry, choose another item, or ask for help.</p>
+    </article>
+    <article class="card win">
+      <span class="pill b">recoverable</span>
+      <pre>{
+  "isError": true,
+  "content": {
+    "errorCategory": "validation",
+    "isRetryable": true,
+    "message": "Unknown item. Read restaurant://menu and retry",
+    "attemptedInput": { "itemId": "truffle-pizza" }
+  }
+}</pre>
+      <p>The model knows what failed and how to recover.</p>
+    </article>
+  </div>
+  <div class="analogy" style="margin-top:12px;padding:12px 22px"><span class="tag">Restaurant model</span>A good waiter never just says "no". They say <b>why</b> ("we're out of truffle") and <b>what to try</b> ("check the menu").</div>
+  <div class="foot"><span>The model reads tool errors. The client handles protocol errors.</span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Follow one order · Empty versus failed</div>
+  <h2>"No sushi" is an answer. "Menu unavailable" is a failure.</h2>
+  <div class="two">
+    <article class="card win">
+      <span class="pill b">successful empty result</span>
+      <pre class="code">{
+  <span class="f">"isError"</span>: <span class="n">false</span>,
+  <span class="f">"resultCount"</span>: <span class="n">0</span>,
+  <span class="f">"matches"</span>: []
+}</pre>
+      <p>The search ran. Nothing matched. Do not retry.</p>
+    </article>
+    <article class="card">
+      <span class="pill w">failed search</span>
+      <pre class="code">{
+  <span class="f">"isError"</span>: <span class="n">true</span>,
+  <span class="f">"errorCategory"</span>: <span class="s">"permission"</span>,
+  <span class="f">"isRetryable"</span>: <span class="n">false</span>,
+  <span class="f">"message"</span>: <span class="s">"Menu access denied. Ask the restaurant manager."</span>
+}</pre>
+      <p>The search did not complete. Use another route or ask a human.</p>
+    </article>
+  </div>
+  <div class="analogy" style="margin-top:14px"><span class="tag">Restaurant model</span>"We checked, and there's no sushi today" is the waiter <b>answering</b>. "The kitchen door is locked" means nobody could check at all.</div>
+  <div class="foot"><span>Empty data means the operation completed. An error means it did not.</span></div>
+</section>
+
+<section class="slide divider">
+  <div class="body">
+    <h1>Let's trace the real protocol</h1>
+    <div class="topics">
+      <span>A client launches the real restaurant MCP server over stdio</span>
+      <span><code>tools/list</code>, <code>resources/list</code>, and <code>prompts/list</code></span>
+      <span>The client reads the menu, places one order, then tests two edge cases</span>
+      <span>A successful result, an empty result, then <code>isError: true</code></span>
+    </div>
+  </div>
+</section>
+
+<section class="slide demo">
+  <div class="demo-head">
+    <h2>Live MCP trace</h2>
+    <span id="demo-status">connecting...</span>
+    <span class="spacer"></span>
+    <span id="demo-counts">0 discovered · 0 calls · 0 errors</span>
+    <button class="btn" id="run-live">Run live</button>
+    <button class="btn ghost" id="run-mock">Rehearse</button>
+    <button class="btn stop" id="stop-demo">Stop</button>
+  </div>
+  <div class="demo-grid">
+    <div class="demo-left">
+      <div class="protocol-map">
+        <div class="pnode" id="host-node"><b>Host</b><small>the room chooses</small></div>
+        <div class="parrow">⇄</div>
+        <div class="pnode" id="client-node"><b>MCP client</b><small>official SDK</small></div>
+        <div class="parrow">⇄</div>
+        <div class="pnode" id="server-node"><b>MCP server</b><small>local stdio process</small></div>
+      </div>
+      <div id="event-log" aria-label="Protocol events" aria-live="polite"></div>
+    </div>
+    <div class="demo-right">
+      <div class="panel-tabs">
+        <button class="tab on" data-pane="payload-pane">Payload</button>
+        <button class="tab" data-pane="cap-pane">Discovered</button>
+      </div>
+      <div class="pane on" id="payload-pane"><h3>Click an event to inspect it</h3><pre id="payload">Run the demo, then inspect each request and result.</pre></div>
+      <div class="pane" id="cap-pane"><h3>Server capabilities</h3><div class="cap" id="capabilities"><div class="mini"><b>Tools</b><span>waiting</span></div><div class="mini"><b>Resources</b><span>waiting</span></div><div class="mini"><b>Prompts</b><span>waiting</span></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Demo debrief</div>
+  <h2>What just happened?</h2>
+  <div class="body">
+    <div class="col">
+      <div class="point good"><span class="dot"></span><span>The client launched the server and completed the initialize handshake.</span></div>
+      <div class="point good"><span class="dot"></span><span>Discovery returned the names, descriptions, and schemas the model can use.</span></div>
+      <div class="point good"><span class="dot"></span><span>The resource gave us the menu before we placed an order.</span></div>
+      <div class="point good"><span class="dot"></span><span>The successful <code>tools/call</code> returned an order ID and ETA.</span></div>
+      <div class="point good"><span class="dot"></span><span>The empty search stayed successful. The bad item returned <code>isError: true</code> plus a recovery step.</span></div>
+    </div>
+    <div class="col">
+      <div class="quote">The wire carried names, schemas, JSON arguments, and results.<small>The model supplied judgment. MCP supplied the contract.</small></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Exam aside · <code>tool_choice</code></div>
+  <h2>The host can let Claude choose, require a call, or name the tool</h2>
+  <div class="cards">
+    <article class="card win">
+      <div class="icon">auto</div>
+      <h3><code>{"type":"auto"}</code></h3>
+      <p>Claude decides whether to call a tool or answer in text.</p>
+      <div class="point good"><span class="dot"></span><span>Think: "order only if the guest needs something." The normal flow.</span></div>
+    </article>
+    <article class="card">
+      <div class="icon">any</div>
+      <h3><code>{"type":"any"}</code></h3>
+      <p>Claude must call one of the available tools. It still chooses which one.</p>
+      <div class="point"><span class="dot"></span><span>Think: "send some valid kitchen ticket before replying."</span></div>
+    </article>
+    <article class="card">
+      <div class="icon">named tool</div>
+      <h3><code>{"type":"tool","name":"place-order"}</code></h3>
+      <p>Claude must call that exact tool.</p>
+      <div class="point"><span class="dot"></span><span>Think: "this step must place the order."</span></div>
+    </article>
+  </div>
+  <div class="analogy" style="margin-top:14px"><span class="tag">Keep the boundary clear</span>Descriptions guide <b>which</b> tool fits. <code>tool_choice</code> controls whether a call is optional or required. The host sets it; the MCP server never sees it.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Architecture choices</div>
+  <h2>Use the smallest server that solves the real gap</h2>
+  <div class="cards">
+    <article class="card win"><div class="icon">reuse</div><h3>Standard integration?</h3><p>Start with an existing maintained server. Examples: Linear, Slack, Jira</p></article>
+    <article class="card"><div class="icon">build</div><h3>Unique team workflow?</h3><p>Build a narrow server for the team-specific gap, with clear permissions and descriptions.</p></article>
+    <article class="card"><div class="icon">remove</div><h3>No longer useful?</h3><p>Disconnect it. Every loaded tool definition consumes context and adds another choice.</p></article>
+  </div>
+  <div class="analogy" style="margin-top:16px"><span class="tag">Restaurant model</span>A menu with eighteen names for the same pizza slows every order. Add a tool when it gives the model a capability it cannot get another way.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Exam summary · 18% of the exam</div>
+  <h2>Match the primitive to the job</h2>
+  <div class="cards">
+    <article class="card win"><div class="icon">tool</div><h3>Let the model act</h3><p>Place the order. Use a specific description, narrow schema, and useful errors.</p></article>
+    <article class="card"><div class="icon">resource</div><h3>Give the host context</h3><p>Read the menu. Use a resource for catalogs, schemas, and documents.</p></article>
+    <article class="card"><div class="icon">prompt</div><h3>Give people a starting point</h3><p>Plan lunch. Use a prompt for a reusable workflow a person chooses.</p></article>
+  </div>
+  <div class="analogy" style="margin-top:16px"><span class="tag">Exam rule</span>Choose the answer that makes ownership, tool selection, or recovery explicit.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">If you remember seven sentences</div>
+  <h2>Seven sentences are enough for the exam questions</h2>
+  <div class="body">
+    <div class="col">
+      <div class="point"><span class="dot num">1</span><span>MCP is a protocol, not a vendor integration.</span></div>
+      <div class="point"><span class="dot num">2</span><span>The host owns the model loop and the MCP client.</span></div>
+      <div class="point"><span class="dot num">3</span><span>Tools act. Resources inform. Prompts start workflows.</span></div>
+      <div class="point"><span class="dot num">4</span><span>Tool descriptions guide routing. <code>tool_choice</code> controls whether a call is optional or required.</span></div>
+    </div>
+    <div class="col">
+      <div class="point"><span class="dot num">5</span><span>Project servers go in <code>.mcp.json</code>. Personal servers stay in <code>~/.claude.json</code>.</span></div>
+      <div class="point"><span class="dot num">6</span><span>Keep secrets in environment variables, not in version control.</span></div>
+      <div class="point"><span class="dot num">7</span><span><code>isError: true</code> must include enough context to recover.</span></div>
+      <div class="analogy"><span class="tag">Exam</span>Prefer the answer that makes scope, tool selection, or recovery explicit.</div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<nav id="touch-nav" aria-label="Slide navigation">
+  <button type="button" id="prev-slide">Previous</button>
+  <span id="touch-hint" aria-live="polite">Slide 1</span>
+  <button type="button" id="next-slide">Next</button>
+</nav>
+
+<div id="hud"><div id="hudbar"></div></div>
+<footer id="pager" aria-live="polite"></footer>
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-box"><button id="modal-close" aria-label="Close">×</button><h3 id="modal-title"></h3><div id="modal-body"></div></div>
+</div>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+let current=Math.max(0,Math.min(slides.length-1,(Number(location.hash.slice(1))||1)-1));
+const pager=document.getElementById('pager'),hudbar=document.getElementById('hudbar');
+const previousButton=document.getElementById('prev-slide'),nextButton=document.getElementById('next-slide'),touchHint=document.getElementById('touch-hint');
+function show(index){
+  current=Math.max(0,Math.min(slides.length-1,index));
+  slides.forEach((slide,i)=>slide.classList.toggle('on',i===current));
+  pager.textContent=`${current+1} / ${slides.length}`;
+  touchHint.textContent=`${current+1} / ${slides.length}`;
+  hudbar.style.width=`${((current+1)/slides.length)*100}%`;
+  previousButton.disabled=current===0;nextButton.disabled=current===slides.length-1;
+  history.replaceState(null,'',`#${current+1}`);
+}
+function next(){show(current+1)}function previous(){show(current-1)}
+previousButton.addEventListener('click',previous);nextButton.addEventListener('click',next);
+document.addEventListener('keydown',event=>{
+  if(document.getElementById('modal').classList.contains('on')){if(event.key==='Escape')closeModal();return}
+  if(['ArrowRight','PageDown',' '].includes(event.key)){event.preventDefault();next()}
+  if(['ArrowLeft','PageUp'].includes(event.key)){event.preventDefault();previous()}
+  if(event.key.toLowerCase()==='f')document.documentElement.requestFullscreen?.();
+  if(event.key==='Home')show(0);if(event.key==='End')show(slides.length-1);
+});
+let touchStart=null;
+const swipeIgnore='button,a,input,textarea,select,pre,[data-no-swipe]';
+document.getElementById('deck').addEventListener('touchstart',event=>{
+  if(event.touches.length!==1||document.getElementById('modal').classList.contains('on')||event.target.closest?.(swipeIgnore)){touchStart=null;return}
+  const touch=event.touches[0];touchStart={x:touch.clientX,y:touch.clientY,at:Date.now()};
+},{passive:true});
+document.getElementById('deck').addEventListener('touchend',event=>{
+  if(!touchStart||document.getElementById('modal').classList.contains('on')){touchStart=null;return}
+  const touch=event.changedTouches[0],dx=touch.clientX-touchStart.x,dy=touch.clientY-touchStart.y,elapsed=Date.now()-touchStart.at;touchStart=null;
+  if(elapsed>800||Math.abs(dx)<48||Math.abs(dx)<Math.abs(dy)*1.2)return;
+  if(dx<0)next();else previous();
+},{passive:true});
+document.getElementById('deck').addEventListener('touchcancel',()=>{touchStart=null},{passive:true});
+show(current);
+
+const dialogs={
+  description:{title:'Description + JSON schema',html:`<pre>1. Purpose: what the tool does.
+2. Output: what comes back.
+3. Input: formats plus one example value.
+4. Edge cases: empty results, limits, and permissions.
+5. Boundary: when to use another tool instead.
+
+Place one restaurant order by exact item ID. Returns the order ID, accepted items, total, and ETA. Read restaurant://menu first if the item is uncertain. Do not use this tool to browse the menu.</pre><p>Then make the expected structure explicit with JSON Schema:</p><pre>{
+  "type": "object",
+  "properties": {
+    "itemId": { "type": "string" },
+    "quantity": { "type": "integer", "minimum": 1 }
+  },
+  "required": ["itemId", "quantity"]
+}</pre><p>The description explains when to call. The schema explains how to call.</p>`},
+  resource:{title:'What a real resource contains',html:`<p>A resource is read-only context addressed by a URI. A <code>resources/read</code> response wraps its contents:</p><pre>{
+  "contents": [{
+    "uri": "restaurant://menu",
+    "mimeType": "application/json",
+    "text": "item IDs, names, prices, and dietary tags"
+  }]
+}</pre><p>It tells the host what the restaurant serves without creating an order.</p>`},
+  prompt:{title:'What a real prompt returns',html:`<p>A prompt is a reusable starting point that a person chooses. A <code>prompts/get</code> response returns messages:</p><pre>{
+  "messages": [{
+    "role": "user",
+    "content": {
+      "type": "text",
+      "text": "Plan lunch for four people. One is vegetarian."
+    }
+  }]
+}</pre><p>The person starts the workflow; the prompt does not perform the tool call itself.</p>`},
+  toolcall:{title:'The request Claude cannot run',html:`<p>Claude returns a client-side <code>tool_use</code> block. The host — Claude Code here — still has to invoke the MCP server.</p><pre>Claude response content block
+{
+  "type": "tool_use",
+  "id": "toolu_01ABC",
+  "name": "place-order",
+  "input": { "itemId": "margherita-pizza", "quantity": 1 }
+}
+
+MCP JSON-RPC request; SDK metadata omitted
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "method": "tools/call",
+  "params": {
+    "name": "place-order",
+    "arguments": { "itemId": "margherita-pizza", "quantity": 1 }
+  }
+}</pre><p>The model supplies intent and input. The host sends the request through its MCP client; the server runs the tool.</p>`},
+  toolresult:{title:'The result Claude can read',html:`<p>The MCP server returns a tool result with a <code>content</code> array. Your application maps that result back to Claude as a <code>tool_result</code>.</p><pre>MCP tools/call result
+{
+  "content": [{
+    "type": "text",
+    "text": "{ \\\"orderId\\\": \\\"ord-1042\\\", \\\"status\\\": \\\"accepted\\\", \\\"etaMinutes\\\": 18 }"
+  }]
+}</pre><pre>Anthropic user message content
+{
+  "type": "tool_result",
+  "tool_use_id": "toolu_01ABC",
+  "content": "Order ord-1042 accepted. ETA: 18 minutes."
+}</pre><p>If execution fails, the MCP result can include <code>isError: true</code> so the model gets actionable recovery context.</p>`}
+  ,secrets:{title:'Reference secrets; do not commit them',html:`<p>The project config names the environment variable, not its value:</p><pre>{
+  "env": {
+    "RESTAURANT_TOKEN": "\${RESTAURANT_TOKEN}"
+  }
+}</pre><p>Your local environment supplies <code>RESTAURANT_TOKEN</code>, often through a local <code>.env</code> workflow that stays out of version control. Commit <code>.mcp.json</code>; keep the token and <code>.env</code> file private.</p>`}
+};
+const syntaxKeywords=new Set(['tool_use','tools/list','tools/call','resources/list','resources/read','prompts/list','prompts/get','true','false','null']);
+function escapeHtml(value){return value.replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
+function highlightCode(source){
+  let output='',index=0;
+  const token=(className,value)=>`<span class="${className}">${escapeHtml(value)}</span>`;
+  while(index<source.length){
+    const rest=source.slice(index);
+    if(rest.startsWith('//')){
+      const end=source.indexOf('\n',index);const stop=end<0?source.length:end;
+      output+=token('c',source.slice(index,stop));index=stop;continue;
+    }
+    if(rest.startsWith('/*')){
+      const end=source.indexOf('*/',index+2);const stop=end<0?source.length:end+2;
+      output+=token('c',source.slice(index,stop));index=stop;continue;
+    }
+    if(source[index]==='"'){
+      let end=index+1,escaped=false;
+      while(end<source.length){
+        const char=source[end];
+        if(char==='"'&&!escaped){end++;break}
+        escaped=char==='\\'&&!escaped; if(char!=='\\')escaped=false; end++;
+      }
+      let cursor=end;while(/\s/.test(source[cursor]||''))cursor++;
+      output+=token(source[cursor]===':'?'f':'s',source.slice(index,end));index=end;continue;
+    }
+    const number=rest.match(/^-?(?:\d+(?:\.\d+)?|\.\d+)/);
+    if(number){output+=token('n',number[0]);index+=number[0].length;continue}
+    const word=rest.match(/^[A-Za-z_][\w/-]*/);
+    if(word){output+=syntaxKeywords.has(word[0])?token(word[0]==='true'||word[0]==='false'||word[0]==='null'?'n':'k',word[0]):escapeHtml(word[0]);index+=word[0].length;continue}
+    output+=escapeHtml(source[index]);index++;
+  }
+  return output;
+}
+function highlightPre(pre){
+  if(pre.dataset.syntaxHighlighted==='true')return;
+  if(pre.querySelector('span')){pre.dataset.syntaxHighlighted='true';return}
+  pre.innerHTML=highlightCode(pre.textContent||'');pre.dataset.syntaxHighlighted='true';
+}
+function highlightAll(root=document){root.querySelectorAll('pre').forEach(highlightPre)}
+function openModal(key){const item=dialogs[key];if(!item)return;document.getElementById('modal-title').textContent=item.title;const body=document.getElementById('modal-body');body.innerHTML=item.html;highlightAll(body);document.getElementById('modal').classList.add('on')}
+function closeModal(){document.getElementById('modal').classList.remove('on')}
+document.querySelectorAll('[data-dialog]').forEach(el=>el.addEventListener('click',()=>openModal(el.dataset.dialog)));
+document.getElementById('modal-close').addEventListener('click',closeModal);
+document.getElementById('modal').addEventListener('click',event=>{if(event.target.id==='modal')closeModal()});
+
+const log=document.getElementById('event-log'),payload=document.getElementById('payload');
+const counts={discovered:0,calls:0,errors:0};
+function setPayloadText(text){payload.textContent=text;delete payload.dataset.syntaxHighlighted;highlightPre(payload)}
+function resetDemo(){
+  log.innerHTML='';setPayloadText('Waiting for the first event...');counts.discovered=0;counts.calls=0;counts.errors=0;renderCounts();
+  document.getElementById('capabilities').innerHTML='<div class="mini"><b>Tools</b><span>waiting</span></div><div class="mini"><b>Resources</b><span>waiting</span></div><div class="mini"><b>Prompts</b><span>waiting</span></div>';
+  document.querySelectorAll('.pnode').forEach(node=>node.classList.remove('hot','good'));
+}
+function renderCounts(){document.getElementById('demo-counts').textContent=`${counts.discovered} discovered · ${counts.calls} calls · ${counts.errors} errors`}
+function inspectEvent(event){
+  const view={...event};
+  if(typeof view.text==='string'&&view.text.trim().startsWith('{')){
+    try{view.content=JSON.parse(view.text);delete view.text}catch{}
+  }
+  setPayloadText(JSON.stringify(view,null,2));
+  document.querySelector('[data-pane="payload-pane"]').click();
+}
+function addEvent(event,kind,label){
+  const item=document.createElement('button');item.type='button';item.className=`event ${kind}`;item.innerHTML=label;item.addEventListener('click',()=>inspectEvent(event));log.appendChild(item);log.scrollTop=log.scrollHeight;inspectEvent(event);
+}
+function hot(...ids){document.querySelectorAll('.pnode').forEach(node=>node.classList.remove('hot'));ids.forEach(id=>document.getElementById(id)?.classList.add('hot'))}
+function handle(event){
+  switch(event.t){
+    case 'status':document.getElementById('demo-status').textContent=event.msg;break;
+    case 'connect':hot('client-node','server-node');addEvent(event,'req',`<b>connect</b> <span class="muted">${event.transport} · ${event.command}</span>`);break;
+    case 'initialized':hot('host-node','client-node','server-node');document.querySelectorAll('.pnode').forEach(n=>n.classList.add('good'));addEvent(event,'ok',`<b>initialize</b> client and server agreed`);break;
+    case 'discovery':{
+      hot('client-node','server-node');counts.discovered=event.tools.length+event.resources.length+event.prompts.length;renderCounts();
+      document.getElementById('capabilities').innerHTML=`<div class="mini"><b>Tools</b><span>${event.tools.map(x=>x.name).join('<br>')}</span></div><div class="mini"><b>Resources</b><span>${event.resources.map(x=>x.name).join('<br>')}</span></div><div class="mini"><b>Prompts</b><span>${event.prompts.map(x=>x.name).join('<br>')}</span></div>`;
+      addEvent(event,'disc',`<b>discovery</b> ${event.tools.length} tools · ${event.resources.length} resource · ${event.prompts.length} prompt`);break;}
+    case 'resource_request':hot('host-node','client-node','server-node');addEvent(event,'req',`<b>${event.method}</b> <span class="muted">${event.uri}</span>`);break;
+    case 'resource_result':addEvent(event,'ok',`<b>resource result</b> menu returned`);break;
+    case 'tool_request':counts.calls++;renderCounts();hot('host-node','client-node','server-node');addEvent(event,'req',`<b>${event.method}</b> ${event.call.name} <span class="muted">${event.note}</span>`);break;
+    case 'tool_result':if(event.isError)counts.errors++;renderCounts();addEvent(event,event.isError?'err':'ok',`<b>tool result</b> ${event.name} · isError: <b>${event.isError}</b>`);break;
+    case 'prompt_result':addEvent(event,'ok',`<b>prompts/get</b> ${event.name}`);break;
+    case 'done':hot();document.getElementById('demo-status').textContent=event.msg;addEvent(event,'ok','<b>close</b> server process ended');break;
+    case 'error':counts.errors++;renderCounts();document.getElementById('demo-status').textContent=event.msg;addEvent(event,'err',`<b>error</b> ${event.msg}`);break;
+  }
+}
+const rehearsalEvents=[
+  {t:'status',msg:'rehearsal replay, no process spawned'},
+  {t:'connect',transport:'stdio',command:'npx tsx src/mcp-server.ts'},
+  {t:'initialized',client:'ccaf-live-demo',server:'basil-bistro',protocol:'negotiated by SDK'},
+  {t:'discovery',tools:[
+    {name:'place-order',description:'Place one restaurant order by exact item ID from restaurant://menu. Returns the order ID, accepted items, total, and ETA.',inputSchema:{type:'object',properties:{itemId:{type:'string',minLength:1,description:'Exact item ID, for example margherita-pizza'},quantity:{type:'integer',minimum:1,maximum:12}},required:['itemId','quantity'],$schema:'https://json-schema.org/draft/2020-12/schema'}},
+    {name:'search-menu',description:'Search menu names, descriptions, and dietary tags. Returns zero or more matching item IDs.',inputSchema:{type:'object',properties:{query:{type:'string',minLength:2,description:'Food or dietary keyword, for example pizza or vegetarian'}},required:['query'],$schema:'https://json-schema.org/draft/2020-12/schema'}}
+  ],resources:[{name:'menu',uri:'restaurant://menu',description:'A read-only menu with item IDs, names, prices, and dietary tags.'}],prompts:[{name:'plan-lunch',description:'Start a lunch plan for a group with dietary needs.',arguments:[{name:'partySize',description:'Number of people',required:true},{name:'dietaryNeeds',description:'Dietary needs or none',required:true}]}]},
+  {t:'resource_request',method:'resources/read',uri:'restaurant://menu'},
+  {t:'resource_result',uri:'restaurant://menu',contents:[{uri:'restaurant://menu',mimeType:'application/json',text:'{ "margherita-pizza": { "name": "Margherita pizza", "price": 14, "tags": ["vegetarian"] } }'}]},
+  {t:'tool_request',method:'tools/call',call:{name:'place-order',arguments:{itemId:'margherita-pizza',quantity:1}},note:'valid call'},
+  {t:'tool_result',name:'place-order',isError:false,text:'{ "orderId": "ord-1042", "status": "accepted", "items": [{ "itemId": "margherita-pizza", "quantity": 1 }], "total": 14, "etaMinutes": 18 }'},
+  {t:'tool_request',method:'tools/call',call:{name:'search-menu',arguments:{query:'sushi'}},note:'valid empty result'},
+  {t:'tool_result',name:'search-menu',isError:false,text:'{ "resultCount": 0, "matches": [] }'},
+  {t:'tool_request',method:'tools/call',call:{name:'place-order',arguments:{itemId:'truffle-pizza',quantity:1}},note:'recoverable tool error'},
+  {t:'tool_result',name:'place-order',isError:true,text:'{ "errorCategory": "validation", "isRetryable": true, "message": "Unknown item truffle-pizza. Read restaurant://menu and retry with an exact item ID." }'},
+  {t:'prompt_result',name:'plan-lunch',messages:[{role:'user',content:{type:'text',text:'Plan lunch for 4 people. Dietary needs: one vegetarian. Read the menu before suggesting items.'}}]},
+  {t:'done',msg:'rehearsal complete'}
+];
+let mockTimer=null,mockRun=0;
+function stopMock(){mockRun++;if(mockTimer){clearTimeout(mockTimer);mockTimer=null}}
+function replayMock(){
+  stopMock();resetDemo();
+  const run=mockRun;let index=0;
+  const step=()=>{
+    if(run!==mockRun)return;
+    const event=rehearsalEvents[index++];
+    if(!event)return;
+    handle(event);
+    if(index<rehearsalEvents.length)mockTimer=setTimeout(step,420);else mockTimer=null;
+  };
+  step();
+}
+document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===tab));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id===tab.dataset.pane))}));
+
+let ws;
+function connect(){
+  if(location.protocol==='file:'||location.hostname==='tot.page'){
+    document.getElementById('demo-status').textContent='static page · rehearse available';
+    return;
+  }
+  const host=location.protocol.startsWith('http')?location.host:'127.0.0.1:4848';
+  const protocol=location.protocol==='https:'?'wss':'ws';
+  ws=new WebSocket(`${protocol}://${host}/ws`);
+  ws.onopen=()=>document.getElementById('demo-status').textContent='connected, ready';
+  ws.onclose=()=>{document.getElementById('demo-status').textContent='disconnected, retrying...';setTimeout(connect,1200)};
+  ws.onmessage=message=>{try{handle(JSON.parse(message.data))}catch{}}
+}
+connect();
+function send(cmd){if(ws?.readyState===WebSocket.OPEN)ws.send(JSON.stringify({cmd}))}
+document.getElementById('run-live').addEventListener('click',()=>{
+  stopMock();resetDemo();
+  if(ws?.readyState===WebSocket.OPEN)send('start');
+  else handle({t:'error',msg:'Run live needs the local demo server. Use Rehearse for the static deck.'});
+});
+document.getElementById('run-mock').addEventListener('click',replayMock);
+document.getElementById('stop-demo').addEventListener('click',()=>{stopMock();if(ws?.readyState===WebSocket.OPEN)send('stop');else handle({t:'status',msg:'stopped'})});
+highlightAll();
+resetDemo();
+</script>
+</body>
+</html>

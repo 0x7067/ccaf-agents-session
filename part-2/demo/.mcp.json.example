@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "ccaf-restaurant": {
+      "command": "npm",
+      "args": [
+        "--prefix",
+        "part-2/demo",
+        "exec",
+        "tsx",
+        "--",
+        "part-2/demo/src/mcp-server.ts"
+      ]
+    }
+  }
+}

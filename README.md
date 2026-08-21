@@ -13,7 +13,8 @@ every part.
 | Part | Topic | Status |
 |---|---|---|
 | [Part 1](part-1/) | Agentic Architecture and Orchestration: the Claude API request body, the agent loop, multi-agent hub-and-spoke (live demo), and a full exam summary | ✅ ready |
-| Part 2+ | yours to add | |
+| [Part 2](part-2/) | Model Context Protocol and Tool Calling: a restaurant-themed path through hosts, clients, servers, tools/resources/prompts, tool descriptions and `tool_choice`, project vs personal configuration, structured errors, and a live protocol trace | ✅ ready |
+| Part 3+ | yours to add | |
 
 Each part is a self-contained folder:
 
@@ -24,6 +25,11 @@ part-1/
 ├── notes/               # source study notes for this part
 └── demo/                # runnable demo (Claude Agent SDK, TypeScript)
 ```
+
+Part 2 follows the same structure. Its deterministic, token-free restaurant
+demo launches a real local MCP server, reads the menu resource, places one
+order, performs a successful search with no matches, and returns one structured
+tool error.
 
 ## Running Part 1 (5 minutes)
 
@@ -49,6 +55,18 @@ AUDIT_REPO=/path/to/your/project npm run demo
 Try it on your own project, watching three agents find real issues in *your*
 code is the fastest way to make the material stick.
 
+## Running Part 2 (3 minutes)
+
+```bash
+cd part-2/demo
+npm install
+npm run demo        # → open http://127.0.0.1:4848/part-2/slides.html
+```
+
+On slide 13, click **Run live** to trace MCP discovery, a resource read, a
+successful tool call, a valid zero-result call, and a structured tool error.
+Run `npm run protocol` for the same trace as newline-delimited JSON.
+
 ## Adding a part
 
 1. Copy the `part-1/` structure into `part-N/` (deck + notes + demo, or
@@ -61,6 +79,6 @@ code is the fastest way to make the material stick.
 ## Studying for the CCAF?
 
 This course maps to the exam guide at
-https://github.com/paullarionov/claude-certified-architect. The code is
+https://ravnhq.github.io/claude-certified-architect/. The code is
 annotated with the exam-relevant reasoning: start with
 `part-1/demo/src/audit.ts`.
