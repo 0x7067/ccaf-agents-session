@@ -68,12 +68,12 @@ Claim-by-claim mapping:
   `argument-hint`, skill-vs-CLAUDE.md (on demand vs always), personal
   variants under different names, and at-rest loading (only the description
   loads until invoked). The plugin caution is Domain 3.2's note.
-- Slide 10 carries guide 5.6 and Domain 3.4: planning mode is read-only
+- Slide 13 carries guide 5.6 and Domain 3.4: planning mode is read-only
   investigation with an approved plan; when to plan vs execute directly; the
   Explore subagent; the combined approach. The steering dialog (`/goal`,
   `/loop`, `/compact` with an instruction, Rewind, worktrees) is Domain 3.4's
   "steering a long run" note.
-- Slide 11 carries guide 5.7–5.8 and 5.10 plus Domain 1.7: `/compact`
+- Slide 14 carries guide 5.7–5.8 and 5.10 plus Domain 1.7: `/compact`
   (risk of losing numeric values and dates), `/memory`, `--resume`,
   `fork_session`, and fresh-session-with-summary beating stale resumes.
 - Slides 15–16 carry guide 5.9: `-p` non-interactive semantics, structured
@@ -107,7 +107,7 @@ Recorded so the exam answer stays unambiguous:
   blocking checks). Deferred to the prompt-engineering part; tracked in the
   presenter notes.
 - **Context degradation signals, scratchpad files, and case-facts blocks.**
-  Domain 5 material. Slide 11 only names the `/compact` summarization risk
+  Domain 5 material. Slide 14 only names the `/compact` summarization risk
   because the guide puts it under the `/compact` entry.
 - **Iterative refinement (Domain 3.5): concrete input/output examples,
   test-driven iteration, the interview pattern.** It is prompt-engineering

@@ -223,7 +223,7 @@ the night shift  <span class="f">claude -p</span>, no human           <span clas
 
 <section class="slide">
   <div class="kicker">The handbook · @path imports</div>
-  <h2>@path: the binder that copies every referenced chapter in</h2>
+  <h2>@path: the binder copies referenced chapters in</h2>
   <div class="body">
     <div class="col">
       <div class="point"><span class="dot"></span><span><code>@</code> sits immediately before the path. Relative paths resolve against <b>the file that contains the import</b>.</span></div>
@@ -244,7 +244,7 @@ Service rules:  <span class="f">@./docs/service.md</span>
 
 <section class="slide">
   <div class="kicker">The handbook · path-scoped rules</div>
-  <h2>.claude/rules/: cards that come out only for matching tickets</h2>
+  <h2>.claude/rules/: cards pulled only for matching tickets</h2>
   <div class="body">
     <div class="col">
       <div class="point"><span class="dot"></span><span>Each rule file carries a <code>paths:</code> list in YAML frontmatter.</span></div>
@@ -319,55 +319,6 @@ balance, temperature.</pre>
   <div class="foot"><span><button class="click" data-dialog="plugin">Plugins: read before you install</button></span></div>
 </section>
 
-<section class="slide">
-  <div class="kicker">Mise en place (prep before you cook)</div>
-  <h2>Plan first, or just cook?</h2>
-  <div class="vs">
-    <article class="card win">
-      <span class="pill b">planning mode</span>
-      <h3>Read-only: Read, Grep, Glob</h3>
-      <p>Investigates, proposes an implementation plan, <b>you approve</b>. No side effects.</p>
-      <div class="point"><span class="dot"></span><span>Reach for it: dozens of files, several plausible approaches, architectural decisions, unfamiliar code.</span></div>
-    </article>
-    <article class="card">
-      <span class="pill a">direct execution</span>
-      <h3>Clear ticket, one pan</h3>
-      <p>A single file with a clear stack trace and an obvious fix.</p>
-      <div class="point"><span class="dot"></span><span>Reach for it: small, well-understood, unambiguous changes.</span></div>
-    </article>
-  </div>
-  <div class="trace"><span>plan</span><i>→</i><span>you approve</span><i>→</i><span>execute the approved plan</span></div>
-  <div class="analogy" style="margin-top:14px;padding:12px 22px"><span class="tag">Restaurant model</span>Mise en place before a banquet; just cook it for one margherita. Part 1's <b>subagent</b> returns here as Explore, the commis chef sent to check the walk-in: verbose discovery stays out of your context; one line comes back.</div>
-  <div class="foot"><span><button class="click" data-dialog="steering">Open: steering a long run — /goal, /loop, /compact, Rewind, worktrees</button></span></div>
-</section>
-
-<section class="slide">
-  <div class="kicker">The shift log</div>
-  <h2>/memory, /compact, and what survives the night</h2>
-  <div class="two">
-    <article class="card">
-      <span class="pill w">during the shift</span>
-      <h3><code>/compact</code></h3>
-      <p>Summarizes prior history to free the context window when a long session fills up with verbose tool output.</p>
-      <div class="point bad"><span class="dot"></span><span>Risk: exact numbers, dates, and details can blur in the summary. Keep facts you still need in a file, not in the summary.</span></div>
-    </article>
-    <article class="card win">
-      <span class="pill b">between shifts</span>
-      <div class="mechanism">
-        <h3><code>/memory</code> persists a lesson</h3>
-        <p>Opens the handbook so you can write tonight's lesson down. It loads next session.</p>
-      </div>
-      <div class="mechanism">
-        <h3><code>--resume</code> and <code>fork_session</code> reuse context</h3>
-        <div class="point"><span class="dot"></span><span><code>claude --resume &lt;name&gt;</code> continues a saved session. If files changed, its tool results may be stale.</span></div>
-        <div class="point"><span class="dot"></span><span><code>fork_session</code> branches from shared context: two chefs, one base sauce, two variants.</span></div>
-      </div>
-      <div class="point good"><span class="dot"></span><span>Stale results? A fresh session plus a short written summary beats resuming.</span></div>
-    </article>
-  </div>
-  <div class="foot"><span><button class="click" data-dialog="fork">Open: resume, fork, or start fresh</button></span></div>
-</section>
-
 <section class="slide divider">
   <div class="body">
     <h1>Let's run the night shift</h1>
@@ -419,7 +370,7 @@ balance, temperature.</pre>
       <div class="point good"><span class="dot"></span><span>The knife roll and handbook loaded, with one <code>@path</code> import expanded inline.</span></div>
       <div class="point good"><span class="dot"></span><span>The station card and <code>fryer-safety.md</code> loaded <b>only because tonight's ticket touched kitchen/</b>.</span></div>
       <div class="point good"><span class="dot"></span><span><code>tasting-rules.md</code> stayed out of context — no test file tonight.</span></div>
-      <div class="point good"><span class="dot"></span><span><code>claude -p</code> answered from the handbook itself: the maximum batch of 24 exists only in the imported prep standards.</span></div>
+      <div class="point good"><span class="dot"></span><span><code>claude -p</code> got the maximum batch of 24 from the imported standards — proof the handbook loaded.</span></div>
       <div class="point good"><span class="dot"></span><span>The schema-validated envelope is exactly what CI parses to post inline comments.</span></div>
     </div>
     <div class="col">
@@ -429,13 +380,62 @@ balance, temperature.</pre>
 </section>
 
 <section class="slide">
+  <div class="kicker">Mise en place (prep before you cook)</div>
+  <h2>Plan first, or just cook?</h2>
+  <div class="vs">
+    <article class="card win">
+      <span class="pill b">planning mode</span>
+      <h3>Read-only: Read, Grep, Glob</h3>
+      <p>Investigates, proposes an implementation plan, <b>you approve</b>. No side effects.</p>
+      <div class="point"><span class="dot"></span><span>Reach for it: dozens of files, several plausible approaches, architectural decisions, unfamiliar code.</span></div>
+    </article>
+    <article class="card">
+      <span class="pill a">direct execution</span>
+      <h3>Clear ticket, one pan</h3>
+      <p>A single file with a clear stack trace and an obvious fix.</p>
+      <div class="point"><span class="dot"></span><span>Reach for it: small, well-understood, unambiguous changes.</span></div>
+    </article>
+  </div>
+  <div class="trace"><span>plan</span><i>→</i><span>you approve</span><i>→</i><span>execute the approved plan</span></div>
+  <div class="analogy" style="margin-top:14px;padding:12px 22px"><span class="tag">Restaurant model</span>Mise en place before a banquet; just cook it for one margherita. Part 1's <b>subagent</b> returns here as Explore, the commis chef sent to check the walk-in: verbose discovery stays out of your context; one line comes back.</div>
+  <div class="foot"><span><button class="click" data-dialog="steering">Open: steering a long run — /goal, /loop, /compact, Rewind, worktrees</button></span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">The shift log</div>
+  <h2>/memory, /compact, and what survives the night</h2>
+  <div class="two">
+    <article class="card">
+      <span class="pill w">during the shift</span>
+      <h3><code>/compact</code></h3>
+      <p>Frees the context window when a long session fills with verbose output.</p>
+      <div class="point bad"><span class="dot"></span><span>Risk: numbers and dates can blur. Keep facts you still need in a file.</span></div>
+    </article>
+    <article class="card win">
+      <span class="pill b">between shifts</span>
+      <div class="mechanism">
+        <h3><code>/memory</code> persists a lesson</h3>
+        <p>Opens the handbook so you can write tonight's lesson down. It loads next session.</p>
+      </div>
+      <div class="mechanism">
+        <h3><code>--resume</code> and <code>fork_session</code> reuse context</h3>
+        <div class="point"><span class="dot"></span><span><code>claude --resume &lt;name&gt;</code> continues a saved session. If files changed, its tool results may be stale.</span></div>
+        <div class="point"><span class="dot"></span><span><code>fork_session</code> branches from shared context: two chefs, one base sauce, two variants.</span></div>
+      </div>
+      <div class="point good"><span class="dot"></span><span>Stale results? A fresh session plus a short written summary beats resuming.</span></div>
+    </article>
+  </div>
+  <div class="foot"><span><button class="click" data-dialog="fork">Open: resume, fork, or start fresh</button></span></div>
+</section>
+
+<section class="slide">
   <div class="kicker">The night shift · 1 of 2</div>
   <h2><code>claude -p</code>: the only correct way to run Claude in CI</h2>
   <div class="body">
     <div class="col">
-      <div class="point"><span class="dot"></span><span><code>-p</code> (<code>--print</code>): <b>non-interactive</b>. Processes the prompt, prints to stdout, exits. Never waits for a person.</span></div>
+      <div class="point"><span class="dot"></span><span><code>-p</code> (<code>--print</code>): <b>non-interactive</b> — prints to stdout, exits, never waits for a person.</span></div>
       <div class="point"><span class="dot"></span><span>Plain prose output is for humans. A pipeline needs structure.</span></div>
-      <div class="point good"><span class="dot"></span><span><code>--output-format json</code> + <code>--json-schema</code>: findings arrive validated — file, line, severity, suggested fix — ready to post as inline PR comments.</span></div>
+      <div class="point good"><span class="dot"></span><span><code>--output-format json</code> + <code>--json-schema</code>: findings arrive validated — file, line, severity, fix — ready to post as inline comments.</span></div>
     </div>
     <div class="col">
       <pre class="code"><span class="c"># the pattern the demo just ran</span>

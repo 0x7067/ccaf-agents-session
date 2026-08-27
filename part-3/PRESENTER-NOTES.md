@@ -11,9 +11,10 @@ shift is `claude -p` in CI.
 The deck has 18 slides. It opens with the statelessness callback — nobody
 teaches Claude your kitchen — then builds the handbook and its three shelves,
 separates asking from enforcing, adds the on-demand layer (rules, skills),
-covers planning and session hygiene, and proves the whole story with the
-demo: a real configuration load followed by a real unattended `claude -p` run.
-The two night-shift slides after the demo are the exam's CI pattern.
+and proves the whole story with the demo: a real configuration load followed
+by a real unattended `claude -p` run. The two workflow slides after the
+debrief — mise en place and the shift log — cover how you start a job and what
+survives the night. The two night-shift slides are the exam's CI pattern.
 
 ## Register
 
@@ -56,10 +57,10 @@ Part 1 demo). Use **Rehearse** from the published static link.
 | 0:13-0:15 | 6 | `@path` organizes the binder but expands inline at launch. Organization, not savings — the nuance the exam tests. |
 | 0:15-0:18 | 7 | Laminated cards load only on matching tickets. Kind (glob) vs place (station card). |
 | 0:18-0:21 | 8-9 | The procedure drawer: `/name` cards, project vs personal, then the frontmatter. Start with the consequence: `context: fork` keeps verbose output out. Then name the subagent mechanism and the `allowed-tools` security boundary. |
-| 0:21-0:24 | 10 | Mise en place means prep before you cook: plan before big or ambiguous work; direct execution for a clear small ticket. Name Explore as Part 1's subagent returning here, with one line back. |
-| 0:24-0:26 | 11 | Shift log: `/compact` frees the current window but blurs numbers; `/memory` persists a lesson; resume reloads a session; fork branches one. Keep those four mechanisms distinct. |
-| 0:26-0:28 | 12 | Stop before the demo. Ask the room to predict which files load tonight and which stay out. |
-| 0:28-0:33 | 13-14 | Run the trace. Read the loader sequence, then debrief: the answer "24" could only come from the imported standards — proof the handbook loaded. |
+| 0:21-0:23 | 10 | Stop before the demo. Ask the room to predict which files load tonight and which stay out. |
+| 0:23-0:28 | 11-12 | Run the trace. Read the loader sequence, then debrief: the answer "24" could only come from the imported standards — proof the handbook loaded. |
+| 0:28-0:31 | 13 | Mise en place means prep before you cook: plan before big or ambiguous work; direct execution for a clear small ticket. Name Explore as Part 1's subagent returning here, with one line back. |
+| 0:31-0:33 | 14 | Shift log: `/compact` frees the current window but blurs numbers; `/memory` persists a lesson; resume reloads a session; fork branches one. Keep those four mechanisms distinct. |
 | 0:33-0:36 | 15 | The night shift pattern: `-p` is the only correct CI mode; JSON + schema makes findings postable. Open the envelope dialog. |
 | 0:36-0:38 | 16 | Fresh eyes: the session that wrote the code defends it; an independent instance reviews it. Re-reviews report only new or unresolved issues. |
 | 0:38-0:40 | 17-18 | Close on exam reasoning: who owns the rule, when it loads, whether a human is in the room. Leave slide 18 on screen for questions. |
@@ -81,14 +82,18 @@ Use these as handoffs, not as lines to memorize.
 - Slide 7 to 8: "So far everything loads by itself. Some things should wait
   until you ask for them."
 - Slide 8 to 9: "A card in a drawer can permit things. Read the frontmatter."
-- Slide 9 to 10: "Cards are how you repeat work. The next choice is how you
-  start work."
-- Slide 10 to 11: "Long sessions need a shift log."
-- Slide 11 to 12: "Time to watch the whole kitchen run with nobody in it."
-- Slide 14 to 15: "What you just watched is the CI pattern, one flag at a
-  time."
+- Slide 9 to 10: "That's the whole load path. Time to watch the kitchen run
+  with nobody in it."
+- Slide 10 to 11: "Bet on which files load tonight."
+- Slide 11 to 12: "Read the trace, then we debrief."
+- Slide 12 to 13: "What you just watched is the load path end to end. Before
+  you start your own job, one choice: plan it or just cook it."
+- Slide 13 to 14: "Long sessions need a shift log."
+- Slide 14 to 15: "That's the day-to-day. Now the run that needs nobody
+  there."
 - Slide 15 to 16: "One more night-shift rule: who checks the cooking?"
 - Slide 16 to 17: "Implementation choices change. The exam rules stay small."
+- Slide 17 to 18: "Seven sentences, then I'm done."
 
 ## Interaction openings
 
@@ -100,8 +105,8 @@ Use these as handoffs, not as lines to memorize.
 - Slide 7: ask where a convention for tests scattered across the repo goes —
   laminated card or station card.
 - Slide 8: ask what procedure the room has typed to an agent more than twice.
-- Slide 10: ask about their last big refactor — planned or dived in?
-- Slide 12: let the room predict tonight's load list before running.
+- Slide 13: ask about their last big refactor — planned or dived in?
+- Slide 10: let the room predict tonight's load list before running.
 - Slide 15: ask what breaks if CI runs interactive Claude.
 
 ## Live demo recovery
@@ -124,7 +129,7 @@ Use these as handoffs, not as lines to memorize.
   but they are Domain 4 API material, not Claude Code configuration. The
   prompt-engineering part owes them. Say so if asked.
 - **Deferred to a later part:** context degradation signals and scratchpad
-  files (Domain 5). Slide 11 only names the `/compact` summarization risk.
+  files (Domain 5). Slide 14 only names the `/compact` summarization risk.
 - MCP configuration is Part 2 material; slide 4 only separates
   `~/.claude.json` from `~/.claude/CLAUDE.md`.
 
