@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Part 3 · Claude Code configuration and workflows</title>
+<style>
+  :root{
+    --bg:#0e1118;--bg2:#131826;--panel:#1a2132;--panel2:#212a40;--line:#2a3554;
+    --ink:#e8ecf6;--dim:#9aa5bd;--faint:#6b7690;--acc:#7aa2ff;--acc2:#5eead4;
+    --warn:#ffb86b;--bad:#ff7b8a;--ok:#7ce38b;--violet:#c792ea;
+    --mono:ui-monospace,'SF Mono','Cascadia Code','JetBrains Mono',Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden}
+  button{font:inherit}
+  #deck{height:100vh;position:relative}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;padding:54px 84px 68px;
+    background:linear-gradient(160deg,#111522 0%,var(--bg) 42%);overflow:hidden}
+  .slide.on{display:flex;animation:fade .28s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+  .kicker{font-size:14px;letter-spacing:.22em;text-transform:uppercase;color:var(--acc);font-weight:800;margin-bottom:13px}
+  h1{font-size:64px;line-height:1.04;font-weight:850;letter-spacing:-.035em}
+  h2{font-size:43px;line-height:1.08;font-weight:830;letter-spacing:-.025em;margin-bottom:8px}
+  h3{font-size:22px;line-height:1.15}
+  .sub{font-size:22px;color:var(--dim);margin-top:14px;line-height:1.45;max-width:28em}
+  .body{flex:1;display:flex;gap:38px;align-items:stretch;margin-top:28px;min-height:0}
+  .col{flex:1;min-width:0;display:flex;flex-direction:column;gap:15px;justify-content:center}
+  .point{display:flex;gap:13px;align-items:flex-start;font-size:19px;line-height:1.45}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--acc);margin-top:9px;flex:0 0 9px}
+  .point.good .dot{background:var(--ok)}.point.bad .dot{background:var(--bad)}
+  .dot.num{width:22px;height:22px;flex:0 0 22px;margin-top:3px;display:grid;place-items:center;font:800 12px var(--mono);color:#0d1322}
+  .point b{color:#fff}
+  code{font-family:var(--mono);font-size:.86em;font-weight:650;color:var(--acc);background:#18213a;border:1px solid #26335a;border-radius:6px;padding:1px 6px}
+  pre{font-family:var(--mono);white-space:pre-wrap}
+  pre.code{background:#0b0e15;border:1px solid #232c44;border-radius:14px;padding:18px 22px;font-size:15px;line-height:1.55;overflow:auto}
+  .k{color:var(--violet)}.s{color:#9ce7a9}.n{color:var(--warn)}.c{color:#68748e;font-style:italic}.f{color:#82aaff}
+  .callout{font-size:30px;font-weight:820;line-height:1.28}.callout em{color:var(--acc);font-style:normal}
+  .analogy{background:linear-gradient(135deg,#1c2440,#182034);border:1px solid #2c3a5e;border-radius:16px;padding:18px 22px;font-size:18px;line-height:1.5}
+  .analogy .tag{display:block;width:max-content;font-size:11px;letter-spacing:.17em;text-transform:uppercase;color:var(--acc2);border:1px solid #2e4a49;border-radius:99px;padding:3px 10px;margin-bottom:8px;font-weight:750}
+  .analogy b{color:var(--acc2)}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;flex:1;align-content:center;align-items:start}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:22px;display:flex;flex-direction:column;gap:11px;min-width:0}
+  .card .icon{font-family:var(--mono);font-size:14px;font-weight:800;color:var(--acc2);letter-spacing:.1em;text-transform:uppercase}
+  .card p{color:var(--dim);font-size:16px;line-height:1.5}
+  .card.win{background:linear-gradient(160deg,#1b2743,#141b2c);border-color:#31527a}
+  .pill{display:inline-block;width:max-content;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;border-radius:99px;padding:4px 11px}
+  .pill.a{background:#243352;color:var(--acc)}.pill.b{background:#233c37;color:var(--acc2)}.pill.w{background:#35291d;color:var(--warn)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:24px;flex:1;align-content:center;align-items:start;min-height:0}
+  .vs{display:grid;grid-template-columns:1fr 1fr;gap:22px;flex:1;align-content:center;align-items:start;min-height:0}
+  table{border-collapse:collapse;width:100%;font-size:16px}
+  th,td{border-bottom:1px solid #263049;padding:10px 13px;text-align:left;vertical-align:top}
+  th{color:var(--dim);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+  td:first-child{color:var(--warn);font-family:var(--mono)}
+  .scope-stage{display:grid;grid-template-columns:.95fr 1.05fr;gap:34px;align-items:center;flex:1;min-height:0}
+  .scope-tree{background:#0b0e15;border:1px solid #232c44;border-radius:16px;padding:20px 24px;display:flex;flex-direction:column;gap:9px;font-family:var(--mono);font-size:15px}
+  .scope-branch{display:flex;align-items:center;gap:10px;color:var(--faint);font-size:14px}
+  .scope-branch b{color:var(--dim);font-weight:600}
+  .scope-file{display:flex;align-items:center;gap:13px;border-radius:12px;padding:13px 16px;margin-left:10px}
+  .scope-file .glyph{color:var(--faint);flex:0 0 auto}
+  .scope-file.personal{background:#1a2132;border:1px solid #2c3a5e}
+  .scope-file.project{background:linear-gradient(160deg,#1b2743,#141b2c);border:1px solid #31527a;margin-left:44px}
+  .scope-file.station{background:#1a2132;border:1px solid #2c3a5e;margin-left:74px}
+  .scope-file .meta{display:flex;flex-direction:column;gap:4px;min-width:0}
+  .scope-file .line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .scope-file code{background:none;border:0;padding:0;font-size:15px}
+  .scope-file small{color:var(--dim);font-family:var(--sans);font-size:13px;line-height:1.35}
+  .scope-merge{margin-top:7px;border-top:1px dashed #2c3a5e;padding-top:13px;font-family:var(--sans);color:var(--dim);font-size:15px;line-height:1.5}
+  .scope-merge b{color:var(--acc2)}
+  .scope-notes{display:flex;flex-direction:column;gap:16px}
+  .divider .body{flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .divider h1{font-size:52px}.topics{width:min(100%,48rem);margin-top:27px;display:flex;flex-direction:column;gap:12px;font-size:19px;color:var(--dim);align-items:flex-start;text-align:left}
+  .topics span{display:flex;gap:13px;align-items:center;max-width:100%;min-width:0}.topics span::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--acc);flex:0 0 8px}.topics b{color:var(--ink)}
+  .foot{position:absolute;left:84px;right:84px;bottom:24px;display:flex;justify-content:space-between;gap:24px;color:var(--faint);font-size:13px;letter-spacing:.04em}
+  #hud{position:fixed;bottom:0;left:0;right:0;height:4px;background:#1c2438;z-index:50}#hudbar{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+  #pager{position:fixed;right:22px;bottom:13px;color:var(--faint);font:13px var(--mono);z-index:51}
+  #touch-nav{display:none;position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);align-items:center;gap:9px;padding:6px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px #0005;z-index:55}
+  #touch-nav button{min-width:80px;min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--ink);font-weight:800;cursor:pointer;touch-action:manipulation}
+  #touch-nav button:active{background:#31527a}#touch-nav button:disabled{opacity:.45;cursor:not-allowed}
+  #touch-nav button:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}#touch-nav span{color:var(--faint);font:11px var(--mono);white-space:nowrap}
+  .keys b{font-family:var(--mono);color:var(--dim)}
+  .click{cursor:pointer;background:none;border:0;border-bottom:1px dashed var(--acc);color:var(--acc);font:inherit}.click:hover{color:var(--acc2)}
+  #modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:90;padding:24px}
+  #modal.on{display:flex}.modal-box{width:min(900px,92vw);max-height:84vh;overflow:auto;background:var(--panel);border:1px solid #3a4b76;border-radius:17px;padding:24px}
+  #modal-close{float:right;background:none;border:0;color:var(--dim);font-size:25px;cursor:pointer}.modal-box h3{margin-bottom:12px}.modal-box pre{background:#0b0e15;border:1px solid #232c44;border-radius:12px;padding:16px;font-size:13px;line-height:1.55;overflow:auto}
+  .modal-box p{color:var(--dim);font-size:15px;line-height:1.55;margin:10px 0}
+  .quote{font-size:26px;line-height:1.4;font-weight:720;border:1px solid #2e4a49;border-radius:14px;padding:20px 22px}.quote small{display:block;color:var(--dim);font-size:15px;margin-top:12px;font-weight:500}
+  .trace{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;font:15px var(--mono);margin-top:20px}.trace span{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 13px}.trace i{color:var(--acc2);font-style:normal}
+
+  /* Live demo */
+  .slide.demo{padding:28px 34px 48px}.demo-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}.demo-head h2{font-size:28px;margin:0}.spacer{flex:1}
+  .btn{border:0;border-radius:10px;padding:9px 15px;background:var(--acc);color:#0d1322;font-weight:800;cursor:pointer}.btn:hover{filter:brightness(1.1)}.btn.ghost{background:var(--panel2);color:var(--ink)}.btn.stop{background:var(--bad);color:#270a0f}
+  #demo-status{font:12px var(--mono);color:var(--faint)}#demo-counts{font:12px var(--mono);color:var(--acc2)}
+  .demo-grid{flex:1;display:grid;grid-template-columns:.9fr 1.3fr;gap:15px;min-height:0}
+  .demo-left,.demo-right{min-height:0;display:flex;flex-direction:column;gap:10px}
+  .protocol-map{background:var(--bg2);border:1px solid #232c44;border-radius:15px;padding:16px;display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:8px;align-items:center}
+  .pnode{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;transition:.2s}.pnode b{display:block;font-size:14px}.pnode small{color:var(--dim);font-size:10px}.pnode.hot{border-color:var(--acc);background:#202b43;box-shadow:0 8px 24px #0005}.pnode.good{border-color:var(--ok)}
+  .parrow{font:18px var(--mono);color:var(--acc2)}
+  #event-log{flex:1;background:var(--bg2);border:1px solid #232c44;border-radius:15px;padding:10px;overflow:auto;min-height:0}
+  .event{display:block;width:100%;text-align:left;color:var(--ink);border:1px solid var(--line);font:11.5px/1.45 var(--mono);background:var(--panel);border-radius:8px;padding:7px 9px;margin-bottom:6px;cursor:pointer}.event:hover{background:var(--panel2)}.event.req{border-color:#31527a}.event.ok{border-color:#346b44}.event.err{border-color:#7a3441}.event.disc{border-color:#60467a}.event.skip{border-color:#3a4b76}.event.find{border-color:#7a5a34}
+  .event .muted{color:var(--faint)}
+  .panel-tabs{display:flex;gap:7px}.tab{font-size:12px;font-weight:800;border:1px solid transparent;border-radius:9px;padding:7px 12px;background:var(--panel);color:var(--dim);cursor:pointer}.tab.on{background:var(--panel2);border-color:#3a4b76;color:var(--ink)}
+  .pane{display:none;flex:1;background:var(--bg2);border:1px solid #232c44;border-radius:15px;padding:13px;overflow:auto;min-height:0}.pane.on{display:block}.pane pre{font-size:12px;line-height:1.5;color:var(--ink);white-space:pre-wrap}.pane h3{font-size:14px;margin-bottom:8px;color:var(--acc2)}
+  .cap{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.cap .mini{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0}.cap b{display:block;font-size:12px;margin-bottom:4px}.cap span{font:11px var(--mono);color:var(--dim);display:block;line-height:1.6;overflow-wrap:anywhere}
+
+  @media (prefers-reduced-motion:reduce){.slide.on{animation:none}*{scroll-behavior:auto!important}}
+  @media (max-width:900px){
+    #touch-nav{display:flex;top:max(12px,env(safe-area-inset-top));bottom:auto}#pager{display:none}.slide{padding:92px 26px 32px;overflow:auto}h1{font-size:44px}h2{font-size:33px}.body{flex-direction:column}.cards,.two,.vs,.scope-stage{grid-template-columns:1fr}.trace{gap:6px}.foot{display:none}.sub{font-size:18px}.cards{padding-bottom:24px}.topics{width:100%;align-items:stretch}.topics span{overflow-wrap:anywhere}.topics code{white-space:normal;overflow-wrap:anywhere}table{table-layout:fixed;font-size:14px}th,td{padding:9px 6px;overflow-wrap:anywhere}
+    .slide.demo{padding:84px 20px 32px;overflow:auto}.demo-head{flex-wrap:wrap}.demo-head h2{flex:0 0 100%}.demo-head .spacer{display:none}.demo-head .btn{font-size:12px;padding:7px 10px}.demo-grid{display:flex;flex-direction:column;flex:none}.demo-left,.demo-right{min-height:470px}.protocol-map{grid-template-columns:1fr 16px 1fr 16px 1fr;gap:3px;padding:10px}.pnode{min-width:0;padding:8px 3px}.pnode b{font-size:11px}.pnode small{font-size:8px}.parrow{font-size:14px}.cap{grid-template-columns:1fr}.pane{min-height:320px}
+  }
+</style>
+</head>
+<body>
+<main id="deck">
+
+<section class="slide">
+  <div class="body" style="flex-direction:column;justify-content:center;gap:24px">
+    <div class="kicker">CCAF crash course · Part 3</div>
+    <h1>Claude Code configuration and workflows</h1>
+    <p class="sub">Last session we built the order counter. Today we train the staff for it — then set up the night shift that runs when everyone has gone home.</p>
+  </div>
+  <div class="foot"><span>Ravn AI Development Office Hours</span><span class="keys">navigate: <b>←</b> <b>→</b> · fullscreen: <b>F</b></span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">The mental model · 1 of 3</div>
+  <h2>Who teaches Claude your kitchen?</h2>
+  <div class="body">
+    <div class="col">
+      <div class="callout">Nobody. Every session starts from zero — <em>the model has no memory of your project.</em></div>
+      <div class="point"><span class="dot"></span><span>Part 1 hammered it: every API request is independent. The same holds between sessions — nothing carries over.</span></div>
+      <div class="point"><span class="dot"></span><span>Claude Code is a host, and hosts load <b>files</b>. That is how your rules reach the model.</span></div>
+      <div class="point"><span class="dot"></span><span>Retyping the same instructions every session does not scale. Files that load at the right moment do.</span></div>
+    </div>
+    <div class="col">
+      <div class="analogy"><span class="tag">Restaurant model</span>A new chef walks in every night. The kitchen does not re-explain itself out loud; it <b>hangs the rules where the chef will read them</b>.</div>
+      <pre class="code"><span class="c">// when each rule source loads</span>
+session start    knife roll + handbook        <span class="k">always</span>
+ticket matches   station card + laminated card <span class="k">conditional</span>
+you type /name   one recipe card              <span class="k">on demand</span>
+3 a.m., no human <span class="f">claude -p</span>                  <span class="k">the night shift</span></pre>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">The mental model · 2 of 3</div>
+  <h2>CLAUDE.md is the staff handbook</h2>
+  <div class="body">
+    <div class="col">
+      <div class="point"><span class="dot"></span><span>One markdown file with what you would tell a new colleague: commands, conventions, architecture decisions.</span></div>
+      <div class="point"><span class="dot"></span><span>Loaded automatically at session start, <b>before your first message</b>.</span></div>
+      <div class="point"><span class="dot"></span><span>It is <b>instruction, not configuration</b>: Claude tries to follow it. It is guidance, not a locked door.</span></div>
+      <div class="point bad"><span class="dot"></span><span>The longer it grows, the less of it is reliably honored. <b>Emphasis is a budget</b>: reserve IMPORTANT for the two or three rules that hurt when broken.</span></div>
+      <div class="analogy"><span class="tag">Restaurant model</span>The handbook hangs by the time clock. Everyone reads it at shift start. Nobody memorizes a forty-page handbook.</div>
+    </div>
+    <div class="col">
+      <pre class="code"><span class="c"># Basil Bistro — kitchen handbook</span>
+
+- Prep standards: <span class="f">@./docs/prep-standards.md</span>
+- Test command: <span class="s">npm run taste</span>
+- Never invent menu items. The menu is the
+  source of truth.
+- End every shift with the close checklist.</pre>
+      <div class="point"><span class="dot good"></span><span><button class="click" data-dialog="leanguide">Open: write rules Claude can follow</button></span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">The mental model · 3 of 3</div>
+  <h2>Three shelves, three owners</h2>
+  <div class="scope-stage">
+    <div class="scope-tree" aria-label="Where each instruction file lives">
+      <div class="scope-branch"><span>~</span><b>your machine</b></div>
+      <div class="scope-file personal"><span class="glyph">├─</span><div class="meta"><div class="line"><span class="pill a">knife roll</span><code>~/.claude/CLAUDE.md</code></div><small>Yours. Loads in every project. Never committed.</small></div></div>
+      <div class="scope-branch"><span>└─</span><b>basil-bistro/</b><span>one shared repo</span></div>
+      <div class="scope-file project"><span class="glyph">├─</span><div class="meta"><div class="line"><span class="pill b">handbook</span><code>CLAUDE.md</code></div><small>The team's. Committed with the repo. Every session.</small></div></div>
+      <div class="scope-file station"><span class="glyph">└─</span><div class="meta"><div class="line"><span class="pill w">station card</span><code>kitchen/CLAUDE.md</code></div><small>Loads while working inside kitchen/.</small></div></div>
+      <p class="scope-merge">Work in <b>kitchen/</b> and all three load: your roll, the handbook, the station card. The card <b>adds to</b> the handbook — it never replaces it.</p>
+    </div>
+    <div class="scope-notes">
+      <div class="point good"><span class="dot"></span><span><b>Shared rules live in the repo.</b> Personal style stays on your machine.</span></div>
+      <div class="point bad"><span class="dot"></span><span>The classic exam trap: a new teammate never sees the standards — they lived on <b>one person's knife roll</b> instead of in the handbook.</span></div>
+      <div class="point"><span class="dot"></span><span><button class="click" data-dialog="userjson">Part 2's <code>~/.claude.json</code> held your MCP servers. This file holds instructions.</button></span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">The handbook · ask vs enforce</div>
+  <h2>The handbook asks. The lock enforces.</h2>
+  <div class="vs">
+    <article class="card">
+      <span class="pill w">on paper</span>
+      <h3>CLAUDE.md: "Never push to main"</h3>
+      <p>Wording the model tries to follow.</p>
+      <div class="point bad"><span class="dot"></span><span>Followed most of the time — not guaranteed.</span></div>
+      <div class="point bad"><span class="dot"></span><span>A distracted chef can still push.</span></div>
+    </article>
+    <article class="card win">
+      <span class="pill b">in code</span>
+      <h3>PreToolUse hook: block the push</h3>
+      <p>Code that runs at a fixed point in the loop.</p>
+      <div class="point good"><span class="dot"></span><span>Deterministic. The push is stopped <b>even when Claude tries it</b>.</span></div>
+      <div class="point good"><span class="dot"></span><span>Right tool for critical business rules.</span></div>
+    </article>
+  </div>
+  <div class="analogy" style="margin-top:14px;padding:12px 22px"><span class="tag">Restaurant model</span>The handbook says <b>"keep the freezer locked."</b> The freezer lock actually locks. Paper asks; steel enforces.</div>
+  <div class="foot"><span>Part 1's numbers still rule: money, legal, safety → hooks. Style and flow → the handbook.</span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">The handbook · @path imports</div>
+  <h2>@path: the binder that prints every referenced chapter</h2>
+  <div class="body">
+    <div class="col">
+      <div class="point"><span class="dot"></span><span><code>@</code> sits immediately before the path. Relative paths resolve against <b>the file that contains the import</b>.</span></div>
+      <div class="point"><span class="dot"></span><span>Imports can nest — at most <b>5 levels</b> deep.</span></div>
+      <div class="point bad"><span class="dot"></span><span>Organization, <b>not savings</b>: imports are expanded inline at launch, so everything still loads up front.</span></div>
+      <div class="analogy"><span class="tag">Restaurant model</span>The binder says "see chapter 3" — and someone <b>photocopies chapter 3 into the binder</b> before the shift starts.</div>
+    </div>
+    <div class="col">
+      <pre class="code"><span class="c"># Basil Bistro — kitchen handbook</span>
+Prep standards: <span class="f">@./docs/prep-standards.md</span>
+Service rules:  <span class="f">@./docs/service.md</span>
+
+<span class="c">// at launch, this becomes ONE long document:</span>
+<span class="c">// handbook + prep-standards.md + service.md</span></pre>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">The handbook · path-scoped rules</div>
+  <h2>.claude/rules/: cards that come out only for matching tickets</h2>
+  <div class="body">
+    <div class="col">
+      <div class="point"><span class="dot"></span><span>Each rule file carries a <code>paths:</code> list in YAML frontmatter.</span></div>
+      <div class="point good"><span class="dot"></span><span>A rule loads <b>only when the session touches a matching file</b>. Everything else stays out of context.</span></div>
+      <div class="point"><span class="dot"></span><span><b>Kind vs place:</b> a <code>paths</code> glob fits conventions that follow a file type anywhere (tests). A station card fits conventions tied to one directory.</span></div>
+      <div class="point"><span class="dot"></span><span><button class="click" data-dialog="rules">Open both rule files from the demo repo</button></span></div>
+    </div>
+    <div class="col">
+      <pre class="code"><span class="c">// .claude/rules/fryer-safety.md</span>
+---
+<span class="f">paths</span>: [<span class="s">"kitchen/**/*"</span>]
+---
+Check oil temperature before the first batch.
+
+<span class="c">// .claude/rules/tasting-rules.md</span>
+---
+<span class="f">paths</span>: [<span class="s">"**/*.test.ts"</span>]
+---
+Score with the fixed card: appearance,
+balance, temperature.</pre>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">On demand · 1 of 2</div>
+  <h2>The recipe drawer: slash commands and skills</h2>
+  <div class="cards">
+    <article class="card win">
+      <div class="icon">project · current</div>
+      <h3><code>.claude/skills/prep-check/</code></h3>
+      <p>A <code>SKILL.md</code> with frontmatter. Committed with the repo — the whole team gets <code>/prep-check</code>.</p>
+    </article>
+    <article class="card">
+      <div class="icon">project · legacy</div>
+      <h3><code>.claude/commands/close-checklist.md</code></h3>
+      <p>The older format. Still supported, and still a <code>/close-checklist</code> command.</p>
+    </article>
+    <article class="card">
+      <div class="icon">personal</div>
+      <h3><code>~/.claude/skills/</code></h3>
+      <p>Your private cards, never committed. Keep personal variants under different names so teammates are unaffected.</p>
+    </article>
+  </div>
+  <div class="analogy" style="margin-top:14px"><span class="tag">Restaurant model</span>The drawer stays closed until you <b>call a card by name</b>. Typed the same procedure twice? It is a card.</div>
+  <div class="foot"><span><button class="click" data-dialog="atrest">Open: what loads while the card sits in the drawer</button></span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">On demand · 2 of 2</div>
+  <h2>What the card permits: SKILL.md frontmatter</h2>
+  <div class="body">
+    <div class="col">
+      <pre class="code">---
+<span class="f">name</span>: <span class="s">prep-check</span>
+<span class="f">description</span>: <span class="s">Audit a station's prep against the
+  kitchen handbook and print the close-of-day
+  checklist.</span>
+<span class="f">context</span>: <span class="s">fork</span>
+<span class="f">allowed-tools</span>: [<span class="s">"Read"</span>, <span class="s">"Grep"</span>, <span class="s">"Glob"</span>]
+<span class="f">argument-hint</span>: <span class="s">"Station to audit, e.g. pizza"</span>
+---</pre>
+    </div>
+    <div class="col">
+      <div class="point"><span class="dot"></span><span><b>context: fork</b> — the card runs in an isolated subagent. A verbose audit never fills your main session.</span></div>
+      <div class="point good"><span class="dot"></span><span><b>allowed-tools</b> — the security boundary. A card listing Read, Grep, Glob <b>cannot write or delete files</b>.</span></div>
+      <div class="point"><span class="dot"></span><span><b>argument-hint</b> — asks for the missing argument: "which station?"</span></div>
+      <div class="point"><span class="dot"></span><span><b>Skill vs handbook:</b> on demand vs always loaded.</span></div>
+      <div class="analogy"><span class="tag">Restaurant model</span>A <b>commis chef</b> runs the card in the back and brings back one page.</div>
+    </div>
+  </div>
+  <div class="foot"><span><button class="click" data-dialog="plugin">Plugins: read before you install</button></span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Mise en place</div>
+  <h2>Plan first, or just cook?</h2>
+  <div class="vs">
+    <article class="card win">
+      <span class="pill b">planning mode</span>
+      <h3>Read-only: Read, Grep, Glob</h3>
+      <p>Investigates, proposes an implementation plan, <b>you approve</b>. No side effects.</p>
+      <div class="point"><span class="dot"></span><span>Reach for it: dozens of files, several plausible approaches, architectural decisions, unfamiliar code.</span></div>
+    </article>
+    <article class="card">
+      <span class="pill a">direct execution</span>
+      <h3>Clear ticket, one pan</h3>
+      <p>A single file with a clear stack trace and an obvious fix.</p>
+      <div class="point"><span class="dot"></span><span>Reach for it: small, well-understood, unambiguous changes.</span></div>
+    </article>
+  </div>
+  <div class="trace"><span>plan</span><i>→</i><span>you approve</span><i>→</i><span>execute the approved plan</span></div>
+  <div class="analogy" style="margin-top:14px;padding:12px 22px"><span class="tag">Restaurant model</span>Mise en place before a banquet; just cook it for one margherita. The <b>Explore subagent</b> is the commis chef sent to check the walk-in: verbose discovery stays out of your context; one line comes back.</div>
+  <div class="foot"><span><button class="click" data-dialog="steering">Open: steering a long run — /goal, /loop, /compact, Rewind, worktrees</button></span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">The shift log</div>
+  <h2>/memory, /compact, and what survives the night</h2>
+  <div class="two">
+    <article class="card">
+      <span class="pill w">during the shift</span>
+      <h3><code>/compact</code></h3>
+      <p>Summarizes prior history to free the context window when a long session fills up with verbose tool output.</p>
+      <div class="point bad"><span class="dot"></span><span>Risk: exact numbers, dates, and details can blur in the summary. Keep facts you still need in a file, not in the summary.</span></div>
+    </article>
+    <article class="card win">
+      <span class="pill b">between shifts</span>
+      <h3><code>/memory</code> · <code>--resume</code> · <code>fork_session</code></h3>
+      <p><code>/memory</code> opens the handbook to write tonight's lesson down; it loads next session.</p>
+      <div class="point"><span class="dot"></span><span><code>claude --resume &lt;name&gt;</code> continues a saved session — risky if files changed: tool results may be stale.</span></div>
+      <div class="point"><span class="dot"></span><span><code>fork_session</code> branches from shared context: two chefs, one base sauce, two variants.</span></div>
+      <div class="point good"><span class="dot"></span><span>Stale results? A fresh session plus a short written summary beats resuming.</span></div>
+    </article>
+  </div>
+  <div class="foot"><span><button class="click" data-dialog="fork">Open: resume, fork, or start fresh</button></span></div>
+</section>
+
+<section class="slide divider">
+  <div class="body">
+    <h1>Let's run the night shift</h1>
+    <div class="topics">
+      <span>One repo's whole configuration, classified: what loads always, conditionally, and on demand</span>
+      <span>The real <code>claude -p</code> runs the close-of-day check <b>unattended</b></span>
+      <span>The answer comes back as schema-validated JSON findings</span>
+    </div>
+  </div>
+</section>
+
+<section class="slide demo">
+  <div class="demo-head">
+    <h2>Night shift at Basil Bistro</h2>
+    <span id="demo-status">connecting...</span>
+    <span class="spacer"></span>
+    <span id="demo-counts">0 files · 0 loaded · 0 findings</span>
+    <button class="btn" id="run-live">Run live</button>
+    <button class="btn ghost" id="run-mock">Rehearse</button>
+    <button class="btn stop" id="stop-demo">Stop</button>
+  </div>
+  <div class="demo-grid">
+    <div class="demo-left">
+      <div class="protocol-map">
+        <div class="pnode" id="files-node"><b>Config files</b><small>handbook · cards · drawer</small></div>
+        <div class="parrow">⇄</div>
+        <div class="pnode" id="cli-node"><b>claude -p</b><small>night shift, unattended</small></div>
+        <div class="parrow">⇄</div>
+        <div class="pnode" id="find-node"><b>Findings</b><small>JSON, schema-validated</small></div>
+      </div>
+      <div id="event-log" aria-label="Night shift events" aria-live="polite"></div>
+    </div>
+    <div class="demo-right">
+      <div class="panel-tabs">
+        <button class="tab on" data-pane="payload-pane">Payload</button>
+        <button class="tab" data-pane="cap-pane">What loads</button>
+      </div>
+      <div class="pane on" id="payload-pane"><h3>Click an event to inspect it</h3><pre id="payload">Run the demo, then inspect each step.</pre></div>
+      <div class="pane" id="cap-pane"><h3>Configuration inventory</h3><div class="cap" id="capabilities"><div class="mini"><b>Always</b><span>waiting</span></div><div class="mini"><b>Tonight only</b><span>waiting</span></div><div class="mini"><b>On demand</b><span>waiting</span></div><div class="mini"><b>Not loaded</b><span>waiting</span></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Demo debrief</div>
+  <h2>What just happened?</h2>
+  <div class="body">
+    <div class="col">
+      <div class="point good"><span class="dot"></span><span>The loader classified the whole configuration: two always-loaded shelves, one <code>@path</code> import expanded inline.</span></div>
+      <div class="point good"><span class="dot"></span><span>The station card and <code>fryer-safety.md</code> loaded <b>only because tonight's ticket touched kitchen/</b>.</span></div>
+      <div class="point good"><span class="dot"></span><span><code>tasting-rules.md</code> stayed out of context — no test file tonight.</span></div>
+      <div class="point good"><span class="dot"></span><span><code>claude -p</code> answered from the handbook itself: the maximum batch of 24 exists only in the imported prep standards.</span></div>
+      <div class="point good"><span class="dot"></span><span>The schema-validated envelope is exactly what CI parses to post inline comments.</span></div>
+    </div>
+    <div class="col">
+      <div class="quote">The files taught the agent. The flag made it run unattended. The schema made the answer postable.<small>Configuration decides what Claude knows. The CLI mode decides whether a human needs to be in the room.</small></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">The night shift · 1 of 2</div>
+  <h2><code>claude -p</code>: the only correct way to run Claude in CI</h2>
+  <div class="body">
+    <div class="col">
+      <div class="point"><span class="dot"></span><span><code>-p</code> (<code>--print</code>): <b>non-interactive</b>. Processes the prompt, prints to stdout, exits. Never waits for a person.</span></div>
+      <div class="point"><span class="dot"></span><span>Plain prose output is for humans. A pipeline needs structure.</span></div>
+      <div class="point good"><span class="dot"></span><span><code>--output-format json</code> + <code>--json-schema</code>: findings arrive validated — file, line, severity, suggested fix — ready to post as inline PR comments.</span></div>
+    </div>
+    <div class="col">
+      <pre class="code"><span class="c"># the pattern the demo just ran</span>
+<span class="f">claude</span> -p <span class="s">"Close-of-day check…"</span> \
+  --output-format json \
+  --json-schema <span class="s">'{"type":"object",
+    "properties":{"findings":{…}},
+    "required":["maxPrepBatch","findings"]}'</span>
+
+<span class="c"># stdout: one JSON envelope your CI parses</span>
+{ <span class="f">"type"</span>: <span class="s">"result"</span>, <span class="f">"result"</span>: { … } }</pre>
+      <div class="point"><span class="dot"></span><span><button class="click" data-dialog="schema">Open: the envelope claude -p prints</button></span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">The night shift · 2 of 2</div>
+  <h2>The cook defends the dish. The inspector doesn't.</h2>
+  <div class="two">
+    <article class="card">
+      <span class="pill w">self-review</span>
+      <h3>The session that wrote the code</h3>
+      <p>Keeps its own reasoning context — it is reluctant to challenge the decisions it just made.</p>
+      <div class="point bad"><span class="dot"></span><span>It considered the edge case and talked itself past it.</span></div>
+    </article>
+    <article class="card win">
+      <span class="pill b">fresh instance</span>
+      <h3>An independent claude -p</h3>
+      <p>Given only the diff and the review criteria — no stake in the approach.</p>
+      <div class="point good"><span class="dot"></span><span>Finds what the author rationalized past.</span></div>
+    </article>
+  </div>
+  <div class="point" style="margin-top:16px"><span class="dot"></span><span><b>Re-review after new commits:</b> include the earlier findings in context and ask only for new or unresolved issues — no duplicate comments.</span></div>
+  <div class="analogy" style="margin-top:14px;padding:12px 22px"><span class="tag">Restaurant model</span>The health inspector <b>was not in the kitchen</b> when the food was cooked. That is the point.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Exam summary · 20% of the exam</div>
+  <h2>Who owns the rule, and when does it load?</h2>
+  <div class="cards">
+    <article class="card win"><div class="icon">scope</div><h3>Scope matches owner</h3><p>Knife roll, handbook, station card. Shared rules live in the repo — never on one person's machine.</p></article>
+    <article class="card"><div class="icon">guarantee</div><h3>Ask vs enforce</h3><p>CLAUDE.md guides; hooks guarantee. Rules with <code>paths</code> and skills load only when needed.</p></article>
+    <article class="card"><div class="icon">mode</div><h3>Right mode for the job</h3><p>Plan before large or ambiguous work. In CI: <code>claude -p</code> + JSON schema, reviewed by a fresh instance.</p></article>
+  </div>
+  <div class="analogy" style="margin-top:16px"><span class="tag">Exam rule</span>Choose the answer that names <b>who owns the rule</b> and <b>when it loads</b>.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">If you remember seven sentences</div>
+  <h2>Seven sentences are enough for the exam questions</h2>
+  <div class="body">
+    <div class="col">
+      <div class="point"><span class="dot num">1</span><span>CLAUDE.md is instruction, loaded every session — not configuration.</span></div>
+      <div class="point"><span class="dot num">2</span><span>Three scopes, three owners: knife roll (<code>~</code>), handbook (repo), station card (subdirectory).</span></div>
+      <div class="point"><span class="dot num">3</span><span>The handbook asks; a <code>PreToolUse</code> hook enforces. Money, legal, safety → hooks.</span></div>
+      <div class="point"><span class="dot num">4</span><span><code>@path</code> imports organize the handbook but expand inline — they do not save context.</span></div>
+    </div>
+    <div class="col">
+      <div class="point"><span class="dot num">5</span><span>Rules with <code>paths</code> and skills load on demand — irrelevant instructions stay out of context.</span></div>
+      <div class="point"><span class="dot num">6</span><span>Plan before large or ambiguous work; execute directly when the change is small and clear.</span></div>
+      <div class="point"><span class="dot num">7</span><span>In CI: <code>claude -p</code> with <code>--output-format json</code> and <code>--json-schema</code>, reviewed by a fresh instance.</span></div>
+      <div class="analogy"><span class="tag">Exam</span>Prefer the answer that makes ownership, loading, or unattended execution explicit.</div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<nav id="touch-nav" aria-label="Slide navigation">
+  <button type="button" id="prev-slide">Previous</button>
+  <span id="touch-hint" aria-live="polite">Slide 1</span>
+  <button type="button" id="next-slide">Next</button>
+</nav>
+
+<div id="hud"><div id="hudbar"></div></div>
+<footer id="pager" aria-live="polite"></footer>
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-box"><button id="modal-close" aria-label="Close">×</button><h3 id="modal-title"></h3><div id="modal-body"></div></div>
+</div>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+let current=Math.max(0,Math.min(slides.length-1,(Number(location.hash.slice(1))||1)-1));
+const pager=document.getElementById('pager'),hudbar=document.getElementById('hudbar');
+const previousButton=document.getElementById('prev-slide'),nextButton=document.getElementById('next-slide'),touchHint=document.getElementById('touch-hint');
+function show(index){
+  current=Math.max(0,Math.min(slides.length-1,index));
+  slides.forEach((slide,i)=>slide.classList.toggle('on',i===current));
+  pager.textContent=`${current+1} / ${slides.length}`;
+  touchHint.textContent=`${current+1} / ${slides.length}`;
+  hudbar.style.width=`${((current+1)/slides.length)*100}%`;
+  previousButton.disabled=current===0;nextButton.disabled=current===slides.length-1;
+  history.replaceState(null,'',`#${current+1}`);
+}
+function next(){show(current+1)}function previous(){show(current-1)}
+previousButton.addEventListener('click',previous);nextButton.addEventListener('click',next);
+document.addEventListener('keydown',event=>{
+  if(document.getElementById('modal').classList.contains('on')){if(event.key==='Escape')closeModal();return}
+  if(['ArrowRight','PageDown',' '].includes(event.key)){event.preventDefault();next()}
+  if(['ArrowLeft','PageUp'].includes(event.key)){event.preventDefault();previous()}
+  if(event.key.toLowerCase()==='f')document.documentElement.requestFullscreen?.();
+  if(event.key==='Home')show(0);if(event.key==='End')show(slides.length-1);
+});
+let touchStart=null;
+const swipeIgnore='button,a,input,textarea,select,pre,[data-no-swipe]';
+document.getElementById('deck').addEventListener('touchstart',event=>{
+  if(event.touches.length!==1||document.getElementById('modal').classList.contains('on')||event.target.closest?.(swipeIgnore)){touchStart=null;return}
+  const touch=event.touches[0];touchStart={x:touch.clientX,y:touch.clientY,at:Date.now()};
+},{passive:true});
+document.getElementById('deck').addEventListener('touchend',event=>{
+  if(!touchStart||document.getElementById('modal').classList.contains('on')){touchStart=null;return}
+  const touch=event.changedTouches[0],dx=touch.clientX-touchStart.x,dy=touch.clientY-touchStart.y,elapsed=Date.now()-touchStart.at;touchStart=null;
+  if(elapsed>800||Math.abs(dx)<48||Math.abs(dx)<Math.abs(dy)*1.2)return;
+  if(dx<0)next();else previous();
+},{passive:true});
+document.getElementById('deck').addEventListener('touchcancel',()=>{touchStart=null});
+show(current);
+
+const dialogs={
+  leanguide:{title:'Write rules Claude can follow',html:`<table><tr><th>weak line</th><th>rule Claude can use</th></tr><tr><td>"Follow best practices."</td><td>"New API routes go in <code>src/api/handlers/</code>, one per file."</td></tr><tr><td>"Don't use default exports."</td><td>"Use named exports." — a "don't" leaves the loophole open; name the replacement.</td></tr></table><p>Treat <b>emphasis as a budget</b>: reserve IMPORTANT / "you must" for the two or three rules that hurt when broken. When Claude does the wrong thing, treat it as a bug report against the file — add or fix the rule there.</p><p>And remember the boundary from the previous slide: a hard rule ("never push to main") does not belong in this file at all. It belongs in a hook.</p>`},
+  userjson:{title:'Two different files in your home',html:`<p><code>~/.claude.json</code> — Part 2's file. It holds your <b>personal MCP servers</b>: commands, arguments, environment variables. Configuration that names software.</p><p><code>~/.claude/CLAUDE.md</code> — this part's file. It holds your <b>personal instructions</b>: text the model reads at the start of every session. Guidance written in sentences.</p><p>Both are yours alone; neither is committed. The exam asks which file holds what: <b>servers vs sentences</b>.</p>`},
+  rules:{title:'Two rule files, frontmatter first',html:`<pre>// .claude/rules/fryer-safety.md
+---
+paths: ["kitchen/**/*"]
+---
+
+# Fryer safety
+
+Loaded only when the session touches a file under kitchen/.
+
+- Check oil temperature before the first batch.
+- Never mix utensils between the fryer and prep surfaces.</pre><pre>// .claude/rules/tasting-rules.md
+---
+paths: ["**/*.test.ts"]
+---
+
+# Tasting rules
+
+Loaded only when the session touches a test file.
+
+- Score with the fixed card: appearance, balance, temperature.
+- Never adjust a score after seeing another station's results.</pre><p>A rule is loaded <b>only</b> when Claude Code edits a file matching <code>paths</code>. The glob follows a <i>kind</i> of file anywhere in the tree; a directory-level CLAUDE.md follows a <i>place</i>. Prefer globs when the convention spans directories (tests, migrations); prefer a station card when it is tied to one home.</p>`},
+  atrest:{title:'What loads while the card sits in the drawer',html:`<p>A skill is a folder: a <code>SKILL.md</code> (name, triggering description, the procedure) plus optional side files — <code>reference.md</code> for deep material and scripts Claude <i>executes</i> rather than reads.</p><p>At rest, <b>only the name and description load</b> — a fat skill wastes no context until it is invoked. Keep <code>SKILL.md</code> lean and push depth into the side files.</p><p>That is the split to remember for the exam: the handbook is always-loaded standards; a skill is an on-demand procedure. Same repo shelf (<code>.claude/</code>), opposite loading behavior.</p>`},
+  plugin:{title:'Plugins: read before you install',html:`<p>Installing a plugin grants it <b>your own privileges</b>, and any hook it carries <b>joins</b> your existing hooks rather than replacing them — matching tool calls fire both, with no signal in your configuration.</p><p>That is the whole risk: a plugin can register a <code>Stop</code> hook that reaches the network, and nothing in your setup announces it. Popularity is not review.</p><p>Enumerate the hooks, agents, and MCP servers a plugin contributes before you enable it. Skills, agents, and commands it adds are namespaced under the plugin name so they cannot clash with yours — the behavior-changing risk lives in the hooks and settings.</p>`},
+  steering:{title:'Steering a long run',html:`<p><b>/goal</b> sets a checkable completion condition — "all tests in <code>src/billing</code> pass and the type checker reports zero errors" — and keeps Claude working across turns until a fast evaluator confirms it. The condition must be checkable from output Claude produces, not private state. <code>/goal clear</code> cancels.</p><p><b>/loop</b> re-runs a prompt on an interval to watch an external state (a CI run, a deploy) and act on change.</p><p><b>/compact with an instruction</b> directs what the summary keeps: "keep only the API changes, drop the debugging".</p><p><b>Rewind</b>: double-tap Escape on an empty prompt to restore a prior checkpoint instead of prompting your way out of a wrong path.</p><p><b>Worktrees</b>: two sessions on one repo should work in separate git worktrees so they cannot fight over the same files.</p>`},
+  fork:{title:'Resume, fork, or start fresh',html:`<pre>shared investigation
+        │
+   fork_session ────────┐
+        ├─ variant A: wood-fired sauce
+        └─ variant B: pan sauce</pre><p><code>claude --resume &lt;session-name&gt;</code> continues a named session with its saved context — good for a long investigation you walked away from, risky if files changed since: cached tool results may now be stale.</p><p><code>fork_session</code> branches from shared context: both variants inherit everything up to the branch point, then diverge independently — comparing approaches without polluting each other.</p><p>When results have aged, a fresh session opened with a short written summary is more reliable than resuming stale tool data — and tell the agent what changed since.</p>`},
+  schema:{title:'The envelope claude -p prints',html:`<pre>$ claude -p "Review this PR for security issues" \\
+    --output-format json \\
+    --json-schema '{"type":"object", ...}'
+
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "result":  { ...exactly the schema you defined... },
+  "session_id": "…",
+  "total_cost_usd": 0.05,
+  "num_turns": 4
+}</pre><p>Your pipeline parses <code>result</code>: the schema guarantees the fields CI needs — file, line, severity, suggested fix — so findings can be posted as inline comments without parsing prose.</p><p><code>is_error: true</code> means the run itself failed (quota, auth). Fail the pipeline; do not post garbage.</p>`}
+};
+const syntaxKeywords=new Set(['claude','npm','run','-p','--print','--output-format','--json-schema','--resume','true','false','null','fork_session','paths']);
+function escapeHtml(value){return value.replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
+function highlightCode(source){
+  let output='',index=0;
+  const token=(className,value)=>`<span class="${className}">${escapeHtml(value)}</span>`;
+  while(index<source.length){
+    const rest=source.slice(index);
+    if(rest.startsWith('//')){
+      const end=source.indexOf('\n',index);const stop=end<0?source.length:end;
+      output+=token('c',source.slice(index,stop));index=stop;continue;
+    }
+    if(rest.startsWith('/*')){
+      const end=source.indexOf('*/',index+2);const stop=end<0?source.length:end+2;
+      output+=token('c',source.slice(index,stop));index=stop;continue;
+    }
+    if(source[index]==='"'){
+      let end=index+1,escaped=false;
+      while(end<source.length){
+        const char=source[end];
+        if(char==='"'&&!escaped){end++;break}
+        escaped=char==='\\'&&!escaped; if(char!=='\\')escaped=false; end++;
+      }
+      let cursor=end;while(/\s/.test(source[cursor]||''))cursor++;
+      output+=token(source[cursor]===':'?'f':'s',source.slice(index,end));index=end;continue;
+    }
+    const number=rest.match(/^-?(?:\d+(?:\.\d+)?|\.\d+)/);
+    if(number){output+=token('n',number[0]);index+=number[0].length;continue}
+    const word=rest.match(/^[A-Za-z_][\w/-]*/);
+    if(word){output+=syntaxKeywords.has(word[0])?token(word[0]==='true'||word[0]==='false'||word[0]==='null'?'n':'k',word[0]):escapeHtml(word[0]);index+=word[0].length;continue}
+    output+=escapeHtml(source[index]);index++;
+  }
+  return output;
+}
+function highlightPre(pre){
+  if(pre.dataset.syntaxHighlighted==='true')return;
+  if(pre.querySelector('span')){pre.dataset.syntaxHighlighted='true';return}
+  pre.innerHTML=highlightCode(pre.textContent||'');pre.dataset.syntaxHighlighted='true';
+}
+function highlightAll(root=document){root.querySelectorAll('pre').forEach(highlightPre)}
+function openModal(key){const item=dialogs[key];if(!item)return;document.getElementById('modal-title').textContent=item.title;const body=document.getElementById('modal-body');body.innerHTML=item.html;highlightAll(body);document.getElementById('modal').classList.add('on')}
+function closeModal(){document.getElementById('modal').classList.remove('on')}
+document.querySelectorAll('[data-dialog]').forEach(el=>el.addEventListener('click',()=>openModal(el.dataset.dialog)));
+document.getElementById('modal-close').addEventListener('click',closeModal);
+document.getElementById('modal').addEventListener('click',event=>{if(event.target.id==='modal')closeModal()});
+
+const log=document.getElementById('event-log'),payload=document.getElementById('payload');
+const counts={files:0,loaded:0,findings:0};
+function setPayloadText(text){payload.textContent=text;delete payload.dataset.syntaxHighlighted;highlightPre(payload)}
+function resetDemo(){
+  log.innerHTML='';setPayloadText('Waiting for the first event...');counts.files=0;counts.loaded=0;counts.findings=0;renderCounts();
+  document.getElementById('capabilities').innerHTML='<div class="mini"><b>Always</b><span>waiting</span></div><div class="mini"><b>Tonight only</b><span>waiting</span></div><div class="mini"><b>On demand</b><span>waiting</span></div><div class="mini"><b>Not loaded</b><span>waiting</span></div>';
+  document.querySelectorAll('.pnode').forEach(node=>node.classList.remove('hot','good'));
+}
+function renderCounts(){document.getElementById('demo-counts').textContent=`${counts.files} files · ${counts.loaded} loaded · ${counts.findings} findings`}
+function inspectEvent(event){
+  setPayloadText(JSON.stringify(event,null,2));
+  document.querySelector('[data-pane="payload-pane"]').click();
+}
+function addEvent(event,kind,label){
+  const item=document.createElement('button');item.type='button';item.className=`event ${kind}`;item.innerHTML=label;item.addEventListener('click',()=>inspectEvent(event));log.appendChild(item);log.scrollTop=log.scrollHeight;inspectEvent(event);
+}
+function hot(...ids){document.querySelectorAll('.pnode').forEach(node=>node.classList.remove('hot'));ids.forEach(id=>document.getElementById(id)?.classList.add('hot'))}
+function renderInventory(inventory){
+  const group=(title,entries)=>`<div class="mini"><b>${title}</b><span>${entries.map(entry=>`${escapeHtml(entry.path)} — ${escapeHtml(entry.note)}`).join('<br>')}</span></div>`;
+  document.getElementById('capabilities').innerHTML=
+    group('Always',inventory.always)+
+    group('Tonight only',inventory.conditional)+
+    group('On demand',inventory.onDemand)+
+    group('Not loaded',inventory.skipped);
+}
+function handle(event){
+  switch(event.t){
+    case 'status':document.getElementById('demo-status').textContent=event.msg;break;
+    case 'scan':hot('files-node');addEvent(event,'disc',`<b>scan</b> ${event.path} <span class="muted">${event.label}</span>`);break;
+    case 'load':counts.loaded++;renderCounts();hot('files-node');addEvent(event,'ok',`<b>load · ${event.kind}</b> ${event.path}`);break;
+    case 'skip':hot('files-node');addEvent(event,'skip',`<b>skip</b> ${event.path} <span class="muted">${event.reason}</span>`);break;
+    case 'ondemand':hot('files-node');addEvent(event,'disc',`<b>${event.kind}</b> ${event.name} <span class="muted">${event.note}</span>`);break;
+    case 'inventory':{
+      const inventory=event.inventory;counts.files=inventory.always.length+inventory.conditional.length+inventory.onDemand.length;renderCounts();
+      renderInventory(inventory);
+      const total=counts.files+inventory.skipped.length;
+      addEvent(event,'disc',`<b>inventory</b> ${total} files classified`);break;}
+    case 'spawn':hot('cli-node');addEvent(event,'req',`<b>spawn</b> ${event.bin} -p <span class="muted">unattended · cwd ${event.cwd}</span>`);break;
+    case 'exit':addEvent(event,event.code===0?'ok':'err',`<b>exit</b> code ${event.code} <span class="muted">${event.ms} ms</span>`);break;
+    case 'envelope':hot('cli-node','find-node');addEvent(event,'ok',`<b>envelope</b> ${event.type} · maxPrepBatch ${event.result?.maxPrepBatch ?? '—'}`);break;
+    case 'finding':counts.findings++;renderCounts();hot('find-node');addEvent(event,event.severity==='high'?'err':'find',`<b>finding ${event.index}</b> ${event.severity} · ${event.area}`);break;
+    case 'done':hot();document.getElementById('demo-status').textContent=event.msg;addEvent(event,'ok',`<b>done</b> ${event.msg}`);break;
+    case 'error':document.getElementById('demo-status').textContent=event.msg;addEvent(event,'err',`<b>error</b> ${event.msg}`);break;
+  }
+}
+const rehearsalEvents=[
+  {t:'status',msg:'rehearsal replay, no process spawned'},
+  {t:'scan',scope:'user',path:'~/.claude/CLAUDE.md',label:'knife roll · demo stand-in home'},
+  {t:'load',path:'~/.claude/CLAUDE.md',kind:'always',reason:'user scope — loads in every project on this machine',content:'# Knife roll (user-level CLAUDE.md)\n\nPersonal working style. Loads in every project on this machine and is never committed.\n\n- Answer in the language the guest used.\n- Keep answers brief unless asked to elaborate.'},
+  {t:'scan',scope:'project',path:'CLAUDE.md',label:'staff handbook · repo root'},
+  {t:'load',path:'CLAUDE.md',kind:'always',reason:'project scope — loads every session in this repo',content:'# Basil Bistro — kitchen handbook\n\nProject-level instructions. Loads every session for every contributor.\n\n- Prep standards: @./docs/prep-standards.md\n- Test command: npm run taste\n- Never invent menu items. The menu is the source of truth.\n- End every shift with the close checklist.'},
+  {t:'load',path:'docs/prep-standards.md',kind:'import',reason:'@path import — expanded inline at launch (depth 1 of 5)',content:'# Prep standards\n\n- Maximum prep batch: 24 portions. Split anything larger.\n- Label every container with dish and date before close.\n- The fridge log must end the night with a temperature reading.'},
+  {t:'scan',scope:'directory',path:'kitchen/CLAUDE.md',label:'station card'},
+  {t:'load',path:'kitchen/CLAUDE.md',kind:'conditional',reason:"tonight's ticket touches kitchen/prep.ts",content:'# Pizza station\n\nDirectory-level instructions, loaded while working inside kitchen/.\n\n- Dust the peel, not the stone.\n- Margherita gets its basil after the oven, never before.'},
+  {t:'scan',scope:'rules',path:'.claude/rules/fryer-safety.md',label:'laminated card · paths: kitchen/**/*'},
+  {t:'load',path:'.claude/rules/fryer-safety.md',kind:'conditional',reason:'paths kitchen/**/* matches kitchen/prep.ts',content:'# Fryer safety\n\nLoaded only when the session touches a file under kitchen/.\n\n- Check oil temperature before the first batch.\n- Never mix utensils between the fryer and prep surfaces.'},
+  {t:'scan',scope:'rules',path:'.claude/rules/tasting-rules.md',label:'laminated card · paths: **/*.test.ts'},
+  {t:'skip',path:'.claude/rules/tasting-rules.md',reason:'no match for kitchen/prep.ts — stays out of context'},
+  {t:'ondemand',kind:'skill',name:'prep-check',path:'.claude/skills/prep-check/SKILL.md',note:'at rest — description only: "Audit a station\'s prep against the kitchen handbook and print the close-of-…"'},
+  {t:'ondemand',kind:'command',name:'/close-checklist',path:'.claude/commands/close-checklist.md',note:'legacy format — still a /name command'},
+  {t:'inventory',inventory:{always:[{path:'~/.claude/CLAUDE.md',note:'knife roll — every project'},{path:'CLAUDE.md',note:'handbook — every session'},{path:'docs/prep-standards.md',note:'@path import, expanded inline'}],conditional:[{path:'.claude/rules/fryer-safety.md',note:'paths kitchen/**/* matched'},{path:'kitchen/CLAUDE.md',note:'station card — ticket touches kitchen/'}],onDemand:[{path:'.claude/skills/prep-check/SKILL.md',note:'/prep-check'},{path:'.claude/commands/close-checklist.md',note:'/close-checklist'}],skipped:[{path:'.claude/rules/tasting-rules.md',note:'paths **/*.test.ts — no match tonight'}]}},
+  {t:'spawn',bin:'claude',cwd:'fixtures/basil-bistro',args:['-p','Close-of-day check…','--output-format','json','--json-schema','{ maxPrepBatch, findings[] }']},
+  {t:'exit',code:0,ms:38000},
+  {t:'envelope',type:'result',subtype:'success',is_error:false,result:{maxPrepBatch:24,findings:[{area:'kitchen/prep.ts',severity:'high',detail:'pizza-dough batch is 36 portions; the handbook maximum is 24. Split it.'},{area:'kitchen/prep.ts',severity:'medium',detail:'The fridge log ends at 21:15; prep standards require a final reading before close.'}]},session_id:'sess-rehearsal-01',total_cost_usd:0.05,duration_ms:37400,num_turns:4},
+  {t:'finding',index:1,area:'kitchen/prep.ts',severity:'high',detail:'pizza-dough batch is 36 portions; the handbook maximum is 24. Split it.'},
+  {t:'finding',index:2,area:'kitchen/prep.ts',severity:'medium',detail:'The fridge log ends at 21:15; prep standards require a final reading before close.'},
+  {t:'done',msg:'rehearsal complete · ticket was kitchen/prep.ts'}
+];
+let mockTimer=null,mockRun=0;
+function stopMock(){mockRun++;if(mockTimer){clearTimeout(mockTimer);mockTimer=null}}
+function replayMock(){
+  stopMock();resetDemo();
+  const run=mockRun;let index=0;
+  const step=()=>{
+    if(run!==mockRun)return;
+    const event=rehearsalEvents[index++];
+    if(!event)return;
+    handle(event);
+    if(index<rehearsalEvents.length)mockTimer=setTimeout(step,420);else mockTimer=null;
+  };
+  step();
+}
+document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===tab));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id===tab.dataset.pane))}));
+
+let ws;
+function connect(){
+  if(location.protocol==='file:'||location.hostname==='tot.page'){
+    document.getElementById('demo-status').textContent='static page · rehearse available';
+    return;
+  }
+  const host=location.protocol.startsWith('http')?location.host:'127.0.0.1:4949';
+  const protocol=location.protocol==='https:'?'wss':'ws';
+  ws=new WebSocket(`${protocol}://${host}/ws`);
+  ws.onopen=()=>document.getElementById('demo-status').textContent='connected, ready';
+  ws.onclose=()=>{document.getElementById('demo-status').textContent='disconnected, retrying...';setTimeout(connect,1200)};
+  ws.onmessage=message=>{try{handle(JSON.parse(message.data))}catch{}}
+}
+connect();
+function send(cmd){if(ws?.readyState===WebSocket.OPEN)ws.send(JSON.stringify({cmd}))}
+document.getElementById('run-live').addEventListener('click',()=>{
+  stopMock();resetDemo();
+  if(ws?.readyState===WebSocket.OPEN)send('start');
+  else handle({t:'error',msg:'Run live needs the local demo server. Use Rehearse for the static deck.'});
+});
+document.getElementById('run-mock').addEventListener('click',replayMock);
+document.getElementById('stop-demo').addEventListener('click',()=>{stopMock();if(ws?.readyState===WebSocket.OPEN)send('stop');else handle({t:'status',msg:'stopped'})});
+highlightAll();
+resetDemo();
+</script>
+</body>
+</html>
