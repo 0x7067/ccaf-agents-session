@@ -133,10 +133,10 @@ of Basil Bistro — the same restaurant Part 2's MCP server ran.
 | Hard rule → `PreToolUse` hook | the freezer lock | Callback to Part 1's hooks: paper asks, steel enforces. |
 | `@path` imports | the binder that photocopies referenced chapters | New. Organization by reference; expanded inline. |
 | `.claude/rules/` with `paths` | laminated cards | New. Pulled out only for matching tickets; globs follow a kind of file. |
-| Skills and slash commands | the recipe drawer | Callback to Part 1's recipe (fixed steps). Pulled by name, on demand. |
+| Skills and slash commands | the procedure drawer | New. Fixed procedures pulled by name, on demand. |
 | `context: fork` | the commis chef | New. Runs the card in the back; one page comes back. |
 | `allowed-tools` | what the card permits | New. Read/Grep/Glob cannot delete files. |
-| Planning mode | mise en place | New. Read-only investigation, approved plan, then execution. |
+| Planning mode | mise en place (prep before you cook) | New. Read-only investigation, approved plan, then execution. |
 | Explore subagent | the commis chef checking the walk-in | New. Verbose discovery stays out of the main context. |
 | `/compact` | clearing the counter | New. Summary frees the window; numbers blur. |
 | `/memory` | writing the lesson into the handbook | New. Persists across sessions. |
@@ -146,14 +146,12 @@ of Basil Bistro — the same restaurant Part 2's MCP server ran.
 | Independent review instance | the health inspector | New. Wasn't in the kitchen when the food was cooked. |
 | Plugin | the catering crew | New. Brings its own people and routines; enumerate before hiring. |
 
-Naming continuity: "recipe" still means a fixed procedure (Part 1), "menu"
-still means the resource (Part 2), and Basil Bistro is still the restaurant.
-The demo fixture reuses Part 2's menu item (`margherita-pizza`) in its prep
-list so the world stays one world.
-
-Part 2 called `.mcp.json` "the team recipe book." That object keeps its
-meaning; this deck's CLAUDE.md is deliberately the "handbook" so the two
-committed project files never share an analogy.
+Naming continuity: "team recipe book" stays tied to Part 2's `.mcp.json`,
+while Part 1's recipe remains its earlier fixed-steps example. Part 3 uses
+"procedure" for skills and slash commands, so two committed project files do
+not share an analogy. "Menu" still means the Part 2 resource, and Basil
+Bistro is still the restaurant. The demo fixture reuses Part 2's menu item
+(`margherita-pizza`) in its prep list so the world stays one world.
 
 ## Demo design
 

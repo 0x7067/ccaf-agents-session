@@ -36,6 +36,7 @@
   code{font-family:var(--mono);font-size:.86em;font-weight:650;color:var(--acc);background:#18213a;border:1px solid #26335a;border-radius:6px;padding:1px 6px}
   pre{font-family:var(--mono);white-space:pre-wrap}
   pre.code{background:#0b0e15;border:1px solid #232c44;border-radius:14px;padding:18px 22px;font-size:15px;line-height:1.55;overflow:auto}
+  pre.load-moments{font-size:clamp(12px,1.05vw,15px);line-height:1.65}
   .k{color:var(--violet)}.s{color:#9ce7a9}.n{color:var(--warn)}.c{color:#68748e;font-style:italic}.f{color:#82aaff}
   .callout{font-size:30px;font-weight:820;line-height:1.28}.callout em{color:var(--acc);font-style:normal}
   .analogy{background:linear-gradient(135deg,#1c2440,#182034);border:1px solid #2c3a5e;border-radius:16px;padding:18px 22px;font-size:18px;line-height:1.5}
@@ -57,12 +58,15 @@
   .scope-stage{display:grid;grid-template-columns:.95fr 1.05fr;gap:34px;align-items:center;flex:1;min-height:0}
   .scope-tree{background:#0b0e15;border:1px solid #232c44;border-radius:16px;padding:20px 24px;display:flex;flex-direction:column;gap:9px;font-family:var(--mono);font-size:15px}
   .scope-branch{display:flex;align-items:center;gap:10px;color:var(--faint);font-size:14px}
+  .scope-branch .glyph{width:22px;flex:0 0 22px;text-align:right}
+  .scope-branch .context{color:var(--dim)}
   .scope-branch b{color:var(--dim);font-weight:600}
-  .scope-file{display:flex;align-items:center;gap:13px;border-radius:12px;padding:13px 16px;margin-left:10px}
-  .scope-file .glyph{color:var(--faint);flex:0 0 auto}
+  .scope-file{display:flex;align-items:center;gap:13px;border-radius:12px;padding:13px 16px}
+  .scope-file .glyph{color:var(--faint);width:22px;flex:0 0 22px;text-align:right}
   .scope-file.personal{background:#1a2132;border:1px solid #2c3a5e}
-  .scope-file.project{background:linear-gradient(160deg,#1b2743,#141b2c);border:1px solid #31527a;margin-left:44px}
-  .scope-file.station{background:#1a2132;border:1px solid #2c3a5e;margin-left:74px}
+  .scope-file.project{background:linear-gradient(160deg,#1b2743,#141b2c);border:1px solid #31527a}
+  .scope-file.station{background:#1a2132;border:1px solid #2c3a5e}
+  .scope-depth-1{margin-left:22px}.scope-depth-2{margin-left:48px}.scope-depth-3{margin-left:74px}
   .scope-file .meta{display:flex;flex-direction:column;gap:4px;min-width:0}
   .scope-file .line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .scope-file code{background:none;border:0;padding:0;font-size:15px}
@@ -87,6 +91,7 @@
   #modal-close{float:right;background:none;border:0;color:var(--dim);font-size:25px;cursor:pointer}.modal-box h3{margin-bottom:12px}.modal-box pre{background:#0b0e15;border:1px solid #232c44;border-radius:12px;padding:16px;font-size:13px;line-height:1.55;overflow:auto}
   .modal-box p{color:var(--dim);font-size:15px;line-height:1.55;margin:10px 0}
   .quote{font-size:26px;line-height:1.4;font-weight:720;border:1px solid #2e4a49;border-radius:14px;padding:20px 22px}.quote small{display:block;color:var(--dim);font-size:15px;margin-top:12px;font-weight:500}
+  .mechanism{display:flex;flex-direction:column;gap:8px}.mechanism+.mechanism{border-top:1px solid var(--line);padding-top:13px}.mechanism h3{font-size:19px}
   .trace{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;font:15px var(--mono);margin-top:20px}.trace span{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 13px}.trace i{color:var(--acc2);font-style:normal}
 
   /* Live demo */
@@ -108,6 +113,9 @@
   @media (prefers-reduced-motion:reduce){.slide.on{animation:none}*{scroll-behavior:auto!important}}
   @media (max-width:900px){
     #touch-nav{display:flex;top:max(12px,env(safe-area-inset-top));bottom:auto}#pager{display:none}.slide{padding:92px 26px 32px;overflow:auto}h1{font-size:44px}h2{font-size:33px}.body{flex-direction:column}.cards,.two,.vs,.scope-stage{grid-template-columns:1fr}.trace{gap:6px}.foot{display:none}.sub{font-size:18px}.cards{padding-bottom:24px}.topics{width:100%;align-items:stretch}.topics span{overflow-wrap:anywhere}.topics code{white-space:normal;overflow-wrap:anywhere}table{table-layout:fixed;font-size:14px}th,td{padding:9px 6px;overflow-wrap:anywhere}
+    .slide>h1,.slide>h2,.slide>.kicker,.slide>.body,.slide>.cards,.slide>.two,.slide>.vs,.slide>.scope-stage{flex:none}
+    pre.load-moments{font-size:11px;padding:14px 12px}
+    .scope-depth-1{margin-left:10px}.scope-depth-2{margin-left:20px}.scope-depth-3{margin-left:30px}
     .slide.demo{padding:84px 20px 32px;overflow:auto}.demo-head{flex-wrap:wrap}.demo-head h2{flex:0 0 100%}.demo-head .spacer{display:none}.demo-head .btn{font-size:12px;padding:7px 10px}.demo-grid{display:flex;flex-direction:column;flex:none}.demo-left,.demo-right{min-height:470px}.protocol-map{grid-template-columns:1fr 16px 1fr 16px 1fr;gap:3px;padding:10px}.pnode{min-width:0;padding:8px 3px}.pnode b{font-size:11px}.pnode small{font-size:8px}.parrow{font-size:14px}.cap{grid-template-columns:1fr}.pane{min-height:320px}
   }
 </style>
@@ -136,11 +144,11 @@
     </div>
     <div class="col">
       <div class="analogy"><span class="tag">Restaurant model</span>A new chef walks in every night. The kitchen does not re-explain itself out loud; it <b>hangs the rules where the chef will read them</b>.</div>
-      <pre class="code"><span class="c">// when each rule source loads</span>
-session start    knife roll + handbook        <span class="k">always</span>
+      <pre class="code load-moments"><span class="c">// when each part enters the scene</span>
+session start    knife roll + handbook         <span class="k">always</span>
 ticket matches   station card + laminated card <span class="k">conditional</span>
-you type /name   one recipe card              <span class="k">on demand</span>
-3 a.m., no human <span class="f">claude -p</span>                  <span class="k">the night shift</span></pre>
+you type /name   one procedure card            <span class="k">on demand</span>
+the night shift  <span class="f">claude -p</span>, no human           <span class="k">at 3 a.m.</span></pre>
     </div>
   </div>
 </section>
@@ -173,12 +181,13 @@ you type /name   one recipe card              <span class="k">on demand</span>
   <div class="kicker">The mental model · 3 of 3</div>
   <h2>Three shelves, three owners</h2>
   <div class="scope-stage">
-    <div class="scope-tree" aria-label="Where each instruction file lives">
-      <div class="scope-branch"><span>~</span><b>your machine</b></div>
-      <div class="scope-file personal"><span class="glyph">├─</span><div class="meta"><div class="line"><span class="pill a">knife roll</span><code>~/.claude/CLAUDE.md</code></div><small>Yours. Loads in every project. Never committed.</small></div></div>
-      <div class="scope-branch"><span>└─</span><b>basil-bistro/</b><span>one shared repo</span></div>
-      <div class="scope-file project"><span class="glyph">├─</span><div class="meta"><div class="line"><span class="pill b">handbook</span><code>CLAUDE.md</code></div><small>The team's. Committed with the repo. Every session.</small></div></div>
-      <div class="scope-file station"><span class="glyph">└─</span><div class="meta"><div class="line"><span class="pill w">station card</span><code>kitchen/CLAUDE.md</code></div><small>Loads while working inside kitchen/.</small></div></div>
+    <div class="scope-tree" role="group" aria-label="Where each instruction file lives">
+      <div class="scope-branch"><span class="glyph">~</span><b>your machine</b></div>
+      <div class="scope-file personal scope-depth-1"><span class="glyph">├─</span><div class="meta"><div class="line"><span class="pill a">knife roll</span><code>~/.claude/CLAUDE.md</code></div><small>Yours. Loads in every project. Never committed.</small></div></div>
+      <div class="scope-branch scope-depth-1"><span class="glyph">└─</span><b>basil-bistro/</b><span class="context">one shared repo</span></div>
+      <div class="scope-file project scope-depth-2"><span class="glyph">├─</span><div class="meta"><div class="line"><span class="pill b">handbook</span><code>CLAUDE.md</code></div><small>The team's. Committed with the repo. Every session.</small></div></div>
+      <div class="scope-branch scope-depth-2"><span class="glyph">└─</span><b>kitchen/</b><span class="context">one station</span></div>
+      <div class="scope-file station scope-depth-3"><span class="glyph">└─</span><div class="meta"><div class="line"><span class="pill w">station card</span><code>kitchen/CLAUDE.md</code></div><small>Loads while working inside kitchen/.</small></div></div>
       <p class="scope-merge">Work in <b>kitchen/</b> and all three load: your roll, the handbook, the station card. The card <b>adds to</b> the handbook — it never replaces it.</p>
     </div>
     <div class="scope-notes">
@@ -214,7 +223,7 @@ you type /name   one recipe card              <span class="k">on demand</span>
 
 <section class="slide">
   <div class="kicker">The handbook · @path imports</div>
-  <h2>@path: the binder that prints every referenced chapter</h2>
+  <h2>@path: the binder that copies every referenced chapter in</h2>
   <div class="body">
     <div class="col">
       <div class="point"><span class="dot"></span><span><code>@</code> sits immediately before the path. Relative paths resolve against <b>the file that contains the import</b>.</span></div>
@@ -262,7 +271,7 @@ balance, temperature.</pre>
 
 <section class="slide">
   <div class="kicker">On demand · 1 of 2</div>
-  <h2>The recipe drawer: slash commands and skills</h2>
+  <h2>The procedure drawer: slash commands and skills</h2>
   <div class="cards">
     <article class="card win">
       <div class="icon">project · current</div>
@@ -300,7 +309,7 @@ balance, temperature.</pre>
 ---</pre>
     </div>
     <div class="col">
-      <div class="point"><span class="dot"></span><span><b>context: fork</b> — the card runs in an isolated subagent. A verbose audit never fills your main session.</span></div>
+      <div class="point"><span class="dot"></span><span><b>Keeps the main session clean.</b> <code>context: fork</code> runs the verbose audit in an isolated subagent and returns only its result.</span></div>
       <div class="point good"><span class="dot"></span><span><b>allowed-tools</b> — the security boundary. A card listing Read, Grep, Glob <b>cannot write or delete files</b>.</span></div>
       <div class="point"><span class="dot"></span><span><b>argument-hint</b> — asks for the missing argument: "which station?"</span></div>
       <div class="point"><span class="dot"></span><span><b>Skill vs handbook:</b> on demand vs always loaded.</span></div>
@@ -311,7 +320,7 @@ balance, temperature.</pre>
 </section>
 
 <section class="slide">
-  <div class="kicker">Mise en place</div>
+  <div class="kicker">Mise en place (prep before you cook)</div>
   <h2>Plan first, or just cook?</h2>
   <div class="vs">
     <article class="card win">
@@ -328,7 +337,7 @@ balance, temperature.</pre>
     </article>
   </div>
   <div class="trace"><span>plan</span><i>→</i><span>you approve</span><i>→</i><span>execute the approved plan</span></div>
-  <div class="analogy" style="margin-top:14px;padding:12px 22px"><span class="tag">Restaurant model</span>Mise en place before a banquet; just cook it for one margherita. The <b>Explore subagent</b> is the commis chef sent to check the walk-in: verbose discovery stays out of your context; one line comes back.</div>
+  <div class="analogy" style="margin-top:14px;padding:12px 22px"><span class="tag">Restaurant model</span>Mise en place before a banquet; just cook it for one margherita. Part 1's <b>subagent</b> returns here as Explore, the commis chef sent to check the walk-in: verbose discovery stays out of your context; one line comes back.</div>
   <div class="foot"><span><button class="click" data-dialog="steering">Open: steering a long run — /goal, /loop, /compact, Rewind, worktrees</button></span></div>
 </section>
 
@@ -344,10 +353,15 @@ balance, temperature.</pre>
     </article>
     <article class="card win">
       <span class="pill b">between shifts</span>
-      <h3><code>/memory</code> · <code>--resume</code> · <code>fork_session</code></h3>
-      <p><code>/memory</code> opens the handbook to write tonight's lesson down; it loads next session.</p>
-      <div class="point"><span class="dot"></span><span><code>claude --resume &lt;name&gt;</code> continues a saved session — risky if files changed: tool results may be stale.</span></div>
-      <div class="point"><span class="dot"></span><span><code>fork_session</code> branches from shared context: two chefs, one base sauce, two variants.</span></div>
+      <div class="mechanism">
+        <h3><code>/memory</code> persists a lesson</h3>
+        <p>Opens the handbook so you can write tonight's lesson down. It loads next session.</p>
+      </div>
+      <div class="mechanism">
+        <h3><code>--resume</code> and <code>fork_session</code> reuse context</h3>
+        <div class="point"><span class="dot"></span><span><code>claude --resume &lt;name&gt;</code> continues a saved session. If files changed, its tool results may be stale.</span></div>
+        <div class="point"><span class="dot"></span><span><code>fork_session</code> branches from shared context: two chefs, one base sauce, two variants.</span></div>
+      </div>
       <div class="point good"><span class="dot"></span><span>Stale results? A fresh session plus a short written summary beats resuming.</span></div>
     </article>
   </div>
@@ -378,7 +392,7 @@ balance, temperature.</pre>
   <div class="demo-grid">
     <div class="demo-left">
       <div class="protocol-map">
-        <div class="pnode" id="files-node"><b>Config files</b><small>handbook · cards · drawer</small></div>
+        <div class="pnode" id="files-node"><b>Config files</b><small>handbook · cards · procedure drawer</small></div>
         <div class="parrow">⇄</div>
         <div class="pnode" id="cli-node"><b>claude -p</b><small>night shift, unattended</small></div>
         <div class="parrow">⇄</div>
@@ -402,7 +416,7 @@ balance, temperature.</pre>
   <h2>What just happened?</h2>
   <div class="body">
     <div class="col">
-      <div class="point good"><span class="dot"></span><span>The loader classified the whole configuration: two always-loaded shelves, one <code>@path</code> import expanded inline.</span></div>
+      <div class="point good"><span class="dot"></span><span>The knife roll and handbook loaded, with one <code>@path</code> import expanded inline.</span></div>
       <div class="point good"><span class="dot"></span><span>The station card and <code>fryer-safety.md</code> loaded <b>only because tonight's ticket touched kitchen/</b>.</span></div>
       <div class="point good"><span class="dot"></span><span><code>tasting-rules.md</code> stayed out of context — no test file tonight.</span></div>
       <div class="point good"><span class="dot"></span><span><code>claude -p</code> answered from the handbook itself: the maximum batch of 24 exists only in the imported prep standards.</span></div>
@@ -456,7 +470,6 @@ balance, temperature.</pre>
     </article>
   </div>
   <div class="point" style="margin-top:16px"><span class="dot"></span><span><b>Re-review after new commits:</b> include the earlier findings in context and ask only for new or unresolved issues — no duplicate comments.</span></div>
-  <div class="analogy" style="margin-top:14px;padding:12px 22px"><span class="tag">Restaurant model</span>The health inspector <b>was not in the kitchen</b> when the food was cooked. That is the point.</div>
 </section>
 
 <section class="slide">

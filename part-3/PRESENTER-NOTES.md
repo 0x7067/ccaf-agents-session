@@ -4,9 +4,9 @@ The staff area of Basil Bistro is the teaching thread. Part 1 gave Claude
 hands; Part 2 gave it an order counter; Part 3 trains the staff and then
 leaves one of them to run the place overnight. The handbook is CLAUDE.md. The
 knife roll is user scope. The station card is directory scope. The laminated
-cards are `.claude/rules/` with `paths`. The recipe drawer is skills and
-commands. Mise en place is planning mode. The night shift is `claude -p` in
-CI.
+cards are `.claude/rules/` with `paths`. The procedure drawer is skills and
+commands. Mise en place, prep before you cook, is planning mode. The night
+shift is `claude -p` in CI.
 
 The deck has 18 slides. It opens with the statelessness callback — nobody
 teaches Claude your kitchen — then builds the handbook and its three shelves,
@@ -55,9 +55,9 @@ Part 1 demo). Use **Rehearse** from the published static link.
 | 0:11-0:13 | 5 | Ask vs enforce. Call back Part 1's >90% / 100% table. Money, legal, safety → hooks. |
 | 0:13-0:15 | 6 | `@path` organizes the binder but expands inline at launch. Organization, not savings — the nuance the exam tests. |
 | 0:15-0:18 | 7 | Laminated cards load only on matching tickets. Kind (glob) vs place (station card). |
-| 0:18-0:21 | 8-9 | The recipe drawer: `/name` cards, project vs personal, then the frontmatter. `context: fork` keeps verbose output out; `allowed-tools` is the security boundary. |
-| 0:21-0:24 | 10 | Mise en place: plan before big or ambiguous work; direct execution for a clear small ticket. Explore subagent = one line back. |
-| 0:24-0:26 | 11 | Shift log: `/memory` writes the lesson down; `/compact` frees the window but blurs numbers; resume vs fork vs fresh. |
+| 0:18-0:21 | 8-9 | The procedure drawer: `/name` cards, project vs personal, then the frontmatter. Start with the consequence: `context: fork` keeps verbose output out. Then name the subagent mechanism and the `allowed-tools` security boundary. |
+| 0:21-0:24 | 10 | Mise en place means prep before you cook: plan before big or ambiguous work; direct execution for a clear small ticket. Name Explore as Part 1's subagent returning here, with one line back. |
+| 0:24-0:26 | 11 | Shift log: `/compact` frees the current window but blurs numbers; `/memory` persists a lesson; resume reloads a session; fork branches one. Keep those four mechanisms distinct. |
 | 0:26-0:28 | 12 | Stop before the demo. Ask the room to predict which files load tonight and which stay out. |
 | 0:28-0:33 | 13-14 | Run the trace. Read the loader sequence, then debrief: the answer "24" could only come from the imported standards — proof the handbook loaded. |
 | 0:33-0:36 | 15 | The night shift pattern: `-p` is the only correct CI mode; JSON + schema makes findings postable. Open the envelope dialog. |

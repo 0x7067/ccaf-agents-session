@@ -9,7 +9,7 @@ This demo proves two mechanisms from the deck:
    never touched), the project handbook (`CLAUDE.md` plus its `@path`
    import), the `kitchen/CLAUDE.md` station card, the `.claude/rules/`
    laminated cards with `paths:` frontmatter, and the `.claude/skills/` and
-   `.claude/commands/` recipe drawer. Tonight's ticket is `kitchen/prep.ts`:
+   `.claude/commands/` procedure drawer. Tonight's ticket is `kitchen/prep.ts`:
    the station card and `fryer-safety.md` load, `tasting-rules.md` does not.
    This phase is fully deterministic — no model is involved.
 
