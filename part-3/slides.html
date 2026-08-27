@@ -139,8 +139,8 @@
     <div class="col">
       <div class="callout">Nobody. Every session starts from zero — <em>the model has no memory of your project.</em></div>
       <div class="point"><span class="dot"></span><span>Part 1 hammered it: every API request is independent. The same holds between sessions — nothing carries over.</span></div>
-      <div class="point"><span class="dot"></span><span>Claude Code is a host, and hosts load <b>files</b>. That is how your rules reach the model.</span></div>
-      <div class="point"><span class="dot"></span><span>Retyping the same instructions every session does not scale. Files that load at the right moment do.</span></div>
+      <div class="point"><span class="dot"></span><span>Claude Code is a host, and hosts load <b>files</b> into the model's <b>context</b> — the window of text it can see this turn. That is how your rules reach the model.</span></div>
+      <div class="point"><span class="dot"></span><span>Retyping the same instructions every session does not scale. Files that load at the right moment solve this.</span></div>
     </div>
     <div class="col">
       <div class="analogy"><span class="tag">Restaurant model</span>A new chef walks in every night. The kitchen does not re-explain itself out loud; it <b>hangs the rules where the chef will read them</b>.</div>
@@ -160,7 +160,7 @@ the night shift  <span class="f">claude -p</span>, no human           <span clas
     <div class="col">
       <div class="point"><span class="dot"></span><span>One markdown file with what you would tell a new colleague: commands, conventions, architecture decisions.</span></div>
       <div class="point"><span class="dot"></span><span>Loaded automatically at session start, <b>before your first message</b>.</span></div>
-      <div class="point"><span class="dot"></span><span>It is <b>instruction, not configuration</b>: Claude tries to follow it. It is guidance, not a locked door.</span></div>
+      <div class="point"><span class="dot"></span><span>It is <b>instruction, not configuration</b>: Claude tries to follow it. Guidance, not a locked door.</span></div>
       <div class="point bad"><span class="dot"></span><span>The longer it grows, the less of it is reliably honored. <b>Emphasis is a budget</b>: reserve IMPORTANT for the two or three rules that hurt when broken.</span></div>
       <div class="analogy"><span class="tag">Restaurant model</span>The handbook hangs by the time clock. Everyone reads it at shift start. Nobody memorizes a forty-page handbook.</div>
     </div>
@@ -218,17 +218,17 @@ the night shift  <span class="f">claude -p</span>, no human           <span clas
     </article>
   </div>
   <div class="analogy" style="margin-top:14px;padding:12px 22px"><span class="tag">Restaurant model</span>The handbook says <b>"keep the freezer locked."</b> The freezer lock actually locks. Paper asks; steel enforces.</div>
-  <div class="foot"><span>Part 1's numbers still rule: money, legal, safety → hooks. Style and flow → the handbook.</span></div>
+  <div class="foot"><span>The reliability split: prompts ask (~90%), hooks enforce (100%). Money, legal, safety → hooks. Style and flow → the handbook.</span></div>
 </section>
 
 <section class="slide">
   <div class="kicker">The handbook · @path imports</div>
-  <h2>@path: the binder copies referenced chapters in</h2>
+  <h2>@path: the binder inlines referenced chapters</h2>
   <div class="body">
     <div class="col">
       <div class="point"><span class="dot"></span><span><code>@</code> sits immediately before the path. Relative paths resolve against <b>the file that contains the import</b>.</span></div>
       <div class="point"><span class="dot"></span><span>Imports can nest — at most <b>5 levels</b> deep.</span></div>
-      <div class="point bad"><span class="dot"></span><span>Organization, <b>not savings</b>: imports are expanded inline at launch, so everything still loads up front.</span></div>
+      <div class="point bad"><span class="dot"></span><span>Organization, <b>not context savings</b>: imports are expanded inline at launch, so the full text still loads into context.</span></div>
       <div class="analogy"><span class="tag">Restaurant model</span>The binder says "see chapter 3" — and someone <b>photocopies chapter 3 into the binder</b> before the shift starts.</div>
     </div>
     <div class="col">
@@ -244,7 +244,7 @@ Service rules:  <span class="f">@./docs/service.md</span>
 
 <section class="slide">
   <div class="kicker">The handbook · path-scoped rules</div>
-  <h2>.claude/rules/: cards pulled only for matching tickets</h2>
+  <h2>.claude/rules/: laminated cards pulled only for matching tickets</h2>
   <div class="body">
     <div class="col">
       <div class="point"><span class="dot"></span><span>Each rule file carries a <code>paths:</code> list in YAML frontmatter.</span></div>
@@ -286,7 +286,7 @@ balance, temperature.</pre>
     <article class="card">
       <div class="icon">personal</div>
       <h3><code>~/.claude/skills/</code></h3>
-      <p>Your private cards, never committed. Keep personal variants under different names so teammates are unaffected.</p>
+      <p>Your private cards, never committed. Use distinct names — a personal card with the same name as a project card shadows it for you.</p>
     </article>
   </div>
   <div class="analogy" style="margin-top:14px"><span class="tag">Restaurant model</span>The drawer stays closed until you <b>call a card by name</b>. Typed the same procedure twice? It is a card.</div>
@@ -313,7 +313,7 @@ balance, temperature.</pre>
       <div class="point good"><span class="dot"></span><span><b>allowed-tools</b> — the security boundary. A card listing Read, Grep, Glob <b>cannot write or delete files</b>.</span></div>
       <div class="point"><span class="dot"></span><span><b>argument-hint</b> — asks for the missing argument: "which station?"</span></div>
       <div class="point"><span class="dot"></span><span><b>Skill vs handbook:</b> on demand vs always loaded.</span></div>
-      <div class="analogy"><span class="tag">Restaurant model</span>A <b>commis chef</b> runs the card in the back and brings back one page.</div>
+      <div class="analogy"><span class="tag">Restaurant model</span>A <b>junior chef</b> runs the card in the back kitchen and brings back one page of results.</div>
     </div>
   </div>
   <div class="foot"><span><button class="click" data-dialog="plugin">Plugins: read before you install</button></span></div>
@@ -371,7 +371,7 @@ balance, temperature.</pre>
       <div class="point good"><span class="dot"></span><span>The station card and <code>fryer-safety.md</code> loaded <b>only because tonight's ticket touched kitchen/</b>.</span></div>
       <div class="point good"><span class="dot"></span><span><code>tasting-rules.md</code> stayed out of context — no test file tonight.</span></div>
       <div class="point good"><span class="dot"></span><span><code>claude -p</code> got the maximum batch of 24 from the imported standards — proof the handbook loaded.</span></div>
-      <div class="point good"><span class="dot"></span><span>The schema-validated envelope is exactly what CI parses to post inline comments.</span></div>
+      <div class="point good"><span class="dot"></span><span>The schema-validated envelope is machine-readable — you will see why that matters in the night-shift slides.</span></div>
     </div>
     <div class="col">
       <div class="quote">The files taught the agent. The flag made it run unattended. The schema made the answer postable.<small>Configuration decides what Claude knows. The CLI mode decides whether a human needs to be in the room.</small></div>
@@ -397,7 +397,8 @@ balance, temperature.</pre>
     </article>
   </div>
   <div class="trace"><span>plan</span><i>→</i><span>you approve</span><i>→</i><span>execute the approved plan</span></div>
-  <div class="analogy" style="margin-top:14px;padding:12px 22px"><span class="tag">Restaurant model</span>Mise en place before a banquet; just cook it for one margherita. Part 1's <b>subagent</b> returns here as Explore, the commis chef sent to check the walk-in: verbose discovery stays out of your context; one line comes back.</div>
+  <div class="point" style="margin-top:14px"><span class="dot"></span><span>Part 1's subagent returns here as <b>Explore</b>: a junior chef sent to check the walk-in. Verbose discovery stays out of your context; one summary comes back.</span></div>
+  <div class="analogy" style="margin-top:8px;padding:12px 22px"><span class="tag">Restaurant model</span>Mise en place before a banquet; just cook it for one margherita.</div>
   <div class="foot"><span><button class="click" data-dialog="steering">Open: steering a long run — /goal, /loop, /compact, Rewind, worktrees</button></span></div>
 </section>
 
