@@ -11,9 +11,9 @@ reviews the code it never saw being written.
 
 The deck has 17 slides. It opens with the statelessness callback, nobody
 teaches Claude your kitchen, then builds the handbook and its three shelves,
-separates asking from enforcing, organizes the handbook with imports, motivates
-cross-directory rules with chicken safety, and teaches the laminated-card
-mechanism. The on-demand layer (skills, commands) follows. After the demo the
+organizes it with imports, motivates cross-directory rules with chicken safety,
+and teaches the laminated-card mechanism. Only then does it separate asking
+from enforcing. The on-demand layer (skills, commands) follows. After the demo the
 two workflow slides, mise en place and the shift log, cover how you start a
 job and what survives the night. The two night-shift slides are the exam's CI
 pattern: unattended execution and independent review.
@@ -49,10 +49,10 @@ simulated events with the same shapes and data the real loader and
 | 0:02–0:05 | 2 | The model has no memory of your project. Files are how rules reach the model. Show the four loading moments; the whole deck hangs on that four-row map. |
 | 0:05–0:08 | 3 | CLAUDE.md = the staff handbook: always loaded, instruction not configuration, lean on purpose. Open the lean-rules dialog if the room writes handbooks. |
 | 0:08–0:11 | 4 | Three shelves, three owners. Hammer the exam trap: the new teammate who never sees the standards because they lived on one knife roll. Use the inline check if the room needs a beat. |
-| 0:11–0:13 | 5 | Ask vs enforce. Call back Part 1's >90% / 100% table. Money, legal, safety → hooks. |
-| 0:13–0:15 | 6 | `@path` organizes the handbook but expands inline at launch. Organization, not savings. That nuance is what the exam tests. |
-| 0:15–0:17 | 7 | Chicken safety motivates cross-directory rules. One file in `.claude/rules/` loads in two stations — a station card can't do that. Click the chicken-safety dialog for the detailed rules. |
-| 0:17–0:19 | 8 | Laminated cards load only on matching tickets. Kind (glob) vs place (station card). Use the inline check after showing the rule files. |
+| 0:11–0:13 | 5 | `@path` organizes the handbook but expands inline at launch. Organization, not savings. That nuance is what the exam tests. |
+| 0:13–0:15 | 6 | Chicken safety motivates cross-directory rules. One file in `.claude/rules/` loads in two stations. A station card can't do that. Click the chicken-safety dialog for the detailed rules. |
+| 0:15–0:17 | 7 | Laminated cards load only on matching tickets. Kind (glob) vs place (station card). Use the inline check after showing the rule files. |
+| 0:17–0:19 | 8 | Now draw the boundary: those files are instructions. Call back Part 1's >90% / 100% table. Money, legal, safety → hooks. |
 | 0:19–0:22 | 9–10 | The procedure drawer: `/name` cards, project vs personal, then the frontmatter. Start with the consequence: `context: fork` keeps verbose output out. Then name the subagent mechanism and the `allowed-tools` security boundary. |
 | 0:22–0:25 | 11 | Mise en place means prep before you cook: plan before big or ambiguous work; direct execution for a clear small ticket. Name Explore as Part 1's subagent returning here, with one line back. |
 | 0:25–0:27 | 12 | Shift log: `/compact` frees the current window but blurs numbers; `/memory` persists a lesson; resume reloads a session; fork branches one. Keep those four mechanisms distinct. |
@@ -71,15 +71,15 @@ Use these as handoffs, not as lines to memorize.
 - Slide 2 to 3: "The answer is not typing harder. It's a file."
 - Slide 3 to 4: "One handbook isn't the whole story. Three shelves, three
   owners."
-- Slide 4 to 5: "Now the question every exam loves: is a handbook rule a real
-  rule?"
-- Slide 5 to 6: "Handbooks grow. Two ways to keep them organized, and only
+- Slide 4 to 5: "Handbooks grow. Two ways to keep them organized, and only
   one of them saves context."
-- Slide 6 to 7: "Imports organize by reference. But what about a rule that
+- Slide 5 to 6: "Imports organize by reference. But what about a rule that
   belongs to two stations at once?"
-- Slide 7 to 8: "That's the why. Here's the how — laminated cards with a
+- Slide 6 to 7: "That's the why. Here's the how: laminated cards with a
   paths glob."
-- Slide 8 to 9: "So far everything loads by itself. Some things should wait
+- Slide 7 to 8: "Those are all instructions. Now the question every exam
+  loves: when does a rule need enforcement instead?"
+- Slide 8 to 9: "Now we know what loads by itself. Some things should wait
   until you ask for them."
 - Slide 9 to 10: "A card in a drawer can permit things. Read the frontmatter."
 - Slide 10 to 11: "That's the whole load path. Before you start your own job,
@@ -98,15 +98,15 @@ Use these as handoffs, not as lines to memorize.
 - Slide 2: ask who has retyped the same instructions to Claude this week.
 - Slide 4: ask where "our team's test command" belongs, knife roll or
   handbook, and why the new hire makes the answer obvious.
-- Slide 5: ask which is the handbook and which is the sprinkler: "always
+- Slide 8: ask which is the handbook and which is the sprinkler: "always
   run tests before deploy" as a handbook line vs a CI gate.
-- Slide 8: ask where a convention for tests scattered across the repo goes,
+- Slide 7: ask where a convention for tests scattered across the repo goes,
   laminated card or station card.
 - Slide 9: ask what procedure the room has typed to an agent more than twice.
 - Slide 11: ask about their last big refactor, planned or dived in?
 - Slide 13: ask what breaks if CI runs interactive Claude.
 - Slide 4: after the scope tree, click **Try it: where does each rule belong?** to confirm ownership before moving on.
-- Slide 8: click **Try it: will these rules load for kitchen/prep.ts?** after showing the rule files.
+- Slide 7: click **Try it: will these rules load for kitchen/prep.ts?** after showing the rule files.
 
 ## Demo recovery
 
@@ -118,7 +118,7 @@ file access (rare), serve the folder with any static server:
 ## Debts and deferrals
 
 - Part 1's hook lesson (prompts ask, hooks enforce) is paid its Claude Code
-  callback on slide 5. Not re-taught, named.
+  callback on slide 8. Not re-taught, named.
 - **Deferred to a later part:** extended thinking and the Message Batches
   API. They appear in the guide's CI scenario (batch for overnight reports,
   real-time for blocking checks; thinking as a last-resort accuracy lever),

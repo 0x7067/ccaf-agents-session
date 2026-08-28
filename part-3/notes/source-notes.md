@@ -56,15 +56,17 @@ Claim-by-claim mapping:
   against the file) comes from Domain 3.1's note. "Instruction, not
   configuration; a hard rule belongs in a PreToolUse hook" is Domain 3.1's
   opening sentence.
-- Slide 5 (ask vs enforce) reuses Domain 3.1's hook point and Part 1's
-  deterministic-vs-probabilistic table (guide 3.5).
-- Slide 6 carries guide 5.2: `@` immediately before the path, relative
+- Slide 8 (ask vs enforce) reuses Domain 3.1's hook point and Part 1's
+  deterministic-vs-probabilistic table (guide 3.5). It follows the complete
+  instruction-loading sequence so the hook lands as enforcement, not as an
+  interruption between instruction mechanisms.
+- Slide 5 carries guide 5.2: `@` immediately before the path, relative
   resolution, nesting depth 5, and, from Domain 3.1's note, imports expand
   inline at launch and do not reduce context.
-- Slides 7–8 carry guide 5.3 and Domain 3.3: YAML frontmatter `paths`, load
+- Slides 6–7 carry guide 5.3 and Domain 3.3: YAML frontmatter `paths`, load
   only when editing matching files, globs for file kinds versus
-  directory-level CLAUDE.md for one place. Slide 7 motivates cross-directory
-  rules with the chicken-safety example; slide 8 teaches the mechanism and
+  directory-level CLAUDE.md for one place. Slide 6 motivates cross-directory
+  rules with the chicken-safety example; slide 7 teaches the mechanism and
   frontmatter.
 - Slides 9–10 carry guide 5.4–5.5 and Domain 3.2: project commands shared
   via VCS, user commands private, both formats creating `/name` commands,
@@ -106,7 +108,7 @@ Recorded so the exam answer stays unambiguous:
   fourth answer to a three-shelf question.
 - **Claude Code hooks as implementation.** Part 1 taught hooks
   deterministically (guide 3.5). This deck only reuses that guarantee on
-  slide 5. Teaching hook configuration here would duplicate Part 1 without
+  slide 8. Teaching hook configuration here would duplicate Part 1 without
   exam coverage in Domain 3.
 - **Extended thinking and the Message Batches API.** They surface in the
   guide's CI scenario and practice question 11, but they are Domain 4 API

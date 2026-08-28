@@ -146,6 +146,11 @@
   .cap{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.cap .mini{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0}.cap b{display:block;font-size:12px;margin-bottom:4px}.cap span{font:11px var(--mono);color:var(--dim);display:block;line-height:1.6;overflow-wrap:anywhere}
 
   @media (prefers-reduced-motion:reduce){.slide.on{animation:none}*{scroll-behavior:auto!important}}
+  @media (min-width:901px) and (max-height:850px){
+    .slide.chicken-scope .scope-tree{padding:14px 20px;gap:4px}
+    .slide.chicken-scope .scope-file{padding:8px 14px}
+    .slide.chicken-scope .scope-merge{margin-top:3px;padding-top:8px;line-height:1.35}
+  }
   @media (max-width:900px){
     #touch-nav{display:flex;top:max(12px,env(safe-area-inset-top));bottom:auto}#pager{display:none}.slide{padding:92px 26px 32px;overflow:auto}h1{font-size:44px}h2{font-size:33px}.body{flex-direction:column}.cards,.two,.vs,.scope-stage{grid-template-columns:1fr}.trace{gap:6px}.foot{display:none}.sub{font-size:18px}.cards{padding-bottom:24px}.topics{width:100%;align-items:stretch}.topics span{overflow-wrap:anywhere}.topics code{white-space:normal;overflow-wrap:anywhere}table{table-layout:fixed;font-size:14px}th,td{padding:9px 6px;overflow-wrap:anywhere}
     .slide>h1,.slide>h2,.slide>.kicker,.slide>.body,.slide>.cards,.slide>.two,.slide>.vs,.slide>.scope-stage{flex:none}
@@ -238,31 +243,6 @@
 </section>
 
 <section class="slide">
-  <div class="kicker">The handbook · ask vs enforce</div>
-  <h2>The handbook asks. The sprinkler doesn't.</h2>
-  <div class="body" style="flex-direction:column;gap:22px;justify-content:center">
-    <div class="analogy" style="padding:20px 26px;font-size:22px;line-height:1.5;text-align:center"><span class="tag" style="margin:0 auto 10px">Restaurant model</span>The handbook says <b>"keep the fryer below 190 °C."</b><br>The sprinkler system does not read the handbook.<br>It trips at 200 °C whether anyone is watching or not.</div>
-    <div class="vs" style="flex:none">
-      <article class="card">
-        <span class="pill w">on paper</span>
-        <h3>CLAUDE.md: "Never push to main"</h3>
-        <p>Wording the model tries to follow.</p>
-        <div class="point bad"><span class="dot"></span><span>Followed most of the time, not guaranteed.</span></div>
-        <div class="point bad"><span class="dot"></span><span>A distracted chef can still push.</span></div>
-      </article>
-      <article class="card win">
-        <span class="pill b">in code</span>
-        <h3>PreToolUse hook: block the push</h3>
-        <p>Code that runs at a fixed point in the loop.</p>
-        <div class="point good"><span class="dot"></span><span>Deterministic. The push is stopped <b>even when Claude tries it</b>.</span></div>
-        <div class="point good"><span class="dot"></span><span>Right tool for critical business rules.</span></div>
-      </article>
-    </div>
-  </div>
-  <div class="foot"><span>The reliability split: prompts ask (~90%), hooks enforce (100%). Money, legal, safety → hooks. Style and flow → the handbook.</span></div>
-</section>
-
-<section class="slide">
   <div class="kicker">The handbook · @path imports</div>
   <h2>@path: staple the recipe card into the handbook</h2>
   <div class="body">
@@ -283,7 +263,7 @@ Service rules:  <span class="f">@./docs/service.md</span>
   </div>
 </section>
 
-<section class="slide">
+<section class="slide chicken-scope">
   <div class="kicker">The handbook · rules that span stations</div>
   <h2>Chicken safety belongs to two stations at once</h2>
   <div class="scope-stage">
@@ -337,6 +317,31 @@ Score with the fixed card: appearance,
 balance, temperature.</pre>
     </div>
   </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">The handbook · ask vs enforce</div>
+  <h2>The handbook asks. The sprinkler doesn't.</h2>
+  <div class="body" style="flex-direction:column;gap:22px;justify-content:center">
+    <div class="analogy" style="padding:20px 26px;font-size:22px;line-height:1.5;text-align:center"><span class="tag" style="margin:0 auto 10px">Restaurant model</span>The handbook says <b>"keep the fryer below 190 °C."</b><br>The sprinkler system does not read the handbook.<br>It trips at 200 °C whether anyone is watching or not.</div>
+    <div class="vs" style="flex:none">
+      <article class="card">
+        <span class="pill w">on paper</span>
+        <h3>CLAUDE.md: "Never push to main"</h3>
+        <p>Wording the model tries to follow.</p>
+        <div class="point bad"><span class="dot"></span><span>Followed most of the time, not guaranteed.</span></div>
+        <div class="point bad"><span class="dot"></span><span>A distracted chef can still push.</span></div>
+      </article>
+      <article class="card win">
+        <span class="pill b">in code</span>
+        <h3>PreToolUse hook: block the push</h3>
+        <p>Code that runs at a fixed point in the loop.</p>
+        <div class="point good"><span class="dot"></span><span>Deterministic. The push is stopped <b>even when Claude tries it</b>.</span></div>
+        <div class="point good"><span class="dot"></span><span>Right tool for critical business rules.</span></div>
+      </article>
+    </div>
+  </div>
+  <div class="foot"><span>The reliability split: prompts ask (~90%), hooks enforce (100%). Money, legal, safety → hooks. Style and flow → the handbook.</span></div>
 </section>
 
 <section class="slide">
