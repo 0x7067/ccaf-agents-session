@@ -740,7 +740,7 @@ document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>
 let ws;
 function connect(){
   if(location.protocol==='file:'||location.hostname==='tot.page'){
-    document.getElementById('demo-status').textContent='static page · rehearse available';
+    document.getElementById('demo-status').textContent='uploaded · rehearse available';
     return;
   }
   const host=location.protocol.startsWith('http')?location.host:'127.0.0.1:4949';
