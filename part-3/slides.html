@@ -54,6 +54,36 @@
   .card.win{background:linear-gradient(160deg,#1b2743,#141b2c);border-color:#31527a}
   .pill{display:inline-block;width:max-content;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;border-radius:99px;padding:4px 11px}
   .pill.a{background:#243352;color:var(--acc)}.pill.b{background:#233c37;color:var(--acc2)}.pill.w{background:#35291d;color:var(--warn)}
+
+  /* Interactive knowledge checks */
+  .quiz{--gap:12px;display:flex;flex-direction:column;gap:var(--gap);margin-top:14px}
+  .quiz .q{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+  .quiz .q p{font-size:15px;line-height:1.45;margin-bottom:10px}
+  .quiz .options{display:flex;gap:7px;flex-wrap:wrap}
+  .quiz .opt{border:1px solid var(--line);border-radius:9px;padding:6px 11px;background:var(--panel2);color:var(--ink);font-size:12px;cursor:pointer;transition:.12s}
+  .quiz .opt:hover{background:#273455}
+  .quiz .opt.correct{background:#1e3a2c;border-color:#3f8f5b;color:#b2f2c2}
+  .quiz .opt.wrong{background:#3a1e26;border-color:#9b3b4d;color:#ffb8c0}
+  .quiz .feedback{font-size:12.5px;line-height:1.4;margin-top:8px;color:var(--dim);display:none}
+  .quiz .q.answered .feedback{display:block}
+  .quiz .q.answered .opt{cursor:default}
+  .quiz.strip{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+  .quiz.strip .q p{font-size:14px}
+  .quiz.strip .feedback{font-size:12px}
+  @media (max-width:1100px){.quiz.strip{grid-template-columns:1fr}}
+
+  /* Demo prediction board */
+  .predict-list{display:flex;flex-direction:column;gap:8px}
+  .predict-row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:8px 12px}
+  .predict-row code{flex:1;min-width:0;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:none;border:0;padding:0}
+  .predict-picker{display:flex;gap:5px;flex-wrap:wrap}
+  .predict-picker button{font-size:10.5px;border:1px solid var(--line);border-radius:7px;padding:5px 8px;background:var(--bg2);color:var(--dim);cursor:pointer;transition:.12s}
+  .predict-picker button.on{background:var(--acc);color:#0d1322;font-weight:800}
+  .predict-reveal{color:var(--dim);font-size:12px;line-height:1.45;margin-top:10px}
+  .predict-reveal b.correct{color:var(--ok)}.predict-reveal b.wrong{color:var(--bad)}
+  #modal .quiz.strip{grid-template-columns:1fr}
+  @media (max-width:900px){.predict-row{flex-wrap:wrap}.predict-row code{flex:0 0 100%}.predict-picker{flex:0 0 100%;justify-content:space-between}.predict-picker button{flex:1;min-width:0;font-size:10.5px;padding:5px 4px}}
+  @media (max-width:560px){.predict-picker button{font-size:9px;padding:5px 3px}}
   .two{display:grid;grid-template-columns:1fr 1fr;gap:24px;flex:1;align-content:center;align-items:start;min-height:0}
   .vs{display:grid;grid-template-columns:1fr 1fr;gap:22px;flex:1;align-content:center;align-items:start;min-height:0}
   table{border-collapse:collapse;width:100%;font-size:16px}
@@ -93,14 +123,14 @@
   .click{cursor:pointer;background:none;border:0;border-bottom:1px dashed var(--acc);color:var(--acc);font:inherit}.click:hover{color:var(--acc2)}
   #modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:90;padding:24px}
   #modal.on{display:flex}.modal-box{width:min(900px,92vw);max-height:84vh;overflow:auto;background:var(--panel);border:1px solid #3a4b76;border-radius:17px;padding:24px}
-  #modal-close{float:right;background:none;border:0;color:var(--dim);font-size:25px;cursor:pointer}.modal-box h3{margin-bottom:12px}.modal-box pre{background:#0b0e15;border:1px solid #232c44;border-radius:12px;padding:16px;font-size:13px;line-height:1.55;overflow:auto}
+  #modal-close{float:right;background:none;border:0;color:var(--dim);font-size:25px;cursor:pointer}.modal-box h3{margin-bottom:12px}.modal-box pre{background:#0b0e15;border:1px solid #232c44;border-radius:12px;padding:16px;font-size:13px;line-height:1.55;overflow:auto}.modal-box .quiz{--gap:10px;margin-top:0}.modal-box .quiz .q{padding:12px 14px}.modal-box .quiz .opt{padding:7px 10px}
   .modal-box p{color:var(--dim);font-size:15px;line-height:1.55;margin:10px 0}
   .quote{font-size:26px;line-height:1.4;font-weight:720;border:1px solid #2e4a49;border-radius:14px;padding:20px 22px}.quote small{display:block;color:var(--dim);font-size:15px;margin-top:12px;font-weight:500}
   .mechanism{display:flex;flex-direction:column;gap:8px}.mechanism+.mechanism{border-top:1px solid var(--line);padding-top:13px}.mechanism h3{font-size:19px}
   .trace{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;font:15px var(--mono);margin-top:20px}.trace span{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 13px}.trace i{color:var(--acc2);font-style:normal}
 
   /* Live demo */
-  .slide.demo{padding:28px 34px 48px}.demo-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}.demo-head h2{font-size:28px;margin:0}.spacer{flex:1}
+  .slide.demo{padding:28px 34px 48px}.demo-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}.demo-head h2{font-size:28px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.spacer{flex:1}
   .btn{border:0;border-radius:10px;padding:9px 15px;background:var(--acc);color:#0d1322;font-weight:800;cursor:pointer}.btn:hover{filter:brightness(1.1)}.btn.ghost{background:var(--panel2);color:var(--ink)}.btn.stop{background:var(--bad);color:#270a0f}
   #demo-status{font:12px var(--mono);color:var(--faint)}#demo-counts{font:12px var(--mono);color:var(--acc2)}
   .demo-grid{flex:1;display:grid;grid-template-columns:.9fr 1.3fr;gap:15px;min-height:0}
@@ -203,6 +233,7 @@
       <div class="point"><span class="dot"></span><span><button class="click" data-dialog="userjson">Part 2's <code>~/.claude.json</code> held your MCP servers. This file holds instructions.</button></span></div>
     </div>
   </div>
+  <div class="foot"><span><button class="click" data-dialog="shelf-quiz">Try it: where does each rule belong?</button></span><span></span></div>
 </section>
 
 <section class="slide">
@@ -258,6 +289,7 @@ Service rules:  <span class="f">@./docs/service.md</span>
       <div class="point good"><span class="dot"></span><span>A rule loads <b>only when the session touches a matching file</b>. Everything else stays out of context.</span></div>
       <div class="point"><span class="dot"></span><span><b>Kind vs place:</b> a <code>paths</code> glob fits conventions that follow a file type anywhere (tests). A station card fits conventions tied to one directory.</span></div>
       <div class="point"><span class="dot"></span><span><button class="click" data-dialog="rules">Open both rule files from the demo repo</button></span></div>
+      <div class="point good"><span class="dot"></span><span><button class="click" data-dialog="paths-quiz">Try it: will these rules load for kitchen/prep.ts?</button></span></div>
     </div>
     <div class="col">
       <pre class="code"><span class="c">// .claude/rules/fryer-safety.md</span>
@@ -360,10 +392,12 @@ balance, temperature.</pre>
     </div>
     <div class="demo-right">
       <div class="panel-tabs">
-        <button class="tab on" data-pane="payload-pane">Payload</button>
+        <button class="tab on" data-pane="predict-pane">Predict</button>
+        <button class="tab" data-pane="payload-pane">Payload</button>
         <button class="tab" data-pane="cap-pane">What loads</button>
       </div>
-      <div class="pane on" id="payload-pane"><h3>Click an event to inspect it</h3><pre id="payload">Run the demo, then inspect each step.</pre></div>
+      <div class="pane on" id="predict-pane"><h3>Predict tonight's load list</h3><div class="predict-list" id="predict-list"></div><div class="predict-reveal" id="predict-reveal"><b>Make your call.</b> Pick a category for each file, then click <b>Rehearse</b> to reveal the loader's answer.</div></div>
+      <div class="pane" id="payload-pane"><h3>Click an event to inspect it</h3><pre id="payload">Run the demo, then inspect each step.</pre></div>
       <div class="pane" id="cap-pane"><h3>Configuration inventory</h3><div class="cap" id="capabilities"><div class="mini"><b>Always</b><span>waiting</span></div><div class="mini"><b>Tonight only</b><span>waiting</span></div><div class="mini"><b>On demand</b><span>waiting</span></div><div class="mini"><b>Not loaded</b><span>waiting</span></div></div></div>
     </div>
   </div>
@@ -606,7 +640,15 @@ Loaded only when the session touches a test file.
   "session_id": "…",
   "total_cost_usd": 0.05,
   "num_turns": 4
-}</pre><p>Your pipeline parses <code>result</code>: the schema guarantees the fields CI needs — file, line, severity, suggested fix — so findings can be posted as inline comments without parsing prose.</p><p><code>is_error: true</code> means the run itself failed (quota, auth). Fail the pipeline; do not post garbage.</p>`}
+}</pre><p>Your pipeline parses <code>result</code>: the schema guarantees the fields CI needs — file, line, severity, suggested fix — so findings can be posted as inline comments without parsing prose.</p><p><code>is_error: true</code> means the run itself failed (quota, auth). Fail the pipeline; do not post garbage.</p>`},
+  'shelf-quiz':{title:'Where does this rule belong?',html:'<div class="quiz" id="dialog-shelf-quiz-quiz"></div>',quiz:[
+    {label:'Shared test command',prompt:'Your team runs <code>npm run taste</code> before every close. Where does that rule belong?',options:['~/.claude/CLAUDE.md','CLAUDE.md in the repo','kitchen/CLAUDE.md'],answer:'CLAUDE.md in the repo',explain:'Shared workflow rules belong in the project handbook so every new hire sees them. The knife roll is only for personal style.'},
+    {label:'Personal brevity rule',prompt:'You like Claude to keep answers short. Where does that belong?',options:['~/.claude/CLAUDE.md','CLAUDE.md in the repo','.claude/rules/short.md'],answer:'~/.claude/CLAUDE.md',explain:'That is a personal preference. Put it in your knife roll; never commit it to the repo.'}
+  ]},
+  'paths-quiz':{title:'Will these rules load for kitchen/prep.ts?',html:'<div class="quiz" id="dialog-paths-quiz-quiz"></div>',quiz:[
+    {label:'fryer-safety load?',prompt:'<code>.claude/rules/fryer-safety.md</code> has <code>paths: ["kitchen/**/*"]</code>. Tonight the ticket is <code>kitchen/prep.ts</code>. Will it load?',options:['Yes — paths matches','No — it needs a station card','Only if you type /fryer-safety'],answer:'Yes — paths matches',explain:'The glob kitchen/**/* matches kitchen/prep.ts. That is a laminated card pulled because the ticket is in the kitchen.'},
+    {label:'tasting-rules load?',prompt:'<code>.claude/rules/tasting-rules.md</code> has <code>paths: ["**/*.test.ts"]</code>. Tonight the ticket is <code>kitchen/prep.ts</code>. Will it load?',options:['Yes — glob is broad','No — ticket is not a test','Only on demand'],answer:'No — ticket is not a test',explain:'The glob follows a file kind (tests). kitchen/prep.ts does not end in .test.ts, so the rule stays out of context.'}
+  ]}
 };
 const syntaxKeywords=new Set(['claude','npm','run','-p','--print','--output-format','--json-schema','--resume','true','false','null','fork_session','paths']);
 function escapeHtml(value){return value.replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
@@ -647,7 +689,7 @@ function highlightPre(pre){
   pre.innerHTML=highlightCode(pre.textContent||'');pre.dataset.syntaxHighlighted='true';
 }
 function highlightAll(root=document){root.querySelectorAll('pre').forEach(highlightPre)}
-function openModal(key){const item=dialogs[key];if(!item)return;document.getElementById('modal-title').textContent=item.title;const body=document.getElementById('modal-body');body.innerHTML=item.html;highlightAll(body);document.getElementById('modal').classList.add('on')}
+function openModal(key){const item=dialogs[key];if(!item)return;document.getElementById('modal-title').textContent=item.title;const body=document.getElementById('modal-body');body.innerHTML=item.html;highlightAll(body);if(item.quiz){const container=body.querySelector(`#dialog-${CSS.escape(key)}-quiz`);if(container)buildQuiz(container,item.quiz);}document.getElementById('modal').classList.add('on')}
 function closeModal(){document.getElementById('modal').classList.remove('on')}
 document.querySelectorAll('[data-dialog]').forEach(el=>el.addEventListener('click',()=>openModal(el.dataset.dialog)));
 document.getElementById('modal-close').addEventListener('click',closeModal);
@@ -660,6 +702,11 @@ function resetDemo(){
   log.innerHTML='';setPayloadText('Waiting for the first event...');counts.files=0;counts.loaded=0;counts.findings=0;renderCounts();
   document.getElementById('capabilities').innerHTML='<div class="mini"><b>Always</b><span>waiting</span></div><div class="mini"><b>Tonight only</b><span>waiting</span></div><div class="mini"><b>On demand</b><span>waiting</span></div><div class="mini"><b>Not loaded</b><span>waiting</span></div>';
   document.querySelectorAll('.pnode').forEach(node=>node.classList.remove('hot','good'));
+  showPane('predict-pane');
+}
+function showPane(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.pane===id));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id===id));
 }
 function renderCounts(){document.getElementById('demo-counts').textContent=`${counts.files} files · ${counts.loaded} loaded · ${counts.findings} findings`}
 function inspectEvent(event){
@@ -688,6 +735,8 @@ function handle(event){
     case 'inventory':{
       const inventory=event.inventory;counts.files=inventory.always.length+inventory.conditional.length+inventory.onDemand.length;renderCounts();
       renderInventory(inventory);
+      revealPrediction();
+      showPane('cap-pane');
       const total=counts.files+inventory.skipped.length;
       addEvent(event,'disc',`<b>inventory</b> ${total} files classified`);break;}
     case 'spawn':hot('cli-node');addEvent(event,'req',`<b>spawn</b> ${event.bin} -p <span class="muted">unattended · cwd ${event.cwd}</span>`);break;
@@ -759,6 +808,112 @@ document.getElementById('run-live').addEventListener('click',()=>{
 });
 document.getElementById('run-mock').addEventListener('click',replayMock);
 document.getElementById('stop-demo').addEventListener('click',()=>{stopMock();if(ws?.readyState===WebSocket.OPEN)send('stop');else handle({t:'status',msg:'stopped'})});
+/* ---- Inline knowledge checks ---- */
+function buildQuiz(container,questions){
+  container.innerHTML='';
+  questions.forEach((q,qi)=>{
+    const wrap=document.createElement('div');wrap.className='q';wrap.setAttribute('role','group');wrap.setAttribute('aria-label',q.label);
+    const prompt=document.createElement('p');prompt.innerHTML=q.prompt;wrap.appendChild(prompt);
+    const options=document.createElement('div');options.className='options';
+    const feedback=document.createElement('div');feedback.className='feedback';
+    q.options.forEach((text,oi)=>{
+      const btn=document.createElement('button');btn.type='button';btn.className='opt';btn.textContent=text;
+      btn.addEventListener('click',()=>{
+        if(wrap.classList.contains('answered'))return;
+        wrap.classList.add('answered');
+        const correct=text===q.answer;
+        btn.classList.add(correct?'correct':'wrong');
+        if(!correct){
+          Array.from(options.children).forEach(b=>{if(b.textContent===q.answer)b.classList.add('correct');});
+        }
+        feedback.innerHTML=correct?`<b class="correct">Right.</b> ${q.explain}`:`<b class="wrong">Not quite.</b> ${q.explain}`;
+      });
+      options.appendChild(btn);
+    });
+    wrap.appendChild(options);wrap.appendChild(feedback);container.appendChild(wrap);
+  });
+}
+/* ---- Demo prediction widget ---- */
+const predictItems=[
+  {path:'~/.claude/CLAUDE.md',answer:'always'},
+  {path:'CLAUDE.md',answer:'always'},
+  {path:'docs/prep-standards.md',answer:'always'},
+  {path:'kitchen/CLAUDE.md',answer:'conditional'},
+  {path:'.claude/rules/fryer-safety.md',answer:'conditional'},
+  {path:'.claude/rules/tasting-rules.md',answer:'not loaded'},
+  {path:'.claude/skills/prep-check/SKILL.md',answer:'on demand'},
+  {path:'.claude/commands/close-checklist.md',answer:'on demand'}
+];
+const predictLabels={always:'Always',conditional:'Conditional','on demand':'On demand','not loaded':'Not loaded'};
+const predictState=new Map();
+function buildPredictionBoard(){
+  const list=document.getElementById('predict-list');
+  list.innerHTML='';
+  predictItems.forEach(item=>{
+    const row=document.createElement('div');row.className='predict-row';row.dataset.path=item.path;
+    const path=document.createElement('code');path.textContent=item.path;row.appendChild(path);
+    const picker=document.createElement('div');picker.className='predict-picker';
+    Object.keys(predictLabels).forEach(key=>{
+      const btn=document.createElement('button');btn.type='button';btn.textContent=predictLabels[key];
+      btn.addEventListener('click',()=>{predictState.set(item.path,key);renderPrediction();});
+      picker.appendChild(btn);
+    });
+    row.appendChild(picker);
+    list.appendChild(row);
+  });
+}
+function renderPrediction(){
+  document.querySelectorAll('.predict-row').forEach(row=>{
+    const path=row.dataset.path;
+    const choice=predictState.get(path);
+    row.querySelectorAll('button').forEach(btn=>{
+      btn.classList.toggle('on',predictLabels[choice]===btn.textContent);
+    });
+  });
+}
+let predictRevealed=false;
+function revealPrediction(){
+  if(predictRevealed)return;predictRevealed=true;
+  const reveal=document.getElementById('predict-reveal');
+  let correct=0;
+  predictItems.forEach(item=>{
+    const row=document.querySelector(`.predict-row[data-path="${CSS.escape(item.path)}"]`);
+    const guess=predictState.get(item.path);
+    const isCorrect=guess===item.answer;
+    if(isCorrect)correct++;
+    if(row){
+      row.querySelectorAll('button').forEach(btn=>{
+        btn.classList.remove('on');
+        if(predictLabels[item.answer]===btn.textContent)btn.style.background='var(--ok)';
+        if(guess && !isCorrect && predictLabels[guess]===btn.textContent)btn.style.background='var(--bad)';
+        if(!isCorrect && predictLabels[item.answer]!==btn.textContent && (!guess || predictLabels[guess]!==btn.textContent))btn.style.opacity='0.45';
+      });
+    }
+  });
+  const score=`${correct}/${predictItems.length}`;
+  const status=correct===predictItems.length?'<b class="correct">Perfect call.</b> You nailed the load path.':`<b>${score} right.</b> Use the misses — they show where the rules surprised you.`;
+  reveal.innerHTML=`${status} Green is the loader's answer; red is where you called it differently. The board updates as Rehearse plays.`;
+}
+function resetPrediction(){
+  predictRevealed=false;predictState.clear();
+  document.getElementById('predict-reveal').innerHTML='<b>Make your call.</b> Pick a category for each file, then click <b>Rehearse</b> to reveal the loader\'s answer.';
+  buildPredictionBoard();
+  renderPrediction();
+}
+buildPredictionBoard();
+
+/* ---- Wire demo buttons to prediction ---- */
+const originalResetDemo=resetDemo;
+resetDemo=function(){
+  originalResetDemo();
+  resetPrediction();
+};
+const originalHandle=handle;
+handle=function(event){
+  if(event.t==='inventory')revealPrediction();
+  originalHandle(event);
+};
+
 highlightAll();
 resetDemo();
 </script>

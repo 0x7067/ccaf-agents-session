@@ -52,12 +52,12 @@ Part 1 demo). Use **Rehearse** from the published static link.
 | 0:00-0:02 | 1 | Promise one complete shift: the rules that load, the cards you pull, and the 3 a.m. run. Call back to Parts 1 and 2: hands, then the counter — today, training. |
 | 0:02-0:05 | 2 | The model has no memory of your project. Files are how rules reach the model. Show the four loading moments; the whole deck hangs on that four-row map. |
 | 0:05-0:08 | 3 | CLAUDE.md = the staff handbook: always loaded, instruction not configuration, lean on purpose. Open the lean-rules dialog if the room writes handbooks. |
-| 0:08-0:11 | 4 | Three shelves, three owners. Hammer the exam trap: the new teammate who never sees the standards because they lived on one knife roll. |
+| 0:08-0:11 | 4 | Three shelves, three owners. Hammer the exam trap: the new teammate who never sees the standards because they lived on one knife roll. Use the inline check if the room needs a beat. |
 | 0:11-0:13 | 5 | Ask vs enforce. Call back Part 1's >90% / 100% table. Money, legal, safety → hooks. |
 | 0:13-0:15 | 6 | `@path` organizes the binder but expands inline at launch. Organization, not savings — the nuance the exam tests. |
-| 0:15-0:18 | 7 | Laminated cards load only on matching tickets. Kind (glob) vs place (station card). |
+| 0:15-0:18 | 7 | Laminated cards load only on matching tickets. Kind (glob) vs place (station card). Use the inline check after showing the rule files. |
 | 0:18-0:21 | 8-9 | The procedure drawer: `/name` cards, project vs personal, then the frontmatter. Start with the consequence: `context: fork` keeps verbose output out. Then name the subagent mechanism and the `allowed-tools` security boundary. |
-| 0:21-0:23 | 10 | Stop before the demo. Ask the room to predict which files load tonight and which stay out. |
+| 0:21-0:23 | 10 | Stop before the demo. Ask the room to predict which files load tonight and which stay out using the **Predict** tab. |
 | 0:23-0:28 | 11-12 | Run the trace. Read the loader sequence, then debrief: the answer "24" could only come from the imported standards — proof the handbook loaded. |
 | 0:28-0:31 | 13 | Mise en place means prep before you cook: plan before big or ambiguous work; direct execution for a clear small ticket. Name Explore as Part 1's subagent returning here, with one line back. |
 | 0:31-0:33 | 14 | Shift log: `/compact` frees the current window but blurs numbers; `/memory` persists a lesson; resume reloads a session; fork branches one. Keep those four mechanisms distinct. |
@@ -106,7 +106,9 @@ Use these as handoffs, not as lines to memorize.
   laminated card or station card.
 - Slide 8: ask what procedure the room has typed to an agent more than twice.
 - Slide 13: ask about their last big refactor — planned or dived in?
-- Slide 10: let the room predict tonight's load list before running.
+- Slide 4: after the scope tree, click **Try it: where does each rule belong?** to confirm ownership before moving on.
+- Slide 7: click **Try it: will these rules load for kitchen/prep.ts?** after showing the rule files.
+- Slide 10: open the **Predict** tab on the demo slide and let the room classify each file before running **Rehearse**.
 - Slide 15: ask what breaks if CI runs interactive Claude.
 
 ## Live demo recovery

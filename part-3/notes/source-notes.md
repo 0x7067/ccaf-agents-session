@@ -9,7 +9,8 @@
   reason through exam scenarios about who owns a rule, when it loads, and how
   Claude runs unattended.
 - Form: 40-minute browser-native deck with one local demo (deterministic
-  loader plus a live headless run).
+  loader plus a live headless run). Two slides now have inline knowledge
+  checks, and the demo slide starts with a prediction step before the run.
 - Register: the same direct, conversational style as Parts 1 and 2, pitched
   at the half of the room that has never written a CLAUDE.md. Slang stays in
   the delivery, not on the slides.

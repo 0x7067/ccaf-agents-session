@@ -4,3 +4,4 @@ ccaf-agents-session.zip
 _to_delete/
 .DS_Store
 *.log
+.pi-agent-browser/
