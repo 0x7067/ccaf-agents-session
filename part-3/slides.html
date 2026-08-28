@@ -36,7 +36,12 @@
   code{font-family:var(--mono);font-size:.86em;font-weight:650;color:var(--acc);background:#18213a;border:1px solid #26335a;border-radius:6px;padding:1px 6px}
   pre{font-family:var(--mono);white-space:pre-wrap}
   pre.code{background:#0b0e15;border:1px solid #232c44;border-radius:14px;padding:18px 22px;font-size:15px;line-height:1.55;overflow:auto}
-  pre.load-moments{font-size:clamp(12px,1.05vw,15px);line-height:1.65}
+  .moments-lead{font-size:12px;color:var(--dim);margin-bottom:13px}
+  .moments{display:flex;flex-direction:column;gap:10px}
+  .moment{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px 16px;min-height:54px}
+  .moment .pill{flex:0 0 100px;text-align:center}
+  .moment .what{flex:1;min-width:0;font-size:15px;line-height:1.4;color:var(--dim)}
+  .moment .what b{color:var(--ink)}
   .k{color:var(--violet)}.s{color:#9ce7a9}.n{color:var(--warn)}.c{color:#68748e;font-style:italic}.f{color:#82aaff}
   .callout{font-size:30px;font-weight:820;line-height:1.28}.callout em{color:var(--acc);font-style:normal}
   .analogy{background:linear-gradient(135deg,#1c2440,#182034);border:1px solid #2c3a5e;border-radius:16px;padding:18px 22px;font-size:18px;line-height:1.5}
@@ -114,7 +119,7 @@
   @media (max-width:900px){
     #touch-nav{display:flex;top:max(12px,env(safe-area-inset-top));bottom:auto}#pager{display:none}.slide{padding:92px 26px 32px;overflow:auto}h1{font-size:44px}h2{font-size:33px}.body{flex-direction:column}.cards,.two,.vs,.scope-stage{grid-template-columns:1fr}.trace{gap:6px}.foot{display:none}.sub{font-size:18px}.cards{padding-bottom:24px}.topics{width:100%;align-items:stretch}.topics span{overflow-wrap:anywhere}.topics code{white-space:normal;overflow-wrap:anywhere}table{table-layout:fixed;font-size:14px}th,td{padding:9px 6px;overflow-wrap:anywhere}
     .slide>h1,.slide>h2,.slide>.kicker,.slide>.body,.slide>.cards,.slide>.two,.slide>.vs,.slide>.scope-stage{flex:none}
-    pre.load-moments{font-size:11px;padding:14px 12px}
+
     .scope-depth-1{margin-left:10px}.scope-depth-2{margin-left:20px}.scope-depth-3{margin-left:30px}
     .slide.demo{padding:84px 20px 32px;overflow:auto}.demo-head{flex-wrap:wrap}.demo-head h2{flex:0 0 100%}.demo-head .spacer{display:none}.demo-head .btn{font-size:12px;padding:7px 10px}.demo-grid{display:flex;flex-direction:column;flex:none}.demo-left,.demo-right{min-height:470px}.protocol-map{grid-template-columns:1fr 16px 1fr 16px 1fr;gap:3px;padding:10px}.pnode{min-width:0;padding:8px 3px}.pnode b{font-size:11px}.pnode small{font-size:8px}.parrow{font-size:14px}.cap{grid-template-columns:1fr}.pane{min-height:320px}
   }
@@ -144,11 +149,13 @@
     </div>
     <div class="col">
       <div class="analogy"><span class="tag">Restaurant model</span>A new chef walks in every night. The kitchen does not re-explain itself out loud; it <b>hangs the rules where the chef will read them</b>.</div>
-      <pre class="code load-moments"><span class="c">// four loading moments — each gets a name and a slide</span>
-session start    your rules + the team's rules <span class="k">always</span>
-file matches     directory + path-scoped rules <span class="k">conditional</span>
-you type /name   one skill or command          <span class="k">on demand</span>
-the night shift  <span class="f">claude -p</span>, no human           <span class="k">at 3 a.m.</span></pre>
+      <p class="moments-lead">Four loading moments — each gets a name and a slide of its own.</p>
+      <div class="moments" role="group" aria-label="Four loading moments">
+        <div class="moment"><span class="pill b">always</span><span class="what"><b>The session starts</b> — your rules and the team's rules load before your first message</span></div>
+        <div class="moment"><span class="pill w">conditional</span><span class="what"><b>A file matches</b> — rules scoped to that folder or file kind join in</span></div>
+        <div class="moment"><span class="pill a">on demand</span><span class="what"><b>You type /name</b> — only that skill or command loads</span></div>
+        <div class="moment"><span class="pill a">unattended</span><span class="what"><b>The night shift</b> — claude -p loads the same files with nobody in the room — at 3 a.m.</span></div>
+      </div>
     </div>
   </div>
 </section>

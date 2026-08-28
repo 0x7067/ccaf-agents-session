@@ -50,7 +50,7 @@ Part 1 demo). Use **Rehearse** from the published static link.
 | Time | Slides | Must-hit beat |
 |---|---|---|
 | 0:00-0:02 | 1 | Promise one complete shift: the rules that load, the cards you pull, and the 3 a.m. run. Call back to Parts 1 and 2: hands, then the counter — today, training. |
-| 0:02-0:05 | 2 | The model has no memory of your project. Files are how rules reach the model. Show the four loading moments; the whole deck hangs on that pre block. |
+| 0:02-0:05 | 2 | The model has no memory of your project. Files are how rules reach the model. Show the four loading moments; the whole deck hangs on that four-row map. |
 | 0:05-0:08 | 3 | CLAUDE.md = the staff handbook: always loaded, instruction not configuration, lean on purpose. Open the lean-rules dialog if the room writes handbooks. |
 | 0:08-0:11 | 4 | Three shelves, three owners. Hammer the exam trap: the new teammate who never sees the standards because they lived on one knife roll. |
 | 0:11-0:13 | 5 | Ask vs enforce. Call back Part 1's >90% / 100% table. Money, legal, safety → hooks. |
