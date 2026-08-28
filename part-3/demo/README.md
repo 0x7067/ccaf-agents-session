@@ -2,50 +2,49 @@
 
 This demo proves two mechanisms from the deck:
 
-1. **Configuration loading.** A loader (`src/loader.ts`) walks the fixture
-   repo `fixtures/basil-bistro/` and classifies every configuration file the
-   way the CCAF guide documents: the user-level knife roll
-   (`fixtures/home/.claude/CLAUDE.md`, a stand-in home so your real one is
-   never touched), the project handbook (`CLAUDE.md` plus its `@path`
-   import), the `kitchen/CLAUDE.md` station card, the `.claude/rules/`
-   laminated cards with `paths:` frontmatter, and the `.claude/skills/` and
-   `.claude/commands/` procedure drawer. Tonight's ticket is `kitchen/prep.ts`:
-   the station card and `fryer-safety.md` load, `tasting-rules.md` does not.
-   This phase is fully deterministic — no model is involved.
+1. **Configuration loading.** The slide deck embeds a simulated trace of
+   the loader classification: the user-level knife roll, the project
+   handbook with its `@path` import, the `kitchen/CLAUDE.md` station card,
+   the `.claude/rules/` laminated cards with `paths:` frontmatter, and the
+   `.claude/skills/` and `.claude/commands/` procedure drawer. Tonight's
+   ticket is `kitchen/prep.ts`: the station card and `fryer-safety.md`
+   load, `tasting-rules.md` does not.
 
-2. **The night shift.** The live run (`src/run.ts`) spawns the real
-   `claude -p` CLI inside the fixture repo with `--output-format json` and
-   `--json-schema`. The prompt is only answerable from the project's own
-   rules, so a correct `maxPrepBatch` of 24 proves the handbook loaded. The
-   schema-validated findings map to what a CI pipeline would post as inline
-   PR comments.
+2. **The night shift.** The simulated trace shows a `claude -p` invocation
+   with `--output-format json` and `--json-schema`. The result includes
+   `maxPrepBatch: 24` (only answerable from the imported standards) and a
+   high-severity finding (36 portions exceeds the 24-portion maximum).
 
-The loader is a teaching model of documented behavior; the `claude -p` run is
-the real thing. **Rehearse** replays the same event shapes without spawning
-anything.
+## Present the deck
 
-## Run the deck
+Open `part-3/slides.html` in a browser and navigate to the demo slide.
+Click **Run**. No server, no CLI, no credentials needed — all events are
+embedded in the HTML.
+
+## Run the night shift in the terminal
+
+For a live terminal demo (optional, not required for the presentation):
 
 ```bash
 cd part-3/demo
 npm install
-npm run demo
-```
-
-Open http://127.0.0.1:4949/part-3/slides.html. On the demo slide, click
-**Run live** (needs the Claude Code CLI installed and logged in, like the
-Part 1 demo) or **Rehearse** (needs nothing).
-
-## Run the night shift in the terminal
-
-```bash
 npm run nightshift
 ```
 
 Prints every event as newline-delimited JSON: the loader classification,
 then the live `claude -p` envelope and findings. Exits after the run; no
 child process is left behind. Set `CLAUDE_BIN` to point at a different
-Claude Code binary.
+Claude Code binary. Needs the Claude Code CLI installed and logged in.
+
+## Development server
+
+The codebase includes a WebSocket-based dev server for testing live runs:
+
+```bash
+npm run demo
+```
+
+This is not needed for the presentation. The slide deck works standalone.
 
 ## The fixture repo
 
@@ -61,7 +60,7 @@ fixtures/
     └── .claude/
         ├── rules/fryer-safety.md   # paths: kitchen/**/*  → loads tonight
         ├── rules/tasting-rules.md  # paths: **/*.test.ts → skipped tonight
-        ├── skills/prep-check/SKILL.md   # context: fork, allowed-tools
+        ├── skills/prepare-dough/SKILL.md  # context: fork, allowed-tools
         └── commands/close-checklist.md  # legacy /close-checklist
 ```
 

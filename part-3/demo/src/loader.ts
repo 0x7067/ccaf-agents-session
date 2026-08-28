@@ -212,7 +212,7 @@ export async function* loadConfig(): AsyncGenerator<LoaderEvent> {
   }
 
   // 6. Skills — at rest only the name and description load.
-  const skillFile = path.join(fixtureRepo, '.claude', 'skills', 'prep-check', 'SKILL.md');
+  const skillFile = path.join(fixtureRepo, '.claude', 'skills', 'prepare-dough', 'SKILL.md');
   const skillSource = await readIfExists(skillFile);
   if (skillSource !== undefined) {
     const { frontmatter } = splitFrontmatter(skillSource);
@@ -221,8 +221,8 @@ export async function* loadConfig(): AsyncGenerator<LoaderEvent> {
     yield {
       t: 'ondemand',
       kind: 'skill',
-      name: 'prep-check',
-      path: '.claude/skills/prep-check/SKILL.md',
+      name: 'prepare-dough',
+      path: '.claude/skills/prepare-dough/SKILL.md',
       note: `at rest — description only: "${short}"`
     };
   }
@@ -257,7 +257,7 @@ export async function* loadConfig(): AsyncGenerator<LoaderEvent> {
       { path: 'kitchen/CLAUDE.md', note: `station card — ticket touches ${ticketDir}/` }
     ].sort((a, b) => a.path.localeCompare(b.path)),
     onDemand: [
-      { path: '.claude/skills/prep-check/SKILL.md', note: '/prep-check' },
+      { path: '.claude/skills/prepare-dough/SKILL.md', note: '/prepare-dough' },
       ...commandNames.map(name => ({ path: `.claude/commands/${name}`, note: `/${name.replace(/\.md$/, '')}` }))
     ],
     skipped: inventorySkipped
