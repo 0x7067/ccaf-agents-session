@@ -9,9 +9,9 @@ procedure drawer is skills and commands. Mise en place, prep before you cook,
 is planning mode. The night shift is `claude -p` in CI, and a fresh instance
 reviews the code it never saw being written.
 
-The deck has 17 slides. It opens with the statelessness callback, nobody
-teaches Claude your kitchen, then builds the handbook and its three shelves,
-organizes it with imports, motivates cross-directory rules with chicken safety,
+The deck has 17 slides. It opens with the statelessness callback, how do
+your rules reach Claude, then builds the handbook and its three shelves,
+motivates cross-directory rules with chicken safety, organizes with imports,
 and teaches the laminated-card mechanism. Only then does it separate asking
 from enforcing. The on-demand layer (skills, commands) follows. After the demo the
 two workflow slides, mise en place and the shift log, cover how you start a
@@ -46,11 +46,11 @@ simulated events with the same shapes and data the real loader and
 | Time | Slides | Must-hit beat |
 |---|---|---|
 | 0:00–0:02 | 1 | Promise one complete shift: the rules that load, the cards you pull, and the 3 a.m. run. Call back to Parts 1 and 2: hands, then the counter. Today, training. |
-| 0:02–0:05 | 2 | The model has no memory of your project. Files are how rules reach the model. Show the four loading moments; the whole deck hangs on that four-row map. |
+| 0:02–0:05 | 2 | The model has no memory of your project. Files are how rules reach the model. Show the three loading conditions; the whole deck hangs on that three-row map. |
 | 0:05–0:08 | 3 | CLAUDE.md = the staff handbook: always loaded, instruction not configuration, lean on purpose. Open the lean-rules dialog if the room writes handbooks. |
 | 0:08–0:11 | 4 | Three shelves, three owners. Hammer the exam trap: the new teammate who never sees the standards because they lived on one knife roll. Use the inline check if the room needs a beat. |
-| 0:11–0:13 | 5 | `@path` organizes the handbook but expands inline at launch. Organization, not savings. That nuance is what the exam tests. |
-| 0:13–0:15 | 6 | Chicken safety motivates cross-directory rules. One file in `.claude/rules/` loads in two stations. A station card can't do that. Click the chicken-safety dialog for the detailed rules. |
+| 0:11–0:13 | 5 | Chicken safety motivates cross-directory rules. One file in `.claude/rules/` loads in two stations. A station card can't do that. Click the chicken-safety dialog for the detailed rules. |
+| 0:13–0:15 | 6 | `@path` organizes the handbook but expands inline at launch. Organization, not savings. That nuance is what the exam tests. |
 | 0:15–0:17 | 7 | Laminated cards load only on matching tickets. Kind (glob) vs place (station card). Use the inline check after showing the rule files. |
 | 0:17–0:19 | 8 | Now draw the boundary: those files are instructions. Call back Part 1's >90% / 100% table. Money, legal, safety → hooks. |
 | 0:19–0:22 | 9–10 | The procedure drawer: `/name` cards, project vs personal, then the frontmatter. Start with the consequence: `context: fork` keeps verbose output out. Then name the subagent mechanism and the `allowed-tools` security boundary. |
@@ -71,12 +71,12 @@ Use these as handoffs, not as lines to memorize.
 - Slide 2 to 3: "The answer is not typing harder. It's a file."
 - Slide 3 to 4: "One handbook isn't the whole story. Three shelves, three
   owners."
-- Slide 4 to 5: "Handbooks grow. Two ways to keep them organized, and only
-  one of them saves context."
-- Slide 5 to 6: "Imports organize by reference. But what about a rule that
-  belongs to two stations at once?"
-- Slide 6 to 7: "That's the why. Here's the how: laminated cards with a
-  paths glob."
+- Slide 4 to 5: "Some rules belong to more than one station. How do you
+  avoid copying the same rule twice?"
+- Slide 5 to 6: "Handbooks grow. Imports keep them organized, but they
+  don't save context."
+- Slide 6 to 7: "That's organization. Here's the mechanism: laminated cards
+  with a paths glob."
 - Slide 7 to 8: "Those are all instructions. Now the question every exam
   loves: when does a rule need enforcement instead?"
 - Slide 8 to 9: "Now we know what loads by itself. Some things should wait

@@ -54,7 +54,6 @@
   .card.win{background:linear-gradient(160deg,#1b2743,#141b2c);border-color:#31527a}
   .pill{display:inline-block;width:max-content;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;border-radius:99px;padding:4px 11px}
   .pill.a{background:#243352;color:var(--acc)}.pill.b{background:#233c37;color:var(--acc2)}.pill.w{background:#35291d;color:var(--warn)}
-
   /* Interactive knowledge checks */
   .quiz{--gap:12px;display:flex;flex-direction:column;gap:var(--gap);margin-top:14px}
   .quiz .q{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
@@ -174,22 +173,23 @@
 
 <section class="slide">
   <div class="kicker">The mental model · 1 of 3</div>
-  <h2>Who teaches Claude your kitchen?</h2>
+  <h2>How do your rules reach Claude?</h2>
   <div class="body">
     <div class="col">
       <div class="callout">Nobody. Every session starts from zero. <em>The model has no memory of your project.</em></div>
-      <div class="point"><span class="dot"></span><span>Part 1 hammered it: every API request is independent. The same holds between sessions. Nothing carries over.</span></div>
-      <div class="point"><span class="dot"></span><span>Claude Code is a host, and hosts load <b>files</b> into the model's <b>context</b>, the window of text it can see this turn. That is how your rules reach the model.</span></div>
-      <div class="point"><span class="dot"></span><span>Retyping the same instructions every session does not scale. Files that load at the right moment solve this.</span></div>
+      <div class="point"><span class="dot"></span><span>Recall Part 1: every API request is independent. Nothing carries over between sessions.</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div class="trace" style="margin:0;font-size:14px"><span>your files</span><i>→</i><span>Claude Code loads</span><i>→</i><span style="border-color:var(--acc);box-shadow:0 0 14px #7aa2ff25">context window</span></div>
+        <p style="font-size:14px;color:var(--dim);text-align:center;line-height:1.4">Files are how your rules reach the model.<br>The right file at the right moment beats retyping.</p>
+      </div>
     </div>
     <div class="col">
-      <div class="analogy"><span class="tag">Restaurant model</span>A new chef walks in every night. The kitchen does not re-explain itself out loud; it <b>hangs the rules where the chef will read them</b>.</div>
-      <p class="moments-lead">Four loading moments. Each gets a name and a slide of its own.</p>
-      <div class="moments" role="group" aria-label="Four loading moments">
-        <div class="moment"><span class="pill b">always</span><span class="what"><b>The session starts.</b> Your rules and the team's rules load before your first message</span></div>
-        <div class="moment"><span class="pill w">conditional</span><span class="what"><b>A file matches.</b> Rules scoped to that folder or file kind join in</span></div>
-        <div class="moment"><span class="pill a">on demand</span><span class="what"><b>You type /name.</b> Only that skill or command loads</span></div>
-        <div class="moment"><span class="pill a">unattended</span><span class="what"><b>The night shift.</b> claude -p loads the same files with nobody in the room, at 3 a.m.</span></div>
+      <div class="analogy"><span class="tag">Restaurant model</span>A new chef walks in every night. The handbook is <b>always at eye level</b>, glanceable, not memorized.</div>
+      <p class="moments-lead">Three loading conditions. Each gets a name and a slide of its own.</p>
+      <div class="moments" role="group" aria-label="Three loading conditions">
+        <div class="moment" style="border-left:3px solid var(--acc2)"><span class="pill b">always</span><span class="what"><b>The session starts.</b> Your rules and the team's rules load before your first message</span></div>
+        <div class="moment" style="border-left:3px solid var(--warn)"><span class="pill w">conditional</span><span class="what"><b>A file matches.</b> Rules scoped to that folder or file kind join in</span></div>
+        <div class="moment" style="border-left:3px solid var(--acc)"><span class="pill a">on demand</span><span class="what"><b>You type /name.</b> Only that skill or command loads</span></div>
       </div>
     </div>
   </div>
@@ -204,7 +204,7 @@
       <div class="point"><span class="dot"></span><span>Loaded automatically at session start, <b>before your first message</b>.</span></div>
       <div class="point"><span class="dot"></span><span>It is <b>instruction, not configuration</b>. Claude tries to follow it. Guidance, not a locked door.</span></div>
       <div class="point bad"><span class="dot"></span><span>The longer it grows, the less of it is reliably honored. <b>Emphasis is a budget</b>: reserve IMPORTANT for the two or three rules that hurt when broken.</span></div>
-      <div class="analogy"><span class="tag">Restaurant model</span>The handbook hangs by the time clock. Everyone reads it at shift start. Nobody memorizes a forty-page handbook.</div>
+      <div class="analogy"><span class="tag">Restaurant model</span>The handbook is <b>always at eye level</b>, glanceable, not memorized. A forty-page handbook gets ignored.</div>
     </div>
     <div class="col">
       <pre class="code"><span class="c"># Basil Bistro — kitchen handbook</span>
@@ -242,27 +242,6 @@
   <div class="foot"><span><button class="click" data-dialog="shelf-quiz">Try it: where does each rule belong?</button></span><span></span></div>
 </section>
 
-<section class="slide">
-  <div class="kicker">The handbook · @path imports</div>
-  <h2>@path: staple the recipe card into the handbook</h2>
-  <div class="body">
-    <div class="col">
-      <div class="point"><span class="dot"></span><span><code>@</code> sits immediately before the path. Relative paths resolve against <b>the file that contains the import</b>.</span></div>
-      <div class="point"><span class="dot"></span><span>Imports can nest, at most <b>5 levels</b> deep.</span></div>
-      <div class="point bad"><span class="dot"></span><span>Organization, <b>not context savings</b>. Imports are expanded inline at launch, so the full text still loads into context.</span></div>
-      <div class="analogy"><span class="tag">Restaurant model</span>The handbook says "for prep standards, see the card on the fridge." Before the shift starts, someone <b>pulls that card off the fridge and staples it into the handbook</b>. The chef reads one document, not two.</div>
-    </div>
-    <div class="col">
-      <pre class="code"><span class="c"># Basil Bistro — kitchen handbook</span>
-Prep standards: <span class="f">@./docs/prep-standards.md</span>
-Service rules:  <span class="f">@./docs/service.md</span>
-
-<span class="c">// at launch, this becomes ONE long document:</span>
-<span class="c">// handbook + prep-standards.md + service.md</span></pre>
-    </div>
-  </div>
-</section>
-
 <section class="slide chicken-scope">
   <div class="kicker">The handbook · rules that span stations</div>
   <h2>Chicken safety belongs to two stations at once</h2>
@@ -287,6 +266,27 @@ Service rules:  <span class="f">@./docs/service.md</span>
       <div class="point bad"><span class="dot"></span><span>A station card only covers its own directory. To cover both, you would need <b>two copies</b> of the same rules.</span></div>
       <div class="point good"><span class="dot"></span><span><code>.claude/rules/</code> with a <code>paths</code> glob covers <b>both</b> from one file. No duplication.</span></div>
       <div class="point"><span class="dot"></span><span>The dashed entries are not files in those directories. They show <b>where the rule loads</b> at runtime.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">The handbook · @path imports</div>
+  <h2>@path: staple the recipe card into the handbook</h2>
+  <div class="body">
+    <div class="col">
+      <div class="point"><span class="dot"></span><span><code>@</code> sits immediately before the path. Relative paths resolve against <b>the file that contains the import</b>.</span></div>
+      <div class="point"><span class="dot"></span><span>Imports can nest, at most <b>5 levels</b> deep.</span></div>
+      <div class="point bad"><span class="dot"></span><span>Organization, <b>not context savings</b>. Imports are expanded inline at launch, so the full text still loads into context.</span></div>
+      <div class="analogy"><span class="tag">Restaurant model</span>The handbook says "for prep standards, see the card on the fridge." Before the shift starts, someone <b>pulls that card off the fridge and staples it into the handbook</b>. The chef reads one document, not two.</div>
+    </div>
+    <div class="col">
+      <pre class="code"><span class="c"># Basil Bistro — kitchen handbook</span>
+Prep standards: <span class="f">@./docs/prep-standards.md</span>
+Service rules:  <span class="f">@./docs/service.md</span>
+
+<span class="c">// at launch, this becomes ONE long document:</span>
+<span class="c">// handbook + prep-standards.md + service.md</span></pre>
     </div>
   </div>
 </section>
