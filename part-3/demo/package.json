@@ -1,0 +1,21 @@
+{
+  "name": "ccaf-claude-code-demo",
+  "version": "1.0.0",
+  "description": "CCAF crash course, Claude Code configuration loading and headless night-shift demo",
+  "scripts": {
+    "demo": "tsx src/server.ts",
+    "nightshift": "tsx src/run.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "ws": "^8.21.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3"
+  },
+  "type": "module",
+  "private": true
+}

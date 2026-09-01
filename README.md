@@ -14,7 +14,8 @@ every part.
 |---|---|---|
 | [Part 1](part-1/) | Agentic Architecture and Orchestration: the Claude API request body, the agent loop, multi-agent hub-and-spoke (live demo), and a full exam summary | ✅ ready |
 | [Part 2](part-2/) | Model Context Protocol and Tool Calling: a restaurant-themed path through hosts, clients, servers, tools/resources/prompts, tool descriptions and `tool_choice`, project vs personal configuration, structured errors, and a live protocol trace | ✅ ready |
-| Part 3+ | yours to add | |
+| [Part 3](part-3/) | Claude Code configuration and workflows: the CLAUDE.md hierarchy as knife roll / staff handbook / station card, ask-vs-enforce with hooks, `@path` imports, path-scoped `.claude/rules/`, skills and slash commands, planning mode, session hygiene, and the headless `claude -p` CI pattern with `--output-format json` + `--json-schema` | ✅ ready |
+| Part 4+ | yours to add | |
 
 Each part is a self-contained folder:
 
@@ -29,7 +30,9 @@ part-1/
 Part 2 follows the same structure. Its deterministic, token-free restaurant
 demo launches a real local MCP server, reads the menu resource, places one
 order, performs a successful search with no matches, and returns one structured
-tool error.
+tool error. Part 3 keeps the structure: its demo classifies a whole fixture
+repo's Claude Code configuration (what loads always, conditionally, and on
+demand), then runs the real `claude -p` unattended inside it.
 
 ## Running Part 1 (5 minutes)
 
@@ -66,6 +69,21 @@ npm run demo        # → open http://127.0.0.1:4848/part-2/slides.html
 On slide 13, click **Run live** to trace MCP discovery, a resource read, a
 successful tool call, a valid zero-result call, and a structured tool error.
 Run `npm run protocol` for the same trace as newline-delimited JSON.
+
+## Running Part 3 (3 minutes)
+
+```bash
+cd part-3/demo
+npm install
+npm run demo        # → open http://127.0.0.1:4949/part-3/slides.html
+```
+
+On slide 13, click **Run live** for the night shift: the demo classifies the
+fixture repo's whole configuration, then the real `claude -p` runs the
+close-of-day check unattended and returns schema-validated JSON findings.
+**Run live** needs the Claude Code CLI installed and logged in (as in Part 1);
+**Rehearse** replays the same event shapes without spawning anything. Run
+`npm run nightshift` for the same trace as newline-delimited JSON.
 
 ## Adding a part
 
