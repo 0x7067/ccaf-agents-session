@@ -236,7 +236,7 @@ Keep the source date and limits."</span>)</pre>
     </div>
     <div class="context-notes">
       <div class="point"><span class="dot"></span><span><b>Facts block:</b> keep IDs, dates, amounts, and status outside a lossy summary.</span></div>
-      <div class="point"><span class="dot"></span><span><b>Trim:</b> return five useful fields, not 40 noisy tool fields.</span></div>
+      <div class="point"><span class="dot"></span><span><b>Trim:</b> return five useful fields, not 19 noisy tool fields.</span></div>
       <div class="point"><span class="dot"></span><span><b>Delegate:</b> let a reporter read 15 files and return one compact report.</span></div>
       <div class="point"><span class="dot"></span><span><b>Scratchpad:</b> write durable findings so a new session can continue without rediscovery.</span></div>
       <button class="click" data-dialog="context">Open the longer Chapter 11 checklist ↗</button>
@@ -478,15 +478,17 @@ const supportRehearsal=[
  {t:'done',scenario:'support',msg:'support rehearsal complete · refund safe, policy gap escalated'}
 ];
 
-let mockTimers={research:[],support:[]};let ws;
+let mockTimers={research:[],support:[]};let ws;let stopWaiters=[];
 function stopMocks(scenario){for(const timer of mockTimers[scenario])clearTimeout(timer);mockTimers[scenario]=[]}
-function startMock(scenario){stopMocks('research');stopMocks('support');send('stop');if(scenario==='research')resetResearch();else resetSupport();const events=scenario==='research'?researchRehearsal:supportRehearsal;events.forEach((event,index)=>{mockTimers[scenario].push(setTimeout(()=>{if(scenario==='research')researchEvent(event);else supportEvent(event)},index===0?0:index*360))})}
+function waitForStop(){if(!ws||ws.readyState!==WebSocket.OPEN)return Promise.resolve();return new Promise(resolve=>{stopWaiters.push(resolve);send('stop')})}
+function resolveStopWaiters(){const waiters=stopWaiters.splice(0);waiters.forEach(resolve=>resolve())}
+function startMock(scenario){stopMocks('research');stopMocks('support');if(scenario==='research')resetResearch();else resetSupport();const events=scenario==='research'?researchRehearsal:supportRehearsal;waitForStop().then(()=>events.forEach((event,index)=>{mockTimers[scenario].push(setTimeout(()=>{if(scenario==='research')researchEvent(event);else supportEvent(event)},index===0?0:index*360))}))}
 function send(command,scenario){if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({cmd:command,scenario}))}
 function startLive(scenario){stopMocks(scenario);if(scenario==='research')resetResearch();else resetSupport();if(location.protocol==='file:'||location.hostname==='tot.page'){const event={t:'error',scenario,msg:`${scenario} live needs the local demo server. Use rehearsal on this static page.`};if(scenario==='research')researchEvent(event);else supportEvent(event);return}send('start',scenario)}
 function stopEverything(){stopMocks('research');stopMocks('support');send('stop');setStatus('research-status','stopped');setStatus('support-status','stopped')}
 document.getElementById('research-mock').addEventListener('click',()=>startMock('research'));document.getElementById('research-live').addEventListener('click',()=>startLive('research'));document.getElementById('research-stop').addEventListener('click',stopEverything);document.getElementById('support-mock').addEventListener('click',()=>startMock('support'));document.getElementById('support-live').addEventListener('click',()=>startLive('support'));document.getElementById('support-stop').addEventListener('click',stopEverything);
-function handle(event){if(event.scenario==='research'||(event.t==='status'&&event.scenario==='all'))researchEvent(event);if(event.scenario==='support'||(event.t==='status'&&event.scenario==='all'))supportEvent(event);if(event.t==='status'&&!event.scenario){setStatus('research-status',event.msg);setStatus('support-status',event.msg)}}
-function connect(){if(location.protocol==='file:'||location.hostname==='tot.page')return;const protocol=location.protocol==='https:'?'wss':'ws';ws=new WebSocket(`${protocol}://${location.host}/ws`);ws.onmessage=message=>{try{handle(JSON.parse(message.data))}catch{}};ws.onclose=()=>{setStatus('research-status','disconnected · use rehearsal or restart the demo server');setStatus('support-status','disconnected · use rehearsal or restart the demo server')}}
+function handle(event){if(event.t==='status'&&event.msg==='stopped')resolveStopWaiters();if(event.scenario==='research'||(event.t==='status'&&event.scenario==='all'))researchEvent(event);if(event.scenario==='support'||(event.t==='status'&&event.scenario==='all'))supportEvent(event);if(event.t==='status'&&!event.scenario){setStatus('research-status',event.msg);setStatus('support-status',event.msg)}}
+function connect(){if(location.protocol==='file:'||location.hostname==='tot.page')return;const protocol=location.protocol==='https:'?'wss':'ws';ws=new WebSocket(`${protocol}://${location.host}/ws`);ws.onmessage=message=>{try{handle(JSON.parse(message.data))}catch{}};ws.onclose=()=>{resolveStopWaiters();setStatus('research-status','disconnected · use rehearsal or restart the demo server');setStatus('support-status','disconnected · use rehearsal or restart the demo server')}}
 connect();
 
 const questions=[

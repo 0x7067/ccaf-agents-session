@@ -21,7 +21,14 @@ const contentTypes: Record<string, string> = {
 };
 
 const httpServer = createServer((request, response) => {
-  const requestPath = decodeURIComponent(new URL(request.url ?? '/', `http://${request.headers.host ?? '127.0.0.1'}`).pathname);
+  let requestPath: string;
+  try {
+    requestPath = decodeURIComponent(new URL(request.url ?? '/', `http://${request.headers.host ?? '127.0.0.1'}`).pathname);
+  } catch {
+    response.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' });
+    response.end('Bad request');
+    return;
+  }
   const relative = requestPath === '/' ? 'index.html' : requestPath.replace(/^\/+/, '');
   const candidate = path.resolve(repoRoot, relative);
   if (!candidate.startsWith(`${repoRoot}${path.sep}`) || !existsSync(candidate) || !statSync(candidate).isFile()) {
