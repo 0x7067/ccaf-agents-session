@@ -43,6 +43,7 @@ const httpServer = createServer((request, response) => {
 const sockets = new Set<WebSocket>();
 const webSockets = new WebSocketServer({ server: httpServer, path: '/ws' });
 let controller: AbortController | undefined;
+let activeRun: Promise<void> | undefined;
 
 function broadcast(event: unknown): void {
   const payload = JSON.stringify(event);
@@ -51,9 +52,14 @@ function broadcast(event: unknown): void {
   }
 }
 
-function stopCurrent(): void {
+async function stopCurrent(): Promise<void> {
+  const run = activeRun;
   controller?.abort();
-  controller = undefined;
+  await run;
+  if (activeRun === run) {
+    activeRun = undefined;
+    controller = undefined;
+  }
 }
 
 webSockets.on('connection', socket => {
@@ -68,23 +74,32 @@ webSockets.on('connection', socket => {
       return;
     }
     if (message.cmd === 'stop') {
-      stopCurrent();
+      await stopCurrent();
       broadcast({ t: 'status', msg: 'stopped' });
       return;
     }
     if (message.cmd !== 'start' && message.cmd !== 'mock') return;
-    stopCurrent();
+    await stopCurrent();
     const scenario = message.scenario === 'support' ? 'support' : 'research';
     const runController = new AbortController();
     controller = runController;
+    const run = (async () => {
+      try {
+        if (message.cmd === 'mock') await runRehearsal(scenario, broadcast, runController.signal);
+        else await runScenario(scenario as Scenario, broadcast, runController.signal);
+      } catch (error) {
+        const text = error instanceof Error ? error.message : String(error);
+        if (text !== 'stopped') broadcast({ t: 'error', scenario, msg: text });
+      }
+    })();
+    activeRun = run;
     try {
-      if (message.cmd === 'mock') await runRehearsal(scenario, broadcast, runController.signal);
-      else await runScenario(scenario as Scenario, broadcast, runController.signal);
-    } catch (error) {
-      const text = error instanceof Error ? error.message : String(error);
-      if (text !== 'stopped') broadcast({ t: 'error', scenario, msg: text });
+      await run;
     } finally {
-      if (controller === runController) controller = undefined;
+      if (activeRun === run) {
+        activeRun = undefined;
+        controller = undefined;
+      }
     }
   });
 
