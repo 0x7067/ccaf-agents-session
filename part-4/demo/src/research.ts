@@ -177,10 +177,17 @@ function agentFor(id: string, spawned: Map<string, string>): string {
   return spawned.get(id) ?? 'subagent';
 }
 
+type ReporterStatus = 'completed' | 'partial_failure' | 'failed';
+
+function coverageFromReporterStatuses(statuses: ReadonlyMap<string, ReporterStatus>): 'full' | 'partial' {
+  return Object.keys(ASSIGNED_SOURCE_BY_AGENT).every(agent => statuses.get(agent) === 'completed') ? 'full' : 'partial';
+}
+
 function translate(
   message: SDKMessage,
   spawned: Map<string, string>,
   lastText: Map<string, string>,
+  reporterStatuses: Map<string, ReporterStatus>,
 ): DemoEvent[] {
   const events: DemoEvent[] = [];
   switch (message.type) {
@@ -193,12 +200,14 @@ function translate(
           const result = message.status === 'completed'
             ? (lastText.get(id) ?? message.summary)
             : `Subagent ${message.status}: ${message.summary}`;
+          const status = statusForReport(result, message.status !== 'completed');
+          reporterStatuses.set(agentFor(id, spawned), status);
           events.push({
             t: 'sub_done',
             scenario: 'research',
             parentId: id,
             agent: agentFor(id, spawned),
-            status: statusForReport(result, message.status !== 'completed'),
+            status,
             result,
             tokens: message.usage?.total_tokens,
           });
@@ -260,12 +269,14 @@ function translate(
           const result = extractText(block.content);
           const launchStub = result.includes('Async agent launched successfully') || result.includes('background');
           if (!launchStub) {
+            const status = statusForReport(result, Boolean('is_error' in block && block.is_error));
+            reporterStatuses.set(agentFor(id, spawned), status);
             events.push({
               t: 'sub_done',
               scenario: 'research',
               parentId: id,
               agent: agentFor(id, spawned),
-              status: statusForReport(result, Boolean('is_error' in block && block.is_error)),
+              status,
               result,
             });
           }
@@ -281,7 +292,7 @@ function translate(
           scenario: 'research',
           summary: 'The coordinator returned a coverage-annotated brief.',
           report,
-          coverage: /partial|gap|not covered|unavailable/i.test(report) ? 'partial' : 'full',
+          coverage: coverageFromReporterStatuses(reporterStatuses),
           costUsd: message.total_cost_usd ?? null,
           durationMs: message.duration_ms,
           numTurns: message.num_turns,
@@ -305,6 +316,7 @@ export async function runResearch(emit: Emit, signal?: AbortSignal, delayMs = 0)
   signal?.addEventListener('abort', stop, { once: true });
   const spawned = new Map<string, string>();
   const lastText = new Map<string, string>();
+  const reporterStatuses = new Map<string, ReporterStatus>();
   const completed = new Set<string>();
   let initSent = false;
   let completedSuccessfully = false;
@@ -335,7 +347,7 @@ export async function runResearch(emit: Emit, signal?: AbortSignal, delayMs = 0)
     });
 
     for await (const message of messages) {
-      for (const event of translate(message, spawned, lastText)) {
+      for (const event of translate(message, spawned, lastText, reporterStatuses)) {
         if (event.t === 'init') {
           if (initSent) continue;
           initSent = true;
