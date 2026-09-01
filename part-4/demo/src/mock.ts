@@ -10,16 +10,29 @@ const S = 'toolu_rehearsal_synthesis';
 
 const researchPrompt = [
   'Research question: "How is AI changing creative industries?"',
-  'Coverage: visual art, music, literature, and film.',
-  'Spawn visual-art-researcher, music-researcher, and literature-film-researcher in parallel.',
-  'Pass each one its source path and output schema. Preserve partial failures.',
+  '',
+  'You are the coordinator. Your job is to make a truthful, coverage-annotated brief.',
+  'The requested coverage is visual art, music, literature, and film.',
+  '',
+  'First, spawn these three reporters in parallel in one response:',
+  '- visual-art-researcher: sources/visual-art.md',
+  '- music-researcher: sources/music.md',
+  '- literature-film-researcher: sources/literature-film.md',
+  'Pass each reporter its source path, research question, its exact output fields, and the rule that it must not read another packet.',
+  '',
+  'When all three reports return, check coverage. Then spawn synthesis-editor with the full reporter reports, including any structured failure context.',
+  'Keep all communication through you. Reporters never call one another.',
+  'If a report is partial, keep the completed work and mark the affected section PARTIAL COVERAGE in the final brief.',
+  'Do not invent a claim, silently drop a missing source, or return raw source dumps.',
 ].join('\n');
 
 const synthesisPrompt = [
   'Synthesize these reporter packets into a coverage-annotated brief.',
-  'VISUAL ART: status completed; source ART-2025-01; dated 2025-02-14;',
-  'MUSIC: status partial_failure; failure_type source_timeout; coverage_impact music production not covered;',
-  'LITERATURE + FILM: status completed; source CULTURE-2025-03; dated 2025-03-08.',
+  'Return key_findings first, then one section per requested area with source IDs, dates, and a coverage label.',
+  'VISUAL ART REPORT: status completed; source_id ART-2025-01; source_date 2025-02-14; key_findings: studios use generative tools for concept sketches and variations; limits: does not show replacement of human approval.',
+  'MUSIC REPORT: status partial_failure; failure_type source_timeout; attempted_query "AI impact on music industry 2024"; partial_results []; alternative_approaches ["retry another source"]; coverage_impact "music production is not covered".',
+  'LITERATURE + FILM REPORT: status completed; source_id CULTURE-2025-03; source_date 2025-03-08; key_findings: brainstorming, storyboards, translation drafts, previsualization; limits: generated drafts still need human editing.',
+  'Preserve partial failures. Never turn a timeout into an empty result or fill a gap from memory.',
 ].join('\n');
 
 export const RESEARCH_REHEARSAL: TimedEvent[] = [
@@ -28,9 +41,9 @@ export const RESEARCH_REHEARSAL: TimedEvent[] = [
   { at: 2, e: { t: 'init', scenario: 'research', model: 'claude-sonnet-4-6', tools: ['Agent', 'Task', 'Read', 'Glob'] } },
   { at: 3, e: { t: 'coord_prompt', scenario: 'research', prompt: researchPrompt } },
   { at: 4, e: { t: 'coord_text', scenario: 'research', text: 'I will cover visual art, music, literature, and film. The three independent assignments can run together.' } },
-  { at: 5, e: { t: 'spawn', scenario: 'research', id: V, agent: 'visual-art-researcher', description: 'check visual-art evidence', prompt: 'Read only sources/visual-art.md. Return status, source_id, source_date, key_findings, and limits.', tools: ['Read', 'Glob'] } },
-  { at: 6, e: { t: 'spawn', scenario: 'research', id: M, agent: 'music-researcher', description: 'check music evidence', prompt: 'Read only sources/music.md. If SOURCE_STATUS is unavailable, return partial_failure with attempted_query and coverage_impact. Do not invent findings.', tools: ['Read', 'Glob'] } },
-  { at: 7, e: { t: 'spawn', scenario: 'research', id: L, agent: 'literature-film-researcher', description: 'check literature and film evidence', prompt: 'Read only sources/literature-film.md. Return dated claims and limits, with literature and film named separately.', tools: ['Read', 'Glob'] } },
+  { at: 5, e: { t: 'spawn', scenario: 'research', id: V, agent: 'visual-art-researcher', description: 'check visual-art evidence', prompt: 'Read only sources/visual-art.md in the current research packet. Return a compact structured report with status, source_id, source_date, key_findings, and limits. Keep the source date and do not claim that the packet proves more than it says. Do not read another beat reporter\'s packet. Do not return the full document.', tools: ['Read', 'Glob'] } },
+  { at: 6, e: { t: 'spawn', scenario: 'research', id: M, agent: 'music-researcher', description: 'check music evidence', prompt: 'Read only sources/music.md in the current research packet. If SOURCE_STATUS says unavailable, return status partial_failure, failure_type, attempted_query, partial_results, and coverage_impact. An unavailable source is not a successful empty result. Do not invent music findings. Do not read another beat reporter\'s packet. Keep the report compact.', tools: ['Read', 'Glob'] } },
+  { at: 7, e: { t: 'spawn', scenario: 'research', id: L, agent: 'literature-film-researcher', description: 'check literature and film evidence', prompt: 'Read only sources/literature-film.md in the current research packet. Return a compact structured report with status, source_id, source_date, key_findings, and limits. Name literature and film separately in coverage, and keep the source date. Do not read another beat reporter\'s packet. Do not return the full document.', tools: ['Read', 'Glob'] } },
   { at: 8, e: { t: 'sub_tool', scenario: 'research', parentId: V, agent: 'visual-art-researcher', tool: 'Read', detail: 'sources/visual-art.md' } },
   { at: 9, e: { t: 'sub_tool', scenario: 'research', parentId: M, agent: 'music-researcher', tool: 'Read', detail: 'sources/music.md' } },
   { at: 10, e: { t: 'sub_tool', scenario: 'research', parentId: L, agent: 'literature-film-researcher', tool: 'Read', detail: 'sources/literature-film.md' } },
