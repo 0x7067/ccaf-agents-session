@@ -11,6 +11,54 @@ const SPAWN_TOOLS = new Set(['Agent', 'Task']);
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const researchFixture = path.resolve(here, '..', 'fixtures', 'research');
 
+const ASSIGNED_SOURCE_BY_AGENT: Record<string, string> = {
+  'visual-art-researcher': 'sources/visual-art.md',
+  'music-researcher': 'sources/music.md',
+  'literature-film-researcher': 'sources/literature-film.md',
+} as const;
+const RESEARCH_SOURCE_PATHS = new Set(Object.values(ASSIGNED_SOURCE_BY_AGENT));
+
+function requestedPath(toolName: string, input: unknown): string | undefined {
+  if (!READ_ONLY_TOOLS.includes(toolName) || typeof input !== 'object' || input === null) return undefined;
+  const field = toolName === 'Read' ? 'file_path' : 'pattern';
+  const value = (input as Record<string, unknown>)[field];
+  return typeof value === 'string' ? value : undefined;
+}
+
+function isExactSourceRequest(toolName: string, input: unknown, sourcePath: string): boolean {
+  const candidate = requestedPath(toolName, input);
+  return candidate !== undefined && path.resolve(researchFixture, candidate) === path.resolve(researchFixture, sourcePath);
+}
+
+function isKnownSourceRequest(toolName: string, input: unknown): boolean {
+  return [...RESEARCH_SOURCE_PATHS].some(sourcePath => isExactSourceRequest(toolName, input, sourcePath));
+}
+
+const RESEARCH_HOOKS: NonNullable<Options['hooks']> = {
+  PreToolUse: [{
+    matcher: '^(Read|Glob)$',
+    hooks: [async input => {
+      if (input.hook_event_name !== 'PreToolUse') return { continue: true };
+      const assignedSource = input.agent_id ? ASSIGNED_SOURCE_BY_AGENT[input.agent_type ?? ''] : undefined;
+      const allowed = input.agent_id
+        ? assignedSource !== undefined && isExactSourceRequest(input.tool_name, input.tool_input, assignedSource)
+        : isKnownSourceRequest(input.tool_name, input.tool_input);
+      if (allowed) return { continue: true };
+      const reason = assignedSource
+        ? `${input.agent_type} may read only ${assignedSource}`
+        : 'Only assigned research source packets may be read';
+      return {
+        continue: true,
+        hookSpecificOutput: {
+          hookEventName: 'PreToolUse' as const,
+          permissionDecision: 'deny' as const,
+          permissionDecisionReason: reason,
+        },
+      };
+    }],
+  }],
+};
+
 /**
  * The three reporters have separate notebooks. The editor receives their
  * reports later through the coordinator, not through direct reporter calls.
@@ -259,6 +307,7 @@ export async function runResearch(emit: Emit, signal?: AbortSignal, delayMs = 0)
   const lastText = new Map<string, string>();
   const completed = new Set<string>();
   let initSent = false;
+  let completedSuccessfully = false;
 
   emit({ t: 'status', scenario: 'research', msg: 'live research run · coordinator is preparing three beat assignments' });
   emit({ t: 'phase', scenario: 'research', name: 'decompose', detail: 'three independent coverage areas will run in parallel' });
@@ -273,8 +322,10 @@ export async function runResearch(emit: Emit, signal?: AbortSignal, delayMs = 0)
         systemPrompt: 'You are a careful research coordinator. Preserve source dates, gaps, and provenance. Never fill an unavailable source from memory.',
         agents: RESEARCH_AGENTS,
         allowedTools: COORDINATOR_ALLOWED_TOOLS,
-        canUseTool: async (toolName) => {
-          if (SPAWN_TOOLS.has(toolName) || READ_ONLY_TOOLS.includes(toolName)) return { behavior: 'allow' };
+        hooks: RESEARCH_HOOKS,
+        canUseTool: async (toolName, input) => {
+          if (SPAWN_TOOLS.has(toolName)) return { behavior: 'allow' };
+          if (READ_ONLY_TOOLS.includes(toolName) && isKnownSourceRequest(toolName, input)) return { behavior: 'allow' };
           return { behavior: 'deny', message: `Tool ${toolName} is blocked: the research packet is read-only.` };
         },
         forwardSubagentText: true,
@@ -293,18 +344,20 @@ export async function runResearch(emit: Emit, signal?: AbortSignal, delayMs = 0)
           if (completed.has(event.parentId)) continue;
           completed.add(event.parentId);
         }
+        if (event.t === 'error') throw new Error(event.msg);
+        if (event.t === 'final') completedSuccessfully = true;
         emit(event);
         if (delayMs > 0) await sleep(delayMs, signal);
       }
     }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (!abort.signal.aborted && message !== 'stopped') {
-      emit({ t: 'error', scenario: 'research', msg: `Live research could not finish: ${message}. Use Research rehearsal for a token-free run.` });
+    if (!completedSuccessfully && !abort.signal.aborted) {
+      throw new Error('Live research ended without a final brief');
     }
+  } catch (error) {
+    if (!abort.signal.aborted) throw error;
   } finally {
     signal?.removeEventListener('abort', stop);
-    if (!abort.signal.aborted) {
+    if (!abort.signal.aborted && completedSuccessfully) {
       emit({ t: 'done', scenario: 'research', msg: 'research run ended · inspect the final coverage label' });
     }
   }
