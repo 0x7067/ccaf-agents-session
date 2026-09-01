@@ -1,0 +1,20 @@
+{
+  "name": "ccaf-agents-course",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ravn CCAF crash course teaching kit",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "check": "npm run check:parts",
+    "check:parts": "npm run check:part-1 && npm run check:part-2 && npm run check:part-3 && npm run check:part-4",
+    "check:part-1": "npm --prefix part-1/demo run typecheck",
+    "check:part-2": "npm --prefix part-2/demo run typecheck",
+    "check:part-3": "npm --prefix part-3/demo run typecheck",
+    "check:part-4": "npm --prefix part-4/demo run typecheck",
+    "test": "npm run test:protocol && npm run test:rehearsals",
+    "test:protocol": "npm --prefix part-2/demo run protocol",
+    "test:rehearsals": "npm --prefix part-4/demo run trace -- --rehearse research && npm --prefix part-4/demo run trace -- --rehearse support"
+  }
+}

@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Part 4 · Multi-agent research and customer support</title>
+<style>
+  :root{
+    --bg:#0e1118;--bg2:#131826;--panel:#1a2132;--panel2:#212a40;--line:#2a3554;
+    --ink:#e8ecf6;--dim:#9aa5bd;--faint:#6b7690;--acc:#7aa2ff;--acc2:#5eead4;
+    --warn:#ffb86b;--bad:#ff7b8a;--ok:#7ce38b;--violet:#c792ea;
+    --mono:ui-monospace,'SF Mono','Cascadia Code','JetBrains Mono',Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden}
+  button{font:inherit}
+  #deck{height:100vh;position:relative}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;padding:54px 78px 68px;background:linear-gradient(160deg,#111522 0%,var(--bg) 42%);overflow:hidden}
+  .slide.on{display:flex;animation:fade .28s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+  .kicker{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc);font-weight:800;margin-bottom:13px}
+  h1{font-size:64px;line-height:1.04;font-weight:850;letter-spacing:-.035em}
+  h2{font-size:42px;line-height:1.08;font-weight:830;letter-spacing:-.025em;margin-bottom:8px}
+  h3{font-size:21px;line-height:1.17}
+  p{line-height:1.5}
+  .sub{font-size:21px;color:var(--dim);margin-top:15px;line-height:1.45;max-width:31em}
+  .body{flex:1;display:flex;gap:34px;align-items:stretch;margin-top:25px;min-height:0}
+  .col{flex:1;min-width:0;display:flex;flex-direction:column;gap:14px;justify-content:center}
+  .point{display:flex;gap:12px;align-items:flex-start;font-size:18px;line-height:1.45}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--acc);margin-top:9px;flex:0 0 9px}
+  .point.good .dot{background:var(--ok)}.point.bad .dot{background:var(--bad)}.point.warn .dot{background:var(--warn)}
+  .point b{color:#fff}
+  .dot.num{width:22px;height:22px;flex:0 0 22px;margin-top:3px;display:grid;place-items:center;font:800 12px var(--mono);color:#0d1322}
+  code{font-family:var(--mono);font-size:.86em;font-weight:650;color:var(--acc);background:#18213a;border:1px solid #26335a;border-radius:6px;padding:1px 6px}
+  pre{font-family:var(--mono);white-space:pre-wrap}
+  pre.code{background:#0b0e15;border:1px solid #232c44;border-radius:14px;padding:18px 21px;font-size:14px;line-height:1.55;overflow:auto}
+  .c{color:#68748e;font-style:italic}.s{color:#9ce7a9}.n{color:var(--warn)}.f{color:#82aaff}.v{color:var(--violet)}
+  .callout{font-size:29px;font-weight:820;line-height:1.27}.callout em{color:var(--acc);font-style:normal}
+  .analogy{background:linear-gradient(135deg,#1c2440,#182034);border:1px solid #2c3a5e;border-radius:16px;padding:17px 20px;font-size:17px;line-height:1.5}
+  .analogy .tag{display:block;width:max-content;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--acc2);border:1px solid #2e4a49;border-radius:99px;padding:3px 10px;margin-bottom:8px;font-weight:800}
+  .analogy b{color:var(--acc2)}
+  .scene-pair{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:28px;max-width:900px}
+  .scene{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:18px 20px}
+  .scene.research{border-color:#60467a}.scene.support{border-color:#2e4a49}
+  .scene .eyebrow{font:11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--violet);margin-bottom:8px}.scene.support .eyebrow{color:var(--acc2)}
+  .scene p{color:var(--dim);font-size:16px}.scene h3{margin-bottom:7px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:21px;flex:1;align-content:center;align-items:start;min-height:0}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;flex:1;align-content:center;align-items:start;min-height:0}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px;min-width:0}
+  .card.win{background:linear-gradient(160deg,#1b2743,#141b2c);border-color:#31527a}
+  .card.research{border-color:#60467a}.card.support{border-color:#2e4a49}
+  .card .icon{font:800 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--acc2)}
+  .card.research .icon{color:var(--violet)}
+  .card p{font-size:15px;color:var(--dim);line-height:1.47}
+  .pill{display:inline-block;width:max-content;font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;border-radius:99px;padding:4px 10px}
+  .pill.a{background:#243352;color:var(--acc)}.pill.b{background:#233c37;color:var(--acc2)}.pill.w{background:#35291d;color:var(--warn)}.pill.v{background:#30243b;color:var(--violet)}.pill.bad{background:#3a1e26;color:#ffb8c0}
+  .trace{display:flex;gap:9px;align-items:center;justify-content:center;flex-wrap:wrap;font:14px var(--mono);margin:18px 0}.trace span{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px}.trace i{color:var(--acc2);font-style:normal}
+  .story{background:var(--bg2);border:1px solid #60467a;border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+  .story-head{display:flex;align-items:flex-start;gap:12px}.story-head .stamp{font:11px var(--mono);color:var(--violet);text-transform:uppercase;letter-spacing:.14em}.story-head h3{margin-top:4px}
+  .coverage{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.coverage div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px}.coverage b{display:block;font-size:12px}.coverage span{display:block;font:11px var(--mono);color:var(--dim);margin-top:4px}
+  .hub-diagram{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:12px;align-items:center;flex:1;min-height:0}
+  .hub-center{background:linear-gradient(145deg,#30243b,#20223a);border:1px solid #765a90;border-radius:17px;padding:22px;text-align:center;box-shadow:0 12px 30px #0004}.hub-center b{display:block;font-size:22px}.hub-center small{display:block;color:#d8bff0;font:12px var(--mono);margin-top:6px}
+  .spokes{display:flex;flex-direction:column;gap:11px}.spoke{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:13px 15px}.spoke b{display:block;font-size:15px}.spoke small{display:block;color:var(--dim);font-size:12px;line-height:1.35;margin-top:4px}.spoke.left{text-align:right}
+  .choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;flex:1;align-content:center;align-items:start}.choice{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:21px}.choice.fixed{border-color:#31527a}.choice.dynamic{border-color:#765a90}.choice h3{display:flex;align-items:center;gap:9px;margin-bottom:9px}.choice p{font-size:15px;color:var(--dim);line-height:1.48}.choice ul{list-style:none;margin-top:12px;display:flex;flex-direction:column;gap:7px;color:var(--dim);font-size:14px}.choice li::before{content:'·';color:var(--acc2);font-weight:900;margin-right:9px}.rule-strip{margin-top:16px;background:#192234;border:1px solid #31527a;border-radius:13px;padding:13px 17px;font-size:16px;line-height:1.45}.rule-strip b{color:var(--acc2)}
+  .assignment{display:flex;flex-direction:column;gap:9px;background:var(--bg2);border:1px solid #60467a;border-radius:15px;padding:15px 17px}.assignment .row{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:start;font-size:14px}.assignment .label{font:11px var(--mono);color:var(--violet);text-transform:uppercase;letter-spacing:.1em}.assignment .value{color:var(--dim);line-height:1.4}.assignment .value b{color:var(--ink)}
+  .error-table{border-collapse:collapse;width:100%;font-size:15px}.error-table th,.error-table td{border-bottom:1px solid #263049;padding:11px 12px;text-align:left;vertical-align:top}.error-table th{color:var(--dim);font-size:11px;letter-spacing:.12em;text-transform:uppercase}.error-table td:first-child{font-family:var(--mono);color:var(--warn);white-space:nowrap}.error-table td:nth-child(2){color:var(--dim)}.error-table td:last-child{color:var(--ink)}
+  .context-layout{display:grid;grid-template-columns:1.08fr .92fr;gap:22px;flex:1;align-items:center;min-height:0}.context-stack{display:flex;flex-direction:column;gap:8px}.context-block{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px 15px}.context-block b{display:block;font:11px var(--mono);color:var(--acc2);letter-spacing:.1em;margin-bottom:5px}.context-block p{font:13px/1.45 var(--mono);color:var(--dim)}.context-block.top{border-color:#31527a}.context-block.bottom{border-color:#60467a}.context-notes{display:flex;flex-direction:column;gap:14px}.context-notes .point{font-size:16px}.link-note{font-size:13px;color:var(--dim);line-height:1.45}
+  .chat{background:var(--bg2);border:1px solid #2e4a49;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:11px}.chat-head{display:flex;gap:10px;align-items:center;border-bottom:1px solid #263049;padding-bottom:10px}.avatar{width:29px;height:29px;border-radius:9px;background:var(--acc2);color:#0d1322;display:grid;place-items:center;font-weight:850}.chat-head small{display:block;color:var(--dim);font:11px var(--mono);margin-top:2px}.chat-state{margin-left:auto;font:10px var(--mono);letter-spacing:.1em;color:var(--acc2);text-transform:uppercase}.bubble{max-width:92%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.42}.bubble.user{align-self:flex-end;background:#243352;border-color:#31527a}.bubble.agent{background:#233c37;border-color:#2e4a49}.bubble small{display:block;color:var(--faint);font:10px var(--mono);margin-bottom:4px}
+  .tool-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;flex:1;align-content:center;align-items:start}.tool-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px;min-width:0}.tool-card h3{font:700 15px var(--mono);color:var(--acc);margin-bottom:7px}.tool-card.support h3{color:var(--acc2)}.tool-card p{font-size:13px;color:var(--dim);line-height:1.45}.tool-card .boundary{margin-top:9px;padding-top:8px;border-top:1px solid var(--line);font-size:12px;color:var(--warn)}
+  .guard-layout{display:grid;grid-template-columns:1fr 1fr;gap:22px;flex:1;align-items:center;min-height:0}.versus{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}.versus.prompt{border-color:#765a90}.versus.codeguard{border-color:#2e4a49}.versus h3{margin-bottom:10px;display:flex;gap:9px;align-items:center}.versus p{color:var(--dim);font-size:15px;line-height:1.48}.versus pre{margin-top:12px;font-size:13px}.arrow-note{text-align:center;color:var(--acc2);font:12px var(--mono);margin-top:12px}
+  .handoff-layout{display:grid;grid-template-columns:.9fr 1.1fr;gap:22px;flex:1;align-items:center;min-height:0}.facts{background:#0b0e15;border:1px solid #31527a;border-radius:15px;padding:16px 18px}.facts-title{font:11px var(--mono);color:var(--acc2);letter-spacing:.1em;margin-bottom:10px}.facts div{font:13px/1.55 var(--mono);color:var(--dim)}.facts b{color:var(--ink);font-weight:600}.handoff{background:var(--bg2);border:1px solid #765a90;border-radius:15px;padding:16px 18px}.handoff-title{font:11px var(--mono);color:var(--violet);letter-spacing:.1em;margin-bottom:10px}.handoff pre{font-size:12px;line-height:1.52;color:var(--dim)}
+  .demo{padding:28px 34px 48px}.demo-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}.demo-head h2{font-size:27px;margin:0;white-space:nowrap}.demo-head .spacer{flex:1}.demo-status{font:11px var(--mono);color:var(--faint);max-width:30em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.demo-count{font:11px var(--mono);color:var(--acc2)}.btn{border:0;border-radius:9px;padding:8px 12px;background:var(--acc);color:#0d1322;font-size:12px;font-weight:800;cursor:pointer}.btn:hover{filter:brightness(1.1)}.btn.ghost{background:var(--panel2);color:var(--ink)}.btn.violet{background:#765a90;color:#fff}.btn.stop{background:var(--bad);color:#270a0f}.btn:focus-visible,.click:focus-visible,.event:focus-visible,.opt:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
+  .demo-grid{flex:1;display:grid;grid-template-columns:.95fr 1.05fr;gap:14px;min-height:0}.demo-left,.demo-right{min-height:0;display:flex;flex-direction:column;gap:9px}.event-log{flex:1;background:var(--bg2);border:1px solid #232c44;border-radius:15px;padding:10px;overflow:auto;min-height:0}.event{display:block;width:100%;text-align:left;color:var(--ink);border:1px solid var(--line);font:11px/1.42 var(--mono);background:var(--panel);border-radius:8px;padding:7px 9px;margin-bottom:6px;cursor:pointer}.event:hover{background:var(--panel2)}.event.research{border-color:#60467a}.event.good{border-color:#346b44}.event.warn{border-color:#7a5a34}.event.bad{border-color:#7a3441}.event .muted{color:var(--faint)}.event b{font-weight:800}.demo-panel{background:var(--bg2);border:1px solid #232c44;border-radius:15px;padding:13px;overflow:auto;min-height:0}.demo-panel h3{font:11px var(--mono);color:var(--acc2);letter-spacing:.1em;margin-bottom:8px}.demo-panel pre{font:11px/1.5 var(--mono);color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}.demo-panel.report{flex:1}.demo-panel.report pre{font:12px/1.5 var(--dim)}.state-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.state{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:8px}.state b{display:block;font-size:11px}.state span{display:block;font:10px var(--mono);color:var(--dim);margin-top:3px;line-height:1.35}.state.yes{border-color:#346b44}.state.no{border-color:#7a3441}.demo-buttons{display:flex;gap:7px;flex-wrap:wrap}
+  .click{cursor:pointer;background:none;border:0;border-bottom:1px dashed var(--acc);color:var(--acc);font:inherit;text-align:left}.click:hover{color:var(--acc2)}
+  .quiz{display:flex;flex-direction:column;gap:10px;margin-top:13px}.quiz .q{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px 14px}.quiz .q p{font-size:14px;line-height:1.43;margin-bottom:9px}.quiz .options{display:flex;gap:6px;flex-wrap:wrap}.quiz .opt{border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--panel2);color:var(--ink);font-size:12px;cursor:pointer}.quiz .opt:hover{background:#273455}.quiz .opt.correct{background:#1e3a2c;border-color:#3f8f5b;color:#b2f2c2}.quiz .opt.wrong{background:#3a1e26;border-color:#9b3b4d;color:#ffb8c0}.quiz .feedback{display:none;color:var(--dim);font-size:12px;line-height:1.4;margin-top:8px}.quiz .q.answered .feedback{display:block}.quiz .q.answered .opt{cursor:default}
+  .decision{border-collapse:collapse;width:100%;font-size:15px;flex:1}.decision th,.decision td{border-bottom:1px solid #263049;padding:10px 12px;text-align:left;vertical-align:top}.decision th{font:11px var(--mono);color:var(--dim);letter-spacing:.12em;text-transform:uppercase}.decision td:first-child{color:var(--warn);font-family:var(--mono);white-space:nowrap}.decision td:last-child{color:var(--dim)}
+  .reading-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;align-content:center;align-items:start}.reading{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:18px}.reading h3{font-size:18px;margin-bottom:9px}.reading p{font-size:14px;color:var(--dim);line-height:1.45}.reading ul{list-style:none;margin-top:10px;display:flex;flex-direction:column;gap:7px}.reading li{font:12px var(--mono);line-height:1.35}.reading a{color:var(--acc);text-decoration:none}.reading a:hover{text-decoration:underline}.reading.research{border-color:#60467a}.reading.support{border-color:#2e4a49}
+  .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;flex:1;align-content:center;align-items:start}.summary-list{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:17px 19px;display:flex;flex-direction:column;gap:9px}.summary-list h3{font-size:18px;margin-bottom:3px}.summary-list p{font-size:14px;color:var(--dim);line-height:1.42}.summary-list.research{border-color:#60467a}.summary-list.support{border-color:#2e4a49}
+  .foot{position:absolute;left:78px;right:78px;bottom:23px;display:flex;justify-content:space-between;gap:20px;color:var(--faint);font-size:12px;letter-spacing:.03em}.keys b{font-family:var(--mono);color:var(--dim)}
+  #hud{position:fixed;bottom:0;left:0;right:0;height:4px;background:#1c2438;z-index:50}#hudbar{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2))}#pager{position:fixed;right:20px;bottom:12px;color:var(--faint);font:12px var(--mono);z-index:51}
+  #touch-nav{display:none;position:fixed;left:50%;top:max(12px,env(safe-area-inset-top));transform:translateX(-50%);align-items:center;gap:8px;padding:6px;background:var(--bg2);border:1px solid var(--line);border-radius:13px;box-shadow:0 8px 24px #0005;z-index:55}#touch-nav button{min-width:78px;min-height:42px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--ink);font-weight:800;cursor:pointer}#touch-nav button:disabled{opacity:.45;cursor:not-allowed}#touch-nav span{color:var(--faint);font:11px var(--mono);white-space:nowrap}
+  #modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:90;padding:23px}#modal.on{display:flex}.modal-box{width:min(880px,92vw);max-height:84vh;overflow:auto;background:var(--panel);border:1px solid #3a4b76;border-radius:17px;padding:23px}.modal-box h3{margin-bottom:10px}.modal-box p{color:var(--dim);font-size:15px;line-height:1.5;margin:10px 0}.modal-box pre{background:#0b0e15;border:1px solid #232c44;border-radius:12px;padding:15px;font:12px/1.5 var(--mono);overflow:auto}.modal-close{float:right;background:none;border:0;color:var(--dim);font-size:25px;cursor:pointer}
+  @media (prefers-reduced-motion:reduce){.slide.on{animation:none}}
+  @media (max-width:1100px){h1{font-size:55px}.slide{padding-left:55px;padding-right:55px}.foot{left:55px;right:55px}.tool-grid{grid-template-columns:repeat(2,1fr)}.coverage{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:900px){
+    body{overflow:auto}#deck{height:auto;min-height:100vh}.slide{position:relative;inset:auto;min-height:100vh;padding:88px 24px 34px;overflow:auto}.slide.on{display:flex}.foot{display:none}#touch-nav{display:flex}#pager{display:none}h1{font-size:43px}h2{font-size:33px}.sub{font-size:18px}.body{flex-direction:column;flex:none}.two,.cards,.choice-grid,.context-layout,.guard-layout,.handoff-layout,.reading-grid,.summary-grid{grid-template-columns:1fr;flex:none}.col{justify-content:flex-start}.scene-pair{grid-template-columns:1fr}.hub-diagram{grid-template-columns:1fr;flex:none;gap:13px}.spoke.left{text-align:left}.spoke.left::after,.spoke.right::before{display:none}.spokes{display:grid;grid-template-columns:1fr 1fr}.story{margin-bottom:8px}.coverage{grid-template-columns:1fr 1fr}.tool-grid{grid-template-columns:1fr 1fr;flex:none}.demo{padding:83px 18px 30px}.demo-head h2{flex:0 0 100%;font-size:24px}.demo-head .spacer{display:none}.demo-grid{display:flex;flex-direction:column;flex:none}.demo-left,.demo-right{min-height:0}.event-log{min-height:180px}.demo-panel.report{min-height:180px}.demo-buttons .btn{font-size:11px;padding:7px 9px}.facts,.handoff{margin-bottom:5px}.decision{font-size:13px}.decision th,.decision td{padding:8px 6px;overflow-wrap:anywhere}.error-table{font-size:13px}.error-table th,.error-table td{padding:8px 6px}.assignment .row{grid-template-columns:1fr;gap:3px}.assignment .label{margin-top:5px}.context-notes{margin-top:5px}
+  }
+  @media (max-width:560px){.slide{padding-left:18px;padding-right:18px}.coverage,.spokes,.tool-grid{grid-template-columns:1fr}.callout{font-size:25px}.point{font-size:16px}.card{padding:16px}.trace{font-size:12px}.trace span{padding:8px 9px}.error-table{font-size:12px}.error-table td:first-child{white-space:normal}.demo-status{flex:0 0 100%;max-width:100%}.demo-count{font-size:10px}.state-grid{grid-template-columns:1fr}.reading{padding:15px}.summary-list{padding:15px}.facts div{font-size:11px}.handoff pre{font-size:10px}.decision td:first-child{white-space:normal}}
+</style>
+</head>
+<body>
+<main id="deck">
+
+<section class="slide">
+  <div class="body" style="flex-direction:column;justify-content:center;gap:22px">
+    <div class="kicker">CCAF crash course · Part 4</div>
+    <h1>When one agent<br>isn't enough</h1>
+    <p class="sub">Two systems, two settings, one design problem: give the work to the right helper without losing the facts or the final decision.</p>
+    <div class="scene-pair">
+      <div class="scene research"><div class="eyebrow">Scene A · research desk</div><h3>A broad question</h3><p>An editor assigns beats, reporters work in parallel, and a brief marks what the sources actually cover.</p></div>
+      <div class="scene support"><div class="eyebrow">Scene B · Basil Bistro</div><h3>A guest needs help</h3><p>A counter agent verifies identity, handles a safe refund, and sends a policy gap to a manager.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span>Ravn AI Development Office Hours</span><span class="keys">navigate: <b>←</b> <b>→</b> · fullscreen: <b>F</b></span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">The question underneath both scenarios</div>
+  <h2>Who decides the next step?</h2>
+  <div class="body">
+    <div class="col">
+      <div class="callout">One context has a limit. One agent cannot hold every source, every tool result, and every decision forever.</div>
+      <div class="point"><span class="dot"></span><span>Recall Part 1: the agent loop sends a request, receives a response, runs tools, and sends the history back.</span></div>
+      <div class="point good"><span class="dot"></span><span>This part adds the design around that loop: <b>who gets a task, what they receive, and what comes back.</b></span></div>
+    </div>
+    <div class="col">
+      <div class="analogy"><span class="tag">Today's rule</span>Give each helper a clear assignment, the facts it needs, and a small return form. Keep the editor or host responsible for the whole story.</div>
+      <div class="cards" style="flex:none;grid-template-columns:1fr 1fr">
+        <article class="card research"><div class="icon">research</div><h3>How do we split a question?</h3><p>Parallel work saves time only when the assignments are independent and cover the whole question.</p></article>
+        <article class="card support"><div class="icon">support</div><h3>How do we stop a wrong action?</h3><p>Prompt guidance helps. Code must guard identity, money, and policy boundaries.</p></article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Research desk · start with the trace</div>
+  <h2>One question, four coverage areas</h2>
+  <div class="body">
+    <div class="col">
+      <div class="story">
+        <div class="story-head"><span class="stamp">assignment</span><div><h3>"How is AI changing creative industries?"</h3><p style="color:var(--dim);font-size:14px;margin-top:5px">The editor wants a brief about visual art, music, literature, and film.</p></div></div>
+        <div class="coverage"><div><b>Visual art</b><span>reporter</span></div><div><b>Music</b><span>reporter</span></div><div><b>Literature</b><span>reporter</span></div><div><b>Film</b><span>reporter</span></div></div>
+      </div>
+      <div class="trace"><span>question</span><i>→</i><span>editor</span><i>→</i><span>beat reports</span><i>→</i><span>brief</span></div>
+    </div>
+    <div class="col">
+      <div class="point"><span class="dot"></span><span>Three independent reporters read their assigned packets at the same time.</span></div>
+      <div class="point warn"><span class="dot"></span><span>The music source times out. That is a <b>partial failure</b>, not a successful "no results" answer.</span></div>
+      <div class="point good"><span class="dot"></span><span>The editor keeps the visual-art and culture findings, then labels music <b>PARTIAL COVERAGE</b>.</span></div>
+      <div class="analogy"><span class="tag">Picture it first</span>The editor does not ask three reporters to write into one shared notebook. Each gets a beat and returns a short report. The editor still owns the final brief.</div>
+    </div>
+  </div>
+  <div class="foot"><span>We will name the architecture after we follow the work.</span><span></span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Research desk · the cast</div>
+  <h2>The coordinator is the hub</h2>
+  <div class="hub-diagram">
+    <div class="spokes">
+      <div class="spoke left"><b>Visual-art reporter</b><small>reads one packet, returns evidence</small></div>
+      <div class="spoke left"><b>Music reporter</b><small>returns a structured gap on timeout</small></div>
+    </div>
+    <div class="hub-center"><b>Assigning editor</b><small>coordinator · routes every message</small><div style="margin-top:13px;color:var(--dim);font-size:13px;line-height:1.45">decomposes<br>delegates<br>checks coverage<br>asks for synthesis</div></div>
+    <div class="spokes">
+      <div class="spoke right"><b>Literature + film reporter</b><small>reads one packet, keeps its date</small></div>
+      <div class="spoke right"><b>Synthesis editor</b><small>receives all reports from the hub</small></div>
+    </div>
+  </div>
+  <div class="analogy" style="margin-top:15px"><span class="tag">Hub-and-spoke</span>Reporters do not call one another. The coordinator sees the work, decides what context to pass next, and can retry or annotate a gap before the final answer.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Research desk · decomposition</div>
+  <h2>Choose a fixed plan or adapt as you learn</h2>
+  <div class="choice-grid">
+    <article class="choice fixed"><h3><span class="pill a">fixed</span> Prompt chaining</h3><p>Use this when the steps are known before the work starts. It is easier to test and repeat.</p><ul><li>extract metadata</li><li>extract the data</li><li>validate</li><li>enrich and format</li></ul></article>
+    <article class="choice dynamic"><h3><span class="pill v">dynamic</span> Adaptive decomposition</h3><p>Use this when the next step depends on what the first step discovers.</p><ul><li>map the source set</li><li>find an uncovered area</li><li>prioritize the gap</li><li>add a new assignment</li></ul></article>
+  </div>
+  <div class="rule-strip"><b>Exam shortcut:</b> predictable structure → fixed pipeline. Open-ended investigation → let intermediate results change the plan. Do not decompose a broad question into the first narrow slice you notice.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Research desk · Task and context</div>
+  <h2>Parallel does not mean context is shared</h2>
+  <div class="body">
+    <div class="col">
+      <pre class="code"><span class="c">// coordinator's first response</span>
+<span class="v">Task</span>(<span class="s">"Read sources/visual-art.md.
+Question: AI and creative industries.
+Return: status, source_id, date,
+key_findings, limits."</span>)
+
+<span class="v">Task</span>(<span class="s">"Read sources/music.md.
+If the source timed out, return a
+partial_failure with the query and
+a coverage impact. Do not guess."</span>)
+
+<span class="v">Task</span>(<span class="s">"Read sources/literature-film.md.
+Name literature and film separately.
+Keep the source date and limits."</span>)</pre>
+    </div>
+    <div class="col">
+      <div class="assignment">
+        <div class="row"><span class="label">each prompt has</span><span class="value"><b>the question</b>, the assigned path, the output fields, and the limits</span></div>
+        <div class="row"><span class="label">each reporter has</span><span class="value">an isolated context and only <code>Read</code> / <code>Glob</code></span></div>
+        <div class="row"><span class="label">the editor gets</span><span class="value">the full reports later, passed explicitly through the coordinator</span></div>
+      </div>
+      <div class="point good"><span class="dot"></span><span>In the guide, the spawning tool is called <code>Task</code>. Current Agent SDK traces may call it <code>Agent</code>. The job is the same: spawn an isolated subagent.</span></div>
+      <div class="point"><span class="dot"></span><span><code>AgentDefinition</code> names the role, prompt, description, and allowed tools. Give each worker the smallest useful toolset.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Research desk · failure is information</div>
+  <h2>Keep useful work. Name the gap.</h2>
+  <div class="body">
+    <div class="col">
+      <table class="error-table"><thead><tr><th>What came back</th><th>Meaning</th><th>Coordinator's next move</th></tr></thead><tbody>
+        <tr><td>0 results</td><td>The query ran and found nothing.</td><td>Accept it as a valid finding.</td></tr>
+        <tr><td>timeout</td><td>The source could not be reached.</td><td>Retry, use another source, or keep a marked gap.</td></tr>
+        <tr><td>partial_failure</td><td>Some work completed, some did not.</td><td>Pass the failure type, query, partial results, alternatives, and impact.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="col">
+      <div class="callout">A blank answer and a broken connection are not the same thing.</div>
+      <div class="point bad"><span class="dot"></span><span>Bad: catch the timeout and return <code>[]</code> with <code>status: success</code>. The editor will believe music had no evidence.</span></div>
+      <div class="point good"><span class="dot"></span><span>Good: return structured error context. The editor can retry the query or write <b>music · PARTIAL COVERAGE</b>.</span></div>
+      <div class="analogy"><span class="tag">Desk note</span>"The archive had no articles" is a result. "The archive door never opened" is a failure. The report must tell the reader which one happened.</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Research desk · context management</div>
+  <h2>Protect the window that makes the decision</h2>
+  <div class="context-layout">
+    <div class="context-stack">
+      <div class="context-block top"><b>KEY FINDINGS · put critical facts first</b><p>Visual art: concept sketches and variations. [ART-2025-01]<br>Music: source timeout. [coverage gap]</p></div>
+      <div class="context-block"><b>DETAILED RESULTS · organize the middle</b><p>=== Visual art === ...<br>=== Literature === ...<br>=== Film === ...</p></div>
+      <div class="context-block bottom"><b>ACTION ITEMS · put the next move last</b><p>Retry the music source. Keep the final brief marked partial.</p></div>
+    </div>
+    <div class="context-notes">
+      <div class="point"><span class="dot"></span><span><b>Facts block:</b> keep IDs, dates, amounts, and status outside a lossy summary.</span></div>
+      <div class="point"><span class="dot"></span><span><b>Trim:</b> return five useful fields, not 40 noisy tool fields.</span></div>
+      <div class="point"><span class="dot"></span><span><b>Delegate:</b> let a reporter read 15 files and return one compact report.</span></div>
+      <div class="point"><span class="dot"></span><span><b>Scratchpad:</b> write durable findings so a new session can continue without rediscovery.</span></div>
+      <button class="click" data-dialog="context">Open the longer Chapter 11 checklist ↗</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide demo">
+  <div class="demo-head"><span class="kicker" style="margin:0;color:var(--violet)">Research demo</span><h2>Watch the editor keep the gap honest</h2><span id="research-status" class="demo-status">static page · rehearsal available</span><span class="spacer"></span><span id="research-count" class="demo-count">0 assignments · 0 reports</span></div>
+  <div class="demo-head demo-buttons" style="margin-bottom:10px"><button class="btn violet" id="research-mock">Research rehearsal</button><button class="btn" id="research-live">Research live</button><button class="btn stop" id="research-stop">Stop</button><span style="color:var(--faint);font-size:12px">Rows are clickable. The live path needs the local server and Claude login.</span></div>
+  <div class="demo-grid">
+    <div class="demo-left"><div id="research-log" class="event-log" aria-label="Research event log" aria-live="polite"></div></div>
+    <div class="demo-right"><div class="demo-panel"><h3>selected event payload</h3><pre id="research-payload">Click Research rehearsal to start.</pre></div><div class="demo-panel report"><h3 id="research-report-title">final brief</h3><pre id="research-report">The report will appear here. Look for PARTIAL COVERAGE under music.</pre></div></div>
+  </div>
+  <div class="foot"><span>Live path: real Claude Agent SDK · rehearsal: same event shapes, no model call</span><span></span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Support counter · a new scene</div>
+  <h2>Now put a guest at Basil Bistro</h2>
+  <div class="body">
+    <div class="col">
+      <div class="chat">
+        <div class="chat-head"><div class="avatar">B</div><div><b>Basil Bistro support</b><small>front counter · case CUST-2048</small></div><span class="chat-state">open</span></div>
+        <div class="bubble user"><small>guest</small>Hi, I was charged twice for order ORD-1042. Refund the duplicate $18.00. I also want a 30% competitor price match, and I want a manager to decide that part.</div>
+        <div class="bubble agent"><small>counter agent</small>Two issues. Verify the guest, check the order, handle the allowed refund, and hand the policy question to a manager.</div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="trace"><span>message</span><i>→</i><span>split issues</span><i>→</i><span>verify</span><i>→</i><span>act or hand off</span></div>
+      <div class="point"><span class="dot"></span><span>The duplicate charge is a normal support operation with a clear policy.</span></div>
+      <div class="point warn"><span class="dot"></span><span>The competitor price match is a <b>policy gap</b>. The agent must not invent a discount.</span></div>
+      <div class="analogy"><span class="tag">Restaurant model</span>The host can look in the guest book and order ledger. The till has a lock. A question the handbook never answers goes to the manager.</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Support counter · tool choice</div>
+  <h2>Good labels help the host choose the drawer</h2>
+  <div class="tool-grid">
+    <article class="tool-card support"><h3>get_customer</h3><p>Find one guest by name, email, phone, or order number. Return a verified customer ID.</p><div class="boundary">Not an order lookup.</div></article>
+    <article class="tool-card support"><h3>lookup_order</h3><p>Read one order by order ID and verified customer ID. Return status, total, items, and eligibility.</p><div class="boundary">Requires identity first.</div></article>
+    <article class="tool-card support"><h3>process_refund</h3><p>Refund a specific amount for a verified order when the policy allows it.</p><div class="boundary">Financial action, guarded in code.</div></article>
+    <article class="tool-card support"><h3>escalate_to_human</h3><p>Send a policy gap, explicit manager request, or unresolved case to the manager queue.</p><div class="boundary">Does not mean "search failed".</div></article>
+  </div>
+  <div class="rule-strip"><b>When the wrong tool keeps winning:</b> inspect descriptions first. Add input formats, examples, and boundaries before building a routing classifier or merging every tool into one.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Support counter · safety boundary</div>
+  <h2>The prompt asks. The guard decides.</h2>
+  <div class="guard-layout">
+    <article class="versus prompt"><h3><span class="pill v">guidance</span> System prompt</h3><p>"Always call <code>get_customer</code> before order operations." This teaches the normal path, but Claude can still make a mistake.</p><div class="arrow-note">probabilistic compliance</div></article>
+    <article class="versus codeguard"><h3><span class="pill b">enforcement</span> Programmatic precondition</h3><p>The application checks the state before the tool runs. Without one verified customer ID, it refuses both lookup and refund.</p><pre class="code"><span class="c">// before executing a tool call</span>
+<span class="f">if</span> ([<span class="s">'lookup_order'</span>, <span class="s">'process_refund'</span>].includes(name)
+    &amp;&amp; !state.verifiedCustomerId) {
+  <span class="f">return</span> deny(<span class="s">'verify customer first'</span>);
+}</pre><div class="arrow-note">deterministic guarantee</div></article>
+  </div>
+  <div class="analogy" style="margin-top:15px"><span class="tag">Callback to Part 1</span>A prompt is the handbook line. A <b>PreToolUse</b> hook or guard is the till lock. Use code for money, identity, legal, and safety rules.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Support counter · facts and handoff</div>
+  <h2>Keep the case small, then hand over the unresolved part</h2>
+  <div class="handoff-layout">
+    <div>
+      <div class="facts"><div class="facts-title">=== CASE FACTS · always included ===</div><div><b>customer_id:</b> CUST-2048</div><div><b>order_id:</b> ORD-1042</div><div><b>duplicate_charge:</b> $18.00 confirmed</div><div><b>refund:</b> REF-771 · 3–5 business days</div><div><b>open_issue:</b> competitor price match</div></div>
+      <div class="point" style="margin-top:14px"><span class="dot"></span><span>The order ledger had 20 fields. The host kept five. The important facts stay outside conversation summaries.</span></div>
+    </div>
+    <div class="handoff"><div class="handoff-title">=== MANAGER HANDOFF · self-contained ===</div><pre>{
+  "customer_id": "CUST-2048",
+  "issue_summary": "duplicate refund done; price match needs policy",
+  "order_id": "ORD-1042",
+  "actions_taken": ["verified", "looked up", "refunded $18.00"],
+  "recommended_action": "decide whether competitor matching is allowed",
+  "escalation_reason": "policy is silent on competitor prices"
+}</pre></div>
+  </div>
+  <div class="rule-strip"><b>Two different outcomes:</b> an empty business result means a valid search found nothing. A blocked or failed operation carries an error. A policy gap becomes a structured human handoff.</div>
+</section>
+
+<section class="slide demo">
+  <div class="demo-head"><span class="kicker" style="margin:0;color:var(--acc2)">Support demo</span><h2>Watch the lock stop the wrong call</h2><span id="support-status" class="demo-status">static page · rehearsal available</span><span class="spacer"></span><span id="support-count" class="demo-count">0 tool calls · 0 guards · 0 handoffs</span></div>
+  <div class="demo-head demo-buttons" style="margin-bottom:10px"><button class="btn" id="support-mock">Support rehearsal</button><button class="btn ghost" id="support-live">Support live</button><button class="btn stop" id="support-stop">Stop</button><span style="color:var(--faint);font-size:12px">The local live path uses real TypeScript tools, not a model.</span></div>
+  <div class="demo-grid">
+    <div class="demo-left"><div id="support-log" class="event-log" aria-label="Support event log" aria-live="polite"></div></div>
+    <div class="demo-right"><div class="state-grid"><div id="state-customer" class="state"><b>identity</b><span>not verified</span></div><div id="state-order" class="state"><b>order</b><span>not read</span></div><div id="state-refund" class="state"><b>refund</b><span>not run</span></div><div id="state-escalation" class="state"><b>manager</b><span>not called</span></div></div><div class="demo-panel"><h3>selected event payload</h3><pre id="support-payload">Click Support rehearsal to start.</pre></div><div class="demo-panel report"><h3>outcome</h3><pre id="support-report">The final outcome will appear here.</pre></div></div>
+  </div>
+  <div class="foot"><span>Identity gate → trimmed order → refund → policy handoff</span><span></span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Practice · answer the failure, not the buzzword</div>
+  <h2>Two quick checks</h2>
+  <div class="body">
+    <div class="col"><div class="callout" style="font-size:25px">Pick the smallest change that fixes the observed failure.</div><p style="color:var(--dim);font-size:15px">The exam often gives you four plausible improvements. Start with the root cause and the required guarantee.</p><div class="analogy"><span class="tag">Hint</span>Do not add a classifier when a tool label is vague. Do not add a stronger prompt when money needs a code-level lock.</div></div>
+    <div class="col"><div id="practice-quiz" class="quiz"></div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Exam decision table</div>
+  <h2>Choose the mechanism that matches the problem</h2>
+  <table class="decision"><thead><tr><th>If you see...</th><th>Choose...</th><th>Because...</th></tr></thead><tbody>
+    <tr><td>known steps</td><td>fixed pipeline</td><td>the path is reproducible and easy to test.</td></tr>
+    <tr><td>unknown next step</td><td>dynamic decomposition</td><td>intermediate results change the plan.</td></tr>
+    <tr><td>independent subtasks</td><td>parallel subagents</td><td>the coordinator can save time without shared mutable context.</td></tr>
+    <tr><td>wrong similar tool</td><td>clear description and boundary</td><td>tool descriptions guide selection before extra routing code.</td></tr>
+    <tr><td>identity before refund</td><td>programmatic precondition or hook</td><td>financial ordering needs a deterministic guarantee.</td></tr>
+    <tr><td>timeout or policy gap</td><td>structured failure or human handoff</td><td>the next actor needs the reason, facts, and next safe action.</td></tr>
+    <tr><td>old amounts or IDs disappear</td><td>persistent case-facts block</td><td>summaries can lose exact values.</td></tr>
+  </tbody></table>
+</section>
+
+<section class="slide">
+  <div class="kicker">Read before next Friday</div>
+  <h2>Start with these pages</h2>
+  <div class="reading-grid">
+    <article class="reading research"><h3>Core chapters</h3><p>Refresh the loop, then study decomposition and context management.</p><ul>
+      <li><a href="https://ravnhq.github.io/claude-certified-architect/guides/en.html#chapter-3-claude-agent-sdk-building-agentic-systems" target="_blank" rel="noopener">Chapter 3 · Agent SDK recap</a></li>
+      <li><a href="https://ravnhq.github.io/claude-certified-architect/guides/en.html#chapter-8-task-decomposition-strategies" target="_blank" rel="noopener">Chapter 8 · Task decomposition</a></li>
+      <li><a href="https://ravnhq.github.io/claude-certified-architect/guides/en.html#chapter-11-context-management-in-production-systems" target="_blank" rel="noopener">Chapter 11 · Context management</a></li>
+    </ul></article>
+    <article class="reading support"><h3>Worked questions</h3><p>Read the explanation after each answer. Notice which layer owns the fix.</p><ul>
+      <li><a href="https://ravnhq.github.io/claude-certified-architect/guides/en.html#example-7-scenario-multi-agent-research-system" target="_blank" rel="noopener">Research examples 7–9</a></li>
+      <li><a href="https://ravnhq.github.io/claude-certified-architect/guides/en.html#example-1-scenario-customer-support-agent" target="_blank" rel="noopener">Support examples 1–3</a></li>
+      <li><a href="https://ravnhq.github.io/claude-certified-architect/guides/en.html#scenario-multi-agent-research-system" target="_blank" rel="noopener">Research practice questions 1–15</a></li>
+      <li><a href="https://ravnhq.github.io/claude-certified-architect/guides/en.html#scenario-customer-support-agent" target="_blank" rel="noopener">Support practice questions 46–60</a></li>
+    </ul></article>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">If you remember eight rules</div>
+  <h2>Keep the editor in charge</h2>
+  <div class="summary-grid">
+    <div class="summary-list research"><h3>Research</h3><p>1. Use a fixed pipeline when the steps are known.</p><p>2. Adapt when discovery changes the next assignment.</p><p>3. Spawn independent work in parallel.</p><p>4. Pass context explicitly. Reporters do not inherit the editor's history.</p><p>5. Keep partial results and mark the gap.</p></div>
+    <div class="summary-list support"><h3>Support</h3><p>6. Clear tool descriptions come before extra routing machinery.</p><p>7. Prompts guide. Code guards identity, money, and policy boundaries.</p><p>8. Keep exact case facts and hand off unresolved policy questions with a complete summary.</p></div>
+  </div>
+  <div class="analogy" style="margin-top:15px"><span class="tag">Pocket version</span>The coordinator or host owns the whole story. Every helper gets a small assignment. Every failure says what happened. Every dangerous action meets a code-level check.</div>
+  <div class="foot"><span>Questions welcome. Start with the failure you want the system to recover from.</span><span></span></div>
+</section>
+
+</main>
+
+<nav id="touch-nav" aria-label="Slide navigation"><button type="button" id="prev-slide">Previous</button><span id="touch-hint" aria-live="polite">1 / 18</span><button type="button" id="next-slide">Next</button></nav>
+<div id="hud"><div id="hudbar"></div></div><footer id="pager" aria-live="polite"></footer>
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-box"><button class="modal-close" id="modal-close" aria-label="Close">×</button><h3 id="modal-title"></h3><div id="modal-body"></div></div></div>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+let current=Math.max(0,Math.min(slides.length-1,(Number(location.hash.slice(1))||1)-1));
+const pager=document.getElementById('pager'),hudbar=document.getElementById('hudbar'),previousButton=document.getElementById('prev-slide'),nextButton=document.getElementById('next-slide'),touchHint=document.getElementById('touch-hint');
+function show(index){current=Math.max(0,Math.min(slides.length-1,index));slides.forEach((slide,i)=>slide.classList.toggle('on',i===current));pager.textContent=`${current+1} / ${slides.length}`;touchHint.textContent=`${current+1} / ${slides.length}`;hudbar.style.width=`${((current+1)/slides.length)*100}%`;previousButton.disabled=current===0;nextButton.disabled=current===slides.length-1;history.replaceState(null,'',`#${current+1}`)}
+function next(){show(current+1)}function previous(){show(current-1)}
+previousButton.addEventListener('click',previous);nextButton.addEventListener('click',next);
+document.addEventListener('keydown',event=>{if(document.getElementById('modal').classList.contains('on')){if(event.key==='Escape')closeModal();return}if(['ArrowRight','PageDown',' '].includes(event.key)){event.preventDefault();next()}if(['ArrowLeft','PageUp'].includes(event.key)){event.preventDefault();previous()}if(event.key.toLowerCase()==='f')document.documentElement.requestFullscreen?.();if(event.key==='Home')show(0);if(event.key==='End')show(slides.length-1)});
+let touchStart=null;const swipeIgnore='button,a,input,textarea,select,pre,[data-no-swipe]';document.getElementById('deck').addEventListener('touchstart',event=>{if(event.touches.length!==1||document.getElementById('modal').classList.contains('on')||event.target.closest?.(swipeIgnore)){touchStart=null;return}const touch=event.touches[0];touchStart={x:touch.clientX,y:touch.clientY,at:Date.now()}},{passive:true});document.getElementById('deck').addEventListener('touchend',event=>{if(!touchStart||document.getElementById('modal').classList.contains('on')){touchStart=null;return}const touch=event.changedTouches[0],dx=touch.clientX-touchStart.x,dy=touch.clientY-touchStart.y,elapsed=Date.now()-touchStart.at;touchStart=null;if(elapsed>800||Math.abs(dx)<48||Math.abs(dx)<Math.abs(dy)*1.2)return;if(dx<0)next();else previous()},{passive:true});document.getElementById('deck').addEventListener('touchcancel',()=>{touchStart=null});
+show(current);
+
+const dialogs={context:{title:'Chapter 11 context checklist',html:`<p>Context management is a set of small choices, not one magic compression switch.</p><pre>1. Extract durable facts into a separate block.
+2. Trim tool results to the fields this step needs.
+3. Put key findings first and action items last.
+4. Let a subagent read bulky material and return a compact report.
+5. Use a scratchpad for findings that must survive a new session.
+6. Persist structured state if the workflow must recover after a crash.</pre><p>The aim is simple: keep the coordinator's window available for decisions. Do not preserve every byte just because it exists.</p>`}};
+function openModal(key){const item=dialogs[key];if(!item)return;document.getElementById('modal-title').textContent=item.title;document.getElementById('modal-body').innerHTML=item.html;document.getElementById('modal').classList.add('on')}
+function closeModal(){document.getElementById('modal').classList.remove('on')}
+document.querySelectorAll('[data-dialog]').forEach(element=>element.addEventListener('click',()=>openModal(element.dataset.dialog)));document.getElementById('modal-close').addEventListener('click',closeModal);document.getElementById('modal').addEventListener('click',event=>{if(event.target.id==='modal')closeModal()});
+
+function esc(value){return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
+function displayPayload(id,event){document.getElementById(id).textContent=JSON.stringify(event,null,2)}
+function addRow(container,event,kind,label,payloadId){const row=document.createElement('button');row.type='button';row.className=`event ${kind}`;row.innerHTML=label;row.addEventListener('click',()=>displayPayload(payloadId,event));container.appendChild(row);container.scrollTop=container.scrollHeight;displayPayload(payloadId,event)}
+function setStatus(id,text){document.getElementById(id).textContent=text}
+function resetResearch(message='Running…'){document.getElementById('research-log').innerHTML='';document.getElementById('research-payload').textContent=message;document.getElementById('research-report').textContent='The final brief will appear here.';document.getElementById('research-report-title').textContent='final brief';researchSpawns=0;researchReports=0;setResearchCount()}
+let researchSpawns=0,researchReports=0;function setResearchCount(){document.getElementById('research-count').textContent=`${researchSpawns} assignments · ${researchReports} reports`}
+function researchEvent(event){if(event.t==='status'){setStatus('research-status',event.msg);addRow(document.getElementById('research-log'),event,'research',`<b>status</b> <span class="muted">${esc(event.msg)}</span>`,'research-payload');return}if(event.scenario!=='research')return;const log=document.getElementById('research-log');switch(event.t){case'phase':addRow(log,event,'research',`<b>phase</b> ${esc(event.name)} <span class="muted">${esc(event.detail)}</span>`,'research-payload');break;case'init':addRow(log,event,'research',`<b>init</b> ${esc(event.model)} <span class="muted">${esc(event.tools.join(', '))}</span>`,'research-payload');break;case'coord_prompt':addRow(log,event,'research',`<b>coordinator prompt</b> <span class="muted">explicit coverage contract</span>`,'research-payload');break;case'coord_text':addRow(log,event,'research',`<b>coordinator</b> <span class="muted">${esc(event.text)}</span>`,'research-payload');break;case'spawn':researchSpawns++;setResearchCount();addRow(log,event,'research',`<b>spawn</b> ${esc(event.agent)} <span class="muted">${esc(event.description)}</span>`,'research-payload');break;case'sub_tool':addRow(log,event,'research',`<b>${esc(event.agent)}</b> ${esc(event.tool)} <span class="muted">${esc(event.detail)}</span>`,'research-payload');break;case'sub_done':researchReports++;setResearchCount();addRow(log,event,event.status==='completed'?'good':event.status==='partial_failure'?'warn':'bad',`<b>report</b> ${esc(event.agent)} · ${esc(event.status)} <span class="muted">${esc(event.result.slice(0,100))}</span>`,'research-payload');break;case'final':setStatus('research-status',`${event.coverage} coverage · final brief returned`);document.getElementById('research-report-title').textContent=`final brief · ${event.coverage} coverage`;document.getElementById('research-report').textContent=event.report;addRow(log,event,event.coverage==='partial'?'warn':'good',`<b>final</b> ${esc(event.coverage)} coverage <span class="muted">${esc(event.summary)}</span>`,'research-payload');break;case'done':setStatus('research-status',event.msg);addRow(log,event,'good',`<b>done</b> <span class="muted">${esc(event.msg)}</span>`,'research-payload');break;case'error':setStatus('research-status',event.msg);addRow(log,event,'bad',`<b>error</b> <span class="muted">${esc(event.msg)}</span>`,'research-payload');break}}
+function resetSupport(message='Running…'){document.getElementById('support-log').innerHTML='';document.getElementById('support-payload').textContent=message;document.getElementById('support-report').textContent='The final outcome will appear here.';supportCalls=0;supportGuards=0;supportHandoffs=0;setSupportCount();setState('state-customer',false,'not verified');setState('state-order',false,'not read');setState('state-refund',false,'not run');setState('state-escalation',false,'not called')}
+let supportCalls=0,supportGuards=0,supportHandoffs=0;function setSupportCount(){document.getElementById('support-count').textContent=`${supportCalls} tool calls · ${supportGuards} guards · ${supportHandoffs} handoffs`}
+function setState(id,yes,text){const element=document.getElementById(id);element.classList.toggle('yes',yes);element.classList.toggle('no',!yes);element.querySelector('span').textContent=text}
+function supportEvent(event){if(event.t==='status'){setStatus('support-status',event.msg);addRow(document.getElementById('support-log'),event,'good',`<b>status</b> <span class="muted">${esc(event.msg)}</span>`,'support-payload');return}if(event.scenario!=='support')return;const log=document.getElementById('support-log');switch(event.t){case'phase':addRow(log,event,'good',`<b>phase</b> ${esc(event.name)} <span class="muted">${esc(event.detail)}</span>`,'support-payload');break;case'support_request':addRow(log,event,'good',`<b>guest</b> <span class="muted">${esc(event.message.slice(0,120))}…</span>`,'support-payload');break;case'case_facts':addRow(log,event,'good',`<b>case facts</b> <span class="muted">${esc(event.update)}</span>`,'support-payload');break;case'decompose':addRow(log,event,'good',`<b>split</b> ${esc(event.issues.join(' + '))}`,'support-payload');break;case'tool_attempt':supportCalls++;setSupportCount();addRow(log,event,'research',`<b>call</b> ${esc(event.tool)} <span class="muted">${esc(JSON.stringify(event.args))}</span>`,'support-payload');break;case'guard':supportGuards++;setSupportCount();addRow(log,event,event.allowed?'good':'bad',`<b>guard</b> ${esc(event.tool)} · ${event.allowed?'allowed':'DENIED'} <span class="muted">${esc(event.reason)}</span>`,'support-payload');break;case'tool_result':{const ok=event.ok;const data=event.data||{};if(event.tool==='get_customer'&&ok)setState('state-customer',true,'CUST-2048 verified');if(event.tool==='lookup_order'&&ok)setState('state-order',true,'5 fields retained');if(event.tool==='process_refund'&&ok)setState('state-refund',true,'REF-771 · $18.00');if(event.tool==='escalate_to_human'&&ok)setState('state-escalation',true,'manager queue');const trim=event.fieldsTrimmed?.length?` · trimmed ${event.fieldsTrimmed.length} fields`:'';addRow(log,event,ok?'good':'bad',`<b>result</b> ${esc(event.tool)} · ${ok?'success':'error'}${trim}`,'support-payload');break}case'handoff':supportHandoffs++;setSupportCount();setState('state-escalation',true,'manager handoff');addRow(log,event,'warn','<b>handoff</b> manager receives structured case','support-payload');break;case'final':setStatus('support-status','final outcome returned');document.getElementById('support-report').textContent=event.summary+'\n\n'+JSON.stringify(event.outcome,null,2);addRow(log,event,'good',`<b>final</b> <span class="muted">${esc(event.summary)}</span>`,'support-payload');break;case'done':setStatus('support-status',event.msg);addRow(log,event,'good',`<b>done</b> <span class="muted">${esc(event.msg)}</span>`,'support-payload');break;case'error':setStatus('support-status',event.msg);addRow(log,event,'bad',`<b>error</b> <span class="muted">${esc(event.msg)}</span>`,'support-payload');break}}
+
+const RV='toolu_rehearsal_visual',RM='toolu_rehearsal_music',RL='toolu_rehearsal_litfilm',RS='toolu_rehearsal_synthesis';
+const researchReport='KEY FINDINGS\n- Visual-art studios use generative tools for concepts and variations. [ART-2025-01, 2025-02-14]\n- Authors and filmmakers use them for brainstorming, storyboards, translation drafts, and previsualization. [CULTURE-2025-03, 2025-03-08]\n\nVISUAL ART · FULL COVERAGE\nHuman approval remains part of the reported workflow.\n\nLITERATURE · FULL COVERAGE\nThe review describes assisted drafting, not publication without editing.\n\nFILM · FULL COVERAGE\nThe review describes previsualization, not a finished film.\n\nMUSIC · PARTIAL COVERAGE\nThe source request timed out. No music claim is supported by this run.\nNext step: retry with an alternative source.';
+const researchRehearsal=[
+ {t:'status',scenario:'research',msg:'rehearsal · no model call, replaying the newsroom trace'},
+ {t:'phase',scenario:'research',name:'decompose',detail:'the coordinator splits the broad question into four coverage areas'},
+ {t:'init',scenario:'research',model:'claude-sonnet-4-6',tools:['Agent','Task','Read','Glob']},
+ {t:'coord_prompt',scenario:'research',prompt:'Research question: "How is AI changing creative industries?"\nCoverage: visual art, music, literature, and film.\nSpawn three reporters in parallel. Preserve partial failures.'},
+ {t:'coord_text',scenario:'research',text:'I will cover visual art, music, literature, and film. The three independent assignments can run together.'},
+ {t:'spawn',scenario:'research',id:RV,agent:'visual-art-researcher',description:'check visual-art evidence',prompt:'Read only sources/visual-art.md. Return status, source_id, source_date, key_findings, and limits.',tools:['Read','Glob']},
+ {t:'spawn',scenario:'research',id:RM,agent:'music-researcher',description:'check music evidence',prompt:'Read only sources/music.md. If unavailable, return partial_failure with attempted_query and coverage_impact. Do not invent findings.',tools:['Read','Glob']},
+ {t:'spawn',scenario:'research',id:RL,agent:'literature-film-researcher',description:'check literature and film evidence',prompt:'Read only sources/literature-film.md. Return dated claims and limits, with literature and film named separately.',tools:['Read','Glob']},
+ {t:'sub_tool',scenario:'research',parentId:RV,agent:'visual-art-researcher',tool:'Read',detail:'sources/visual-art.md'},
+ {t:'sub_tool',scenario:'research',parentId:RM,agent:'music-researcher',tool:'Read',detail:'sources/music.md'},
+ {t:'sub_tool',scenario:'research',parentId:RL,agent:'literature-film-researcher',tool:'Read',detail:'sources/literature-film.md'},
+ {t:'sub_done',scenario:'research',parentId:RV,agent:'visual-art-researcher',status:'completed',tokens:1280,result:'{ status: completed, source_id: ART-2025-01, source_date: 2025-02-14, key_findings: [concept sketches and variations], limits: [human approval remains] }'},
+ {t:'sub_done',scenario:'research',parentId:RL,agent:'literature-film-researcher',status:'completed',tokens:1420,result:'{ status: completed, source_id: CULTURE-2025-03, source_date: 2025-03-08, key_findings: [brainstorming, storyboards, translation drafts, previsualization], limits: [human editing] }'},
+ {t:'sub_done',scenario:'research',parentId:RM,agent:'music-researcher',status:'partial_failure',tokens:730,result:'{ status: partial_failure, failure_type: source_timeout, attempted_query: AI impact on music industry 2024, partial_results: [], coverage_impact: music production is not covered }'},
+ {t:'coord_text',scenario:'research',text:'Two packets are complete. Music is a partial failure, not an empty success. I will pass all three reports, including that gap, to the editor.'},
+ {t:'spawn',scenario:'research',id:RS,agent:'synthesis-editor',description:'write a coverage-annotated brief',prompt:'Synthesize the three reporter packets. Put key findings first, preserve source IDs and dates, and mark music PARTIAL COVERAGE.',tools:[]},
+ {t:'sub_done',scenario:'research',parentId:RS,agent:'synthesis-editor',status:'completed',tokens:1890,result:'Drafted a brief with key findings first, dated source IDs, and PARTIAL COVERAGE for music.'},
+ {t:'final',scenario:'research',coverage:'partial',summary:'The coordinator kept useful results and marked the missing music evidence.',report:researchReport},
+ {t:'done',scenario:'research',msg:'research rehearsal complete · partial coverage is visible'}
+];
+const customer={id:'CUST-2048',name:'Mara Singh',email:'mara@example.test'};
+const supportRehearsal=[
+ {t:'status',scenario:'support',msg:'rehearsal · local Basil Bistro support trace'},
+ {t:'phase',scenario:'support',name:'request',detail:'one message contains two issues'},
+ {t:'support_request',scenario:'support',message:'Hi, I am Mara Singh. I was charged twice for order ORD-1042. Please refund the duplicate $18.00 charge. I also want a 30% competitor price match, and I want a manager to decide that part.'},
+ {t:'case_facts',scenario:'support',facts:{customer_name:'Mara Singh',order_id:'ORD-1042',issue_1:'duplicate $18.00 charge',issue_2:'30% competitor price match',requested_action:'refund duplicate charge and ask a manager about price matching'},update:'facts extracted from the first message'},
+ {t:'decompose',scenario:'support',issues:['duplicate-charge refund','competitor price-match policy gap']},
+ {t:'tool_attempt',scenario:'support',tool:'lookup_order',args:{order_id:'ORD-1042'}},
+ {t:'guard',scenario:'support',tool:'lookup_order',allowed:false,reason:'lookup_order is blocked until get_customer returns one verified customer_id'},
+ {t:'tool_result',scenario:'support',tool:'lookup_order',ok:false,data:{status:'blocked',error_type:'precondition',message:'lookup_order is blocked until get_customer returns one verified customer_id'}},
+ {t:'tool_attempt',scenario:'support',tool:'get_customer',args:{name:'Mara Singh'}},
+ {t:'guard',scenario:'support',tool:'get_customer',allowed:true,reason:'preconditions satisfied'},
+ {t:'tool_result',scenario:'support',tool:'get_customer',ok:true,data:{status:'success',match_count:1,customer}},
+ {t:'case_facts',scenario:'support',facts:{customer_name:'Mara Singh',order_id:'ORD-1042',issue_1:'duplicate $18.00 charge',issue_2:'30% competitor price match',requested_action:'refund duplicate charge and ask a manager about price matching',customer_id:'CUST-2048'},update:'verified customer_id added'},
+ {t:'tool_attempt',scenario:'support',tool:'lookup_order',args:{order_id:'ORD-1042',customer_id:'CUST-2048'}},
+ {t:'guard',scenario:'support',tool:'lookup_order',allowed:true,reason:'preconditions satisfied'},
+ {t:'tool_result',scenario:'support',tool:'lookup_order',ok:true,data:{order_id:'ORD-1042',status:'delivered',total:'$72.00',items:'2 margherita pizzas, 1 lemon soda',return_eligible:'duplicate charge review allowed'},fieldsTrimmed:['shipping_address','payment_method','tax','tip','kitchen_ticket','courier_route','placed_at','delivered_at','internal_risk_score','customer_note','restaurant_station','menu_version','payment_attempts','duplicate_charge']},
+ {t:'case_facts',scenario:'support',facts:{customer_name:'Mara Singh',order_id:'ORD-1042',issue_1:'duplicate $18.00 charge',issue_2:'30% competitor price match',requested_action:'refund duplicate charge and ask a manager about price matching',customer_id:'CUST-2048',order_status:'delivered',duplicate_charge:'$18.00 confirmed'},update:'order facts added; long ledger fields stayed out'},
+ {t:'tool_attempt',scenario:'support',tool:'process_refund',args:{order_id:'ORD-1042',amount:18,reason:'duplicate charge'}},
+ {t:'guard',scenario:'support',tool:'process_refund',allowed:true,reason:'preconditions satisfied'},
+ {t:'tool_result',scenario:'support',tool:'process_refund',ok:true,data:{status:'success',refund_id:'REF-771',amount:'$18.00',eta:'3–5 business days'}},
+ {t:'tool_attempt',scenario:'support',tool:'escalate_to_human',args:{reason:'competitor price-match policy gap'}},
+ {t:'guard',scenario:'support',tool:'escalate_to_human',allowed:true,reason:'the customer requested a manager for a policy question'},
+ {t:'tool_result',scenario:'support',tool:'escalate_to_human',ok:true,data:{status:'queued',queue:'Basil Bistro managers',priority:'normal'}},
+ {t:'handoff',scenario:'support',handoff:{customer_id:'CUST-2048',customer_name:'Mara Singh',issue_summary:'Duplicate charge refund completed; competitor price match needs a policy decision.',order_id:'ORD-1042',root_cause:'The order ledger shows a second $18.00 payment attempt.',actions_taken:['Verified the guest with get_customer and received CUST-2048.','Confirmed ORD-1042 and kept five decision fields from the ledger.','Refunded the duplicate $18.00 charge.','Sent the policy question to a manager with a self-contained handoff.'],refund_amount:'$18.00',recommended_action:'Ask the manager whether competitor price matching is allowed.',escalation_reason:'The policy covers price drops on Basil Bistro, but says nothing about competitor prices.'}},
+ {t:'final',scenario:'support',summary:'Refund completed for the duplicate charge. The unsupported competitor price match was escalated with the facts a manager needs.',outcome:{refund:'REF-771 · $18.00 · 3–5 business days',escalation:'manager queue · competitor-price policy gap',verified_customer:'CUST-2048'}},
+ {t:'done',scenario:'support',msg:'support rehearsal complete · refund safe, policy gap escalated'}
+];
+
+let mockTimers={research:[],support:[]};let ws;
+function stopMocks(scenario){for(const timer of mockTimers[scenario])clearTimeout(timer);mockTimers[scenario]=[]}
+function startMock(scenario){stopMocks('research');stopMocks('support');if(scenario==='research')resetResearch();else resetSupport();const events=scenario==='research'?researchRehearsal:supportRehearsal;events.forEach((event,index)=>{mockTimers[scenario].push(setTimeout(()=>{if(scenario==='research')researchEvent(event);else supportEvent(event)},index===0?0:index*360))})}
+function send(command,scenario){if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({cmd:command,scenario}))}
+function startLive(scenario){stopMocks(scenario);if(scenario==='research')resetResearch();else resetSupport();if(location.protocol==='file:'||location.hostname==='tot.page'){const event={t:'error',scenario,msg:`${scenario} live needs the local demo server. Use rehearsal on this static page.`};if(scenario==='research')researchEvent(event);else supportEvent(event);return}send('start',scenario)}
+function stopEverything(){stopMocks('research');stopMocks('support');send('stop');setStatus('research-status','stopped');setStatus('support-status','stopped')}
+document.getElementById('research-mock').addEventListener('click',()=>startMock('research'));document.getElementById('research-live').addEventListener('click',()=>startLive('research'));document.getElementById('research-stop').addEventListener('click',stopEverything);document.getElementById('support-mock').addEventListener('click',()=>startMock('support'));document.getElementById('support-live').addEventListener('click',()=>startLive('support'));document.getElementById('support-stop').addEventListener('click',stopEverything);
+function handle(event){if(event.scenario==='research'||(event.t==='status'&&event.scenario==='all'))researchEvent(event);if(event.scenario==='support'||(event.t==='status'&&event.scenario==='all'))supportEvent(event);if(event.t==='status'&&!event.scenario){setStatus('research-status',event.msg);setStatus('support-status',event.msg)}}
+function connect(){if(location.protocol==='file:'||location.hostname==='tot.page')return;const protocol=location.protocol==='https:'?'wss':'ws';ws=new WebSocket(`${protocol}://${location.host}/ws`);ws.onmessage=message=>{try{handle(JSON.parse(message.data))}catch{}};ws.onclose=()=>{setStatus('research-status','disconnected · use rehearsal or restart the demo server');setStatus('support-status','disconnected · use rehearsal or restart the demo server')}}
+connect();
+
+const questions=[
+ {label:'research coverage',prompt:'A broad research report covers only visual art because the coordinator assigned three visual-art subtasks. What is the root cause?',options:['The synthesis editor needs a longer prompt.','The coordinator decomposed the task too narrowly.','The reporters should share one context.'],answer:'The coordinator decomposed the task too narrowly.',explain:'The assignments never covered music, literature, or film. Fix the coordinator\'s decomposition before changing the reporters.'},
+ {label:'support safety',prompt:'Logs show the agent skips get_customer before a refund in 12% of cases. What fixes the required sequence?',options:['Add a stronger prompt.','Add a programmatic precondition.','Ask the model for a confidence score.'],answer:'Add a programmatic precondition.',explain:'A code-level guard blocks the financial call until one verified customer ID exists. Prompt wording cannot guarantee the order.'}
+];
+function buildQuiz(){const container=document.getElementById('practice-quiz');questions.forEach(question=>{const wrap=document.createElement('div');wrap.className='q';wrap.setAttribute('role','group');wrap.setAttribute('aria-label',question.label);const prompt=document.createElement('p');prompt.textContent=question.prompt;wrap.appendChild(prompt);const options=document.createElement('div');options.className='options';const feedback=document.createElement('div');feedback.className='feedback';question.options.forEach(option=>{const button=document.createElement('button');button.type='button';button.className='opt';button.textContent=option;button.addEventListener('click',()=>{if(wrap.classList.contains('answered'))return;wrap.classList.add('answered');const correct=option===question.answer;button.classList.add(correct?'correct':'wrong');if(!correct)[...options.children].forEach(item=>{if(item.textContent===question.answer)item.classList.add('correct')});feedback.innerHTML=`<b style="color:${correct?'var(--ok)':'var(--bad)'}">${correct?'Right.':'Not quite.'}</b> ${esc(question.explain)}`});options.appendChild(button)});wrap.appendChild(options);wrap.appendChild(feedback);container.appendChild(wrap)})}
+buildQuiz();resetResearch('Click Research rehearsal to start.');resetSupport('Click Support rehearsal to start.');
+</script>
+</body>
+</html>

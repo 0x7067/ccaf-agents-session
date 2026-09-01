@@ -15,7 +15,8 @@ every part.
 | [Part 1](part-1/) | Agentic Architecture and Orchestration: the Claude API request body, the agent loop, multi-agent hub-and-spoke (live demo), and a full exam summary | ✅ ready |
 | [Part 2](part-2/) | Model Context Protocol and Tool Calling: a restaurant-themed path through hosts, clients, servers, tools/resources/prompts, tool descriptions and `tool_choice`, project vs personal configuration, structured errors, and a live protocol trace | ✅ ready |
 | [Part 3](part-3/) | Claude Code configuration and workflows: the CLAUDE.md hierarchy as knife roll / staff handbook / station card, ask-vs-enforce with hooks, `@path` imports, path-scoped `.claude/rules/`, skills and slash commands, planning mode, session hygiene, and the headless `claude -p` CI pattern with `--output-format json` + `--json-schema` | ✅ ready |
-| Part 4+ | yours to add | |
+| [Part 4](part-4/) | Multi-agent research and restaurant customer support: decomposition, isolated context, structured partial failures, safe tool ordering, case facts, and human handoffs | ✅ ready |
+| Part 5+ | yours to add | |
 
 Each part is a self-contained folder:
 
@@ -32,7 +33,20 @@ demo launches a real local MCP server, reads the menu resource, places one
 order, performs a successful search with no matches, and returns one structured
 tool error. Part 3 keeps the structure: its demo classifies a whole fixture
 repo's Claude Code configuration (what loads always, conditionally, and on
-demand), then runs the real `claude -p` unattended inside it.
+demand), then runs the real `claude -p` unattended inside it. Part 4 uses a
+real Agent SDK research path plus a local support guard path, with rehearsal
+buttons for a token-free office hour.
+
+## Repository checks
+
+The root `package.json` is a dependency-free convenience manifest. Demo
+packages keep their dependencies isolated, but these commands run from the
+repository root after each demo has been installed:
+
+```bash
+npm run check   # typecheck every demo
+npm test        # run the deterministic MCP and Part 4 traces
+```
 
 ## Running Part 1 (5 minutes)
 
@@ -84,6 +98,22 @@ close-of-day check unattended and returns schema-validated JSON findings.
 **Run live** needs the Claude Code CLI installed and logged in (as in Part 1);
 **Rehearse** replays the same event shapes without spawning anything. Run
 `npm run nightshift` for the same trace as newline-delimited JSON.
+
+## Running Part 4 (3 minutes)
+
+```bash
+cd part-4/demo
+npm install
+npm run demo        # → open http://127.0.0.1:5049/part-4/slides.html
+```
+
+On slide 9, click **Research rehearsal** to replay the coordinator, three
+parallel reporters, a structured music timeout, and a synthesis editor. On
+slide 14, click **Support rehearsal** to replay the identity guard, trimmed
+order result, safe refund, and manager handoff. **Research live** needs the
+Claude Code CLI installed and logged in. **Support live** runs the local
+TypeScript tools without credentials. Run `npm run trace -- --rehearse
+research` or `npm run trace -- support` for newline-delimited JSON.
 
 ## Adding a part
 
