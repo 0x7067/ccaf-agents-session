@@ -286,6 +286,10 @@ function translate(
     }
     case 'result': {
       if (message.subtype === 'success') {
+        if (message.is_error) {
+          events.push({ t: 'error', scenario: 'research', msg: `Research run ended: ${message.result}` });
+          break;
+        }
         const report = String(message.result ?? '');
         events.push({
           t: 'final',
