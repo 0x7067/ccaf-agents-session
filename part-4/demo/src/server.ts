@@ -44,6 +44,7 @@ const sockets = new Set<WebSocket>();
 const webSockets = new WebSocketServer({ server: httpServer, path: '/ws' });
 let controller: AbortController | undefined;
 let activeRun: Promise<void> | undefined;
+let lifecycleQueue: Promise<void> = Promise.resolve();
 
 function broadcast(event: unknown): void {
   const payload = JSON.stringify(event);
@@ -66,41 +67,42 @@ webSockets.on('connection', socket => {
   sockets.add(socket);
   socket.send(JSON.stringify({ t: 'status', msg: 'connected, ready' }));
 
-  socket.on('message', async raw => {
-    let message: { cmd?: string; scenario?: string };
-    try {
-      message = JSON.parse(raw.toString()) as { cmd?: string; scenario?: string };
-    } catch {
-      return;
-    }
-    if (message.cmd === 'stop') {
-      await stopCurrent();
-      broadcast({ t: 'status', msg: 'stopped' });
-      return;
-    }
-    if (message.cmd !== 'start' && message.cmd !== 'mock') return;
-    await stopCurrent();
-    const scenario = message.scenario === 'support' ? 'support' : 'research';
-    const runController = new AbortController();
-    controller = runController;
-    const run = (async () => {
+  socket.on('message', raw => {
+    lifecycleQueue = lifecycleQueue.then(async () => {
+      let message: { cmd?: string; scenario?: string };
       try {
-        if (message.cmd === 'mock') await runRehearsal(scenario, broadcast, runController.signal);
-        else await runScenario(scenario as Scenario, broadcast, runController.signal);
-      } catch (error) {
-        const text = error instanceof Error ? error.message : String(error);
-        if (text !== 'stopped') broadcast({ t: 'error', scenario, msg: text });
+        message = JSON.parse(raw.toString()) as { cmd?: string; scenario?: string };
+      } catch {
+        return;
       }
-    })();
-    activeRun = run;
-    try {
-      await run;
-    } finally {
-      if (activeRun === run) {
-        activeRun = undefined;
-        controller = undefined;
+      if (message.cmd === 'stop') {
+        await stopCurrent();
+        broadcast({ t: 'status', msg: 'stopped' });
+        return;
       }
-    }
+      if (message.cmd !== 'start' && message.cmd !== 'mock') return;
+      await stopCurrent();
+      const scenario = message.scenario === 'support' ? 'support' : 'research';
+      const runController = new AbortController();
+      controller = runController;
+      const run = (async () => {
+        try {
+          if (message.cmd === 'mock') await runRehearsal(scenario, broadcast, runController.signal);
+          else await runScenario(scenario as Scenario, broadcast, runController.signal);
+        } catch (error) {
+          const text = error instanceof Error ? error.message : String(error);
+          if (text !== 'stopped') broadcast({ t: 'error', scenario, msg: text });
+        }
+      })();
+      activeRun = run;
+      const clearRun = () => {
+        if (activeRun === run) {
+          activeRun = undefined;
+          controller = undefined;
+        }
+      };
+      void run.then(clearRun, clearRun);
+    }).catch(() => undefined);
   });
 
   socket.on('close', () => sockets.delete(socket));

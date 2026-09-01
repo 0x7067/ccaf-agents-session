@@ -59,12 +59,32 @@ function pause(ms: number, signal?: AbortSignal): Promise<void> {
  * The code-level precondition behind the support example. A prompt can ask for
  * verification first. This function makes skipping it impossible.
  */
-export function checkPrecondition(tool: string, state: SupportState): { allowed: boolean; reason: string } {
+export function checkPrecondition(
+  tool: string,
+  state: SupportState,
+  args: Record<string, unknown> = {},
+): { allowed: boolean; reason: string } {
   if ((tool === 'lookup_order' || tool === 'process_refund') && !state.verifiedCustomerId) {
     return {
       allowed: false,
       reason: `${tool} is blocked until get_customer returns one verified customer_id`,
     };
+  }
+  if (tool === 'lookup_order') {
+    if (args.customer_id !== state.verifiedCustomerId) {
+      return { allowed: false, reason: 'lookup_order is blocked because customer_id does not match the verified guest' };
+    }
+    if (args.order_id !== state.facts.order_id) {
+      return { allowed: false, reason: 'lookup_order is blocked because order_id does not match the current case' };
+    }
+  }
+  if (tool === 'process_refund') {
+    if (args.customer_id !== undefined && args.customer_id !== state.verifiedCustomerId) {
+      return { allowed: false, reason: 'process_refund is blocked because customer_id does not match the verified guest' };
+    }
+    if (args.order_id !== state.order?.id) {
+      return { allowed: false, reason: 'process_refund is blocked until the requested order is verified' };
+    }
   }
   return { allowed: true, reason: 'preconditions satisfied' };
 }
@@ -106,7 +126,7 @@ async function guardedTool(
 ): Promise<boolean> {
   emit({ t: 'tool_attempt', scenario: 'support', tool, args });
   await pause(delayMs, signal);
-  const guard = checkPrecondition(tool, state);
+  const guard = checkPrecondition(tool, state, args);
   emit({ t: 'guard', scenario: 'support', tool, allowed: guard.allowed, reason: guard.reason });
   if (!guard.allowed) {
     emit({
