@@ -5,7 +5,7 @@ type Emit = (event: DemoEvent) => void;
 export type SupportState = {
   facts: Record<string, string>;
   verifiedCustomerId?: string;
-  order?: { id: string; status: string; total: string; duplicateCharge: string };
+  order?: { id: string; status: string; total: string; duplicateCharge: string; returnEligible: string };
   actions: string[];
   escalated: boolean;
 };
@@ -82,8 +82,16 @@ export function checkPrecondition(
     if (args.customer_id !== undefined && args.customer_id !== state.verifiedCustomerId) {
       return { allowed: false, reason: 'process_refund is blocked because customer_id does not match the verified guest' };
     }
-    if (args.order_id !== state.order?.id) {
+    const order = state.order;
+    if (!order || args.order_id !== order.id) {
       return { allowed: false, reason: 'process_refund is blocked until the requested order is verified' };
+    }
+    const expectedAmount = Number(order.duplicateCharge.replace('$', ''));
+    if (args.amount !== expectedAmount) {
+      return { allowed: false, reason: 'process_refund is blocked because amount does not match the verified duplicate charge' };
+    }
+    if (args.reason !== 'duplicate charge' || order.returnEligible !== 'duplicate charge review allowed') {
+      return { allowed: false, reason: 'process_refund is blocked because the requested reason is not covered by the verified order policy' };
     }
   }
   return { allowed: true, reason: 'preconditions satisfied' };
@@ -198,7 +206,7 @@ export async function runSupport(emit: Emit, signal?: AbortSignal, delayMs = 550
     trimmedFields,
   );
   if (orderOk) {
-    state.order = { id: 'ORD-1042', status: 'delivered', total: '$72.00', duplicateCharge: '$18.00' };
+    state.order = { id: 'ORD-1042', status: 'delivered', total: '$72.00', duplicateCharge: '$18.00', returnEligible: 'duplicate charge review allowed' };
     state.actions.push('Confirmed ORD-1042 and kept five decision fields from the ledger.');
     state.facts.order_status = 'delivered';
     state.facts.duplicate_charge = '$18.00 confirmed';
