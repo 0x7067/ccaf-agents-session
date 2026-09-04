@@ -3,58 +3,79 @@ import { CUSTOMER, REQUEST } from './support.js';
 
 type TimedEvent = { at: number; e: DemoEvent };
 
-const V = 'toolu_rehearsal_visual';
-const M = 'toolu_rehearsal_music';
-const L = 'toolu_rehearsal_litfilm';
-const S = 'toolu_rehearsal_synthesis';
+const P = 'toolu_rehearsal_produce';
+const FI = 'toolu_rehearsal_fish';
+const W = 'toolu_rehearsal_wine';
+const S = 'toolu_rehearsal_planner';
 
 const researchPrompt = [
-  'Research question: "How is AI changing creative industries?"',
+  'Sourcing question: "What will next season\'s tasting menu cost to source, per course?"',
   '',
-  'You are the coordinator. Your job is to make a truthful, coverage-annotated brief.',
-  'The requested coverage is visual art, music, literature, and film.',
+  'You are the head chef and the coordinator. Your job is to produce a truthful, coverage-annotated sourcing plan.',
+  'The requested courses are produce, fish, and wine.',
   '',
-  'First, spawn these three reporters in parallel in one response:',
-  '- visual-art-researcher: sources/visual-art.md',
-  '- music-researcher: sources/music.md',
-  '- literature-film-researcher: sources/literature-film.md',
-  'Pass each reporter its source path, research question, its exact output fields, and the rule that it must not read another packet.',
+  'First, spawn these three buyers in parallel in one response:',
+  '- produce-buyer: sources/produce.md',
+  '- fish-buyer: sources/fish.md',
+  '- wine-buyer: sources/wine.md',
+  'Pass each buyer its market file, the sourcing question, its exact output fields, and the rule that it must not read another market.',
   '',
-  'When all three reports return, check coverage. Then spawn synthesis-editor with the full reporter reports, including any structured failure context.',
-  'Keep all communication through you. Reporters never call one another.',
-  'If a report is partial, keep the completed work and mark the affected section PARTIAL COVERAGE in the final brief.',
-  'Do not invent a claim, silently drop a missing source, or return raw source dumps.',
+  'When all three notes return, check coverage. Then spawn menu-planner with the full buyer notes, including any structured failure context.',
+  'Keep all communication through you. Buyers never call one another.',
+  'If a note is partial, keep the completed work and mark that course PARTIAL COVERAGE in the final plan.',
+  'If two suppliers quote different prices, keep both with supplier name and quote date. Do not pick one.',
+  'Do not invent a price, silently drop a missing market, or return raw packet dumps.',
 ].join('\n');
 
-const synthesisPrompt = [
-  'Synthesize these reporter packets into a coverage-annotated brief.',
-  'Return key_findings first, then one section per requested area with source IDs, dates, and a coverage label.',
-  'VISUAL ART REPORT: status completed; source_id ART-2025-01; source_date 2025-02-14; key_findings: studios use generative tools for concept sketches and variations; limits: does not show replacement of human approval.',
-  'MUSIC REPORT: status partial_failure; failure_type source_timeout; attempted_query "AI impact on music industry 2024"; partial_results []; alternative_approaches ["retry another source"]; coverage_impact "music production is not covered".',
-  'LITERATURE + FILM REPORT: status completed; source_id CULTURE-2025-03; source_date 2025-03-08; key_findings: brainstorming, storyboards, translation drafts, previsualization; limits: generated drafts still need human editing.',
-  'Preserve partial failures. Never turn a timeout into an empty result or fill a gap from memory.',
+const plannerPrompt = [
+  'Turn these buyer notes into a coverage-annotated sourcing plan.',
+  'Return KEY FINDINGS first, then one section per course with supplier, price, quote date, and a coverage label.',
+  'PRODUCE NOTE: status completed; source_id PRODUCE-2026-08; quotes: heirloom tomatoes Valley Farm $4.20/kg quoted 2026-08-28, heirloom tomatoes Rossi Brothers $3.60/kg quoted 2026-07-30 (conflict_detected: true, possible_explanation: quote dates differ by a month, summer glut), basil Valley Farm $18.00/kg quoted 2026-08-28, squash blossoms Valley Farm $0.90 each until 2026-09-20; limits: two tomato quotes, chef must decide.',
+  'FISH NOTE: status partial_failure; failure_type source_timeout; attempted_query "autumn fish quotes for the tasting menu"; partial_results []; alternative_approaches ["ask the secondary fishmonger", "retry tomorrow morning"]; coverage_impact "the fish course is not sourced".',
+  'WINE NOTE: status completed; source_id WINE-2026-09; quotes: Verdicchio 2024 Hillside Cellars $132.00/case quoted 2026-09-01, Nebbiolo 2021 Piedmont Imports $312.00/case quoted 2026-09-01 (minimum three cases); limits: quotes valid 14 days from 2026-09-01.',
+  'Preserve partial failures. Never turn a timeout into an empty result or fill a gap from memory. Keep both tomato quotes with supplier and date.',
+].join('\n');
+
+const menuPlan = [
+  'KEY FINDINGS',
+  '- Produce is sourced. Tomatoes have two quotes: Valley Farm $4.20/kg (2026-08-28) and Rossi Brothers $3.60/kg (2026-07-30). The dates differ by a month; not a contradiction. Chef decides. [PRODUCE-2026-08]',
+  '- Wine is sourced. Verdicchio $132/case and Nebbiolo $312/case, both quoted 2026-09-01 and valid 14 days. [WINE-2026-09]',
+  '- Fish is NOT sourced. The price desk timed out. No fish price is supported by this run.',
+  '',
+  'PRODUCE · FULL COVERAGE',
+  'Heirloom tomatoes: Valley Farm $4.20/kg, organic, quoted 2026-08-28 · Rossi Brothers $3.60/kg, conventional, quoted 2026-07-30 · conflict kept, both shown.',
+  'Basil: Valley Farm $18.00/kg, quoted 2026-08-28. Squash blossoms: $0.90 each, available until 2026-09-20.',
+  '',
+  'FISH · PARTIAL COVERAGE',
+  'Source timeout at the fish market price desk. Attempted: "autumn fish quotes for the tasting menu".',
+  'Next step: ask the secondary fishmonger, or retry tomorrow morning.',
+  '',
+  'WINE · FULL COVERAGE',
+  'Verdicchio 2024, Hillside Cellars, $132.00/case of 12, quoted 2026-09-01.',
+  'Nebbiolo 2021, Piedmont Imports, $312.00/case of 12, quoted 2026-09-01, minimum three cases.',
+  'Limit: both quotes expire 14 days after 2026-09-01.',
 ].join('\n');
 
 export const RESEARCH_REHEARSAL: TimedEvent[] = [
-  { at: 0, e: { t: 'status', scenario: 'research', msg: 'rehearsal · no model call, replaying the newsroom trace' } },
-  { at: 1, e: { t: 'phase', scenario: 'research', name: 'decompose', detail: 'the coordinator splits the broad question into four coverage areas' } },
+  { at: 0, e: { t: 'status', scenario: 'research', msg: 'rehearsal · no model call, replaying the back-office sourcing run' } },
+  { at: 1, e: { t: 'phase', scenario: 'research', name: 'decompose', detail: 'the head chef splits the menu into three markets' } },
   { at: 2, e: { t: 'init', scenario: 'research', model: 'claude-sonnet-4-6', tools: ['Agent', 'Task', 'Read', 'Glob'] } },
   { at: 3, e: { t: 'coord_prompt', scenario: 'research', prompt: researchPrompt } },
-  { at: 4, e: { t: 'coord_text', scenario: 'research', text: 'I will cover visual art, music, literature, and film. The three independent assignments can run together.' } },
-  { at: 5, e: { t: 'spawn', scenario: 'research', id: V, agent: 'visual-art-researcher', description: 'check visual-art evidence', prompt: 'Read only sources/visual-art.md in the current research packet. Return a compact structured report with status, source_id, source_date, key_findings, and limits. Keep the source date and do not claim that the packet proves more than it says. Do not read another beat reporter\'s packet. Do not return the full document.', tools: ['Read', 'Glob'] } },
-  { at: 6, e: { t: 'spawn', scenario: 'research', id: M, agent: 'music-researcher', description: 'check music evidence', prompt: 'Read only sources/music.md in the current research packet. If SOURCE_STATUS says unavailable, return status partial_failure, failure_type, attempted_query, partial_results, and coverage_impact. An unavailable source is not a successful empty result. Do not invent music findings. Do not read another beat reporter\'s packet. Keep the report compact.', tools: ['Read', 'Glob'] } },
-  { at: 7, e: { t: 'spawn', scenario: 'research', id: L, agent: 'literature-film-researcher', description: 'check literature and film evidence', prompt: 'Read only sources/literature-film.md in the current research packet. Return a compact structured report with status, source_id, source_date, key_findings, and limits. Name literature and film separately in coverage, and keep the source date. Do not read another beat reporter\'s packet. Do not return the full document.', tools: ['Read', 'Glob'] } },
-  { at: 8, e: { t: 'sub_tool', scenario: 'research', parentId: V, agent: 'visual-art-researcher', tool: 'Read', detail: 'sources/visual-art.md' } },
-  { at: 9, e: { t: 'sub_tool', scenario: 'research', parentId: M, agent: 'music-researcher', tool: 'Read', detail: 'sources/music.md' } },
-  { at: 10, e: { t: 'sub_tool', scenario: 'research', parentId: L, agent: 'literature-film-researcher', tool: 'Read', detail: 'sources/literature-film.md' } },
-  { at: 11, e: { t: 'sub_done', scenario: 'research', parentId: V, agent: 'visual-art-researcher', status: 'completed', tokens: 1280, result: '{ status: "completed", source_id: "ART-2025-01", source_date: "2025-02-14", key_findings: ["studios use generative tools for concept sketches and variations"], limits: ["does not show replacement of human approval"] }' } },
-  { at: 12, e: { t: 'sub_done', scenario: 'research', parentId: L, agent: 'literature-film-researcher', status: 'completed', tokens: 1420, result: '{ status: "completed", source_id: "CULTURE-2025-03", source_date: "2025-03-08", key_findings: ["brainstorming, storyboards, translation drafts, previsualization"], limits: ["generated drafts still need human editing"] }' } },
-  { at: 13, e: { t: 'sub_done', scenario: 'research', parentId: M, agent: 'music-researcher', status: 'partial_failure', tokens: 730, result: '{ status: "partial_failure", failure_type: "source_timeout", attempted_query: "AI impact on music industry 2024", partial_results: [], alternative_approaches: ["retry another source"], coverage_impact: "music production is not covered" }' } },
-  { at: 14, e: { t: 'coord_text', scenario: 'research', text: 'Two packets are complete. Music is a partial failure, not an empty success. I will pass all three reports, including that gap, to the editor.' } },
-  { at: 15, e: { t: 'spawn', scenario: 'research', id: S, agent: 'synthesis-editor', description: 'write a coverage-annotated brief', prompt: synthesisPrompt, tools: [] } },
-  { at: 16, e: { t: 'sub_done', scenario: 'research', parentId: S, agent: 'synthesis-editor', status: 'completed', tokens: 1890, result: 'Drafted a brief with key findings first, dated source IDs, and PARTIAL COVERAGE for music.' } },
-  { at: 17, e: { t: 'final', scenario: 'research', coverage: 'partial', summary: 'The coordinator kept useful results and marked the missing music evidence.', report: 'KEY FINDINGS\n- Visual-art studios use generative tools for concepts and variations. [ART-2025-01, 2025-02-14]\n- Authors and filmmakers use them for brainstorming, storyboards, translation drafts, and previsualization. [CULTURE-2025-03, 2025-03-08]\n\nVISUAL ART · FULL COVERAGE\nHuman approval remains part of the reported workflow.\n\nLITERATURE · FULL COVERAGE\nThe review describes assisted drafting, not publication without editing.\n\nFILM · FULL COVERAGE\nThe review describes previsualization, not a finished film.\n\nMUSIC · PARTIAL COVERAGE\nThe source request timed out. No music claim is supported by this run.\nNext step: retry with an alternative source.' } },
-  { at: 18, e: { t: 'done', scenario: 'research', msg: 'research rehearsal complete · partial coverage is visible' } },
+  { at: 4, e: { t: 'coord_text', scenario: 'research', text: 'Three courses, three markets. The buyers are independent, so I will send all three at once.' } },
+  { at: 5, e: { t: 'spawn', scenario: 'research', id: P, agent: 'produce-buyer', description: 'collect produce quotes', prompt: 'Read only sources/produce.md in the current market packet. Return a compact structured note with status, source_id, quote_date, quotes (supplier, item, price, date), and limits. If two suppliers quote different prices for the same item, keep both with supplier and date and set conflict_detected: true. Do not pick one. Do not read another buyer\'s packet. Do not return the full document.', tools: ['Read', 'Glob'] } },
+  { at: 6, e: { t: 'spawn', scenario: 'research', id: FI, agent: 'fish-buyer', description: 'collect fish quotes', prompt: 'Read only sources/fish.md in the current market packet. If SOURCE_STATUS says unavailable, return status partial_failure, failure_type, attempted_query, partial_results, alternative_approaches, and coverage_impact. An unavailable market is not a successful empty result. Do not invent fish prices. Do not read another buyer\'s packet. Keep the note compact.', tools: ['Read', 'Glob'] } },
+  { at: 7, e: { t: 'spawn', scenario: 'research', id: W, agent: 'wine-buyer', description: 'collect wine quotes', prompt: 'Read only sources/wine.md in the current market packet. Return a compact structured note with status, source_id, quote_date, quotes (supplier, item, price, date), and limits. Keep the quote validity limit and the minimum order in limits. Do not read another buyer\'s packet. Do not return the full document.', tools: ['Read', 'Glob'] } },
+  { at: 8, e: { t: 'sub_tool', scenario: 'research', parentId: P, agent: 'produce-buyer', tool: 'Read', detail: 'sources/produce.md' } },
+  { at: 9, e: { t: 'sub_tool', scenario: 'research', parentId: FI, agent: 'fish-buyer', tool: 'Read', detail: 'sources/fish.md' } },
+  { at: 10, e: { t: 'sub_tool', scenario: 'research', parentId: W, agent: 'wine-buyer', tool: 'Read', detail: 'sources/wine.md' } },
+  { at: 11, e: { t: 'sub_done', scenario: 'research', parentId: W, agent: 'wine-buyer', status: 'completed', tokens: 1180, result: '{ status: "completed", source_id: "WINE-2026-09", quote_date: "2026-09-01", quotes: [{ supplier: "Hillside Cellars", item: "Verdicchio 2024", price: "$132.00/case", date: "2026-09-01" }, { supplier: "Piedmont Imports", item: "Nebbiolo 2021", price: "$312.00/case", date: "2026-09-01" }], limits: ["quotes valid 14 days", "Nebbiolo minimum three cases"] }' } },
+  { at: 12, e: { t: 'sub_done', scenario: 'research', parentId: P, agent: 'produce-buyer', status: 'completed', tokens: 1460, result: '{ status: "completed", source_id: "PRODUCE-2026-08", quote_date: "2026-08-28", quotes: [{ supplier: "Valley Farm", item: "heirloom tomatoes", price: "$4.20/kg", date: "2026-08-28" }, { supplier: "Rossi Brothers", item: "heirloom tomatoes", price: "$3.60/kg", date: "2026-07-30" }, { supplier: "Valley Farm", item: "basil", price: "$18.00/kg", date: "2026-08-28" }, { supplier: "Valley Farm", item: "squash blossoms", price: "$0.90 each", date: "2026-08-28" }], conflict_detected: true, possible_explanation: "quote dates differ by a month; July quote taken during the summer glut", limits: ["two tomato quotes kept; chef decides", "squash blossoms available until 2026-09-20"] }' } },
+  { at: 13, e: { t: 'sub_done', scenario: 'research', parentId: FI, agent: 'fish-buyer', status: 'partial_failure', tokens: 690, result: '{ status: "partial_failure", failure_type: "source_timeout", attempted_query: "autumn fish quotes for the tasting menu", partial_results: [], alternative_approaches: ["ask the secondary fishmonger", "retry tomorrow morning"], coverage_impact: "the fish course is not sourced" }' } },
+  { at: 14, e: { t: 'coord_text', scenario: 'research', text: 'Two markets are complete. Fish is a partial failure, not an empty success. I will pass all three notes, including that gap and both tomato quotes, to the menu planner.' } },
+  { at: 15, e: { t: 'spawn', scenario: 'research', id: S, agent: 'menu-planner', description: 'write a coverage-annotated sourcing plan', prompt: plannerPrompt, tools: [] } },
+  { at: 16, e: { t: 'sub_done', scenario: 'research', parentId: S, agent: 'menu-planner', status: 'completed', tokens: 1720, result: 'Drafted a sourcing plan with KEY FINDINGS first, dated supplier quotes, both tomato quotes kept, and PARTIAL COVERAGE for fish.' } },
+  { at: 17, e: { t: 'final', scenario: 'research', coverage: 'partial', summary: 'The head chef kept every sourced quote and marked the missing fish market.', report: menuPlan } },
+  { at: 18, e: { t: 'done', scenario: 'research', msg: 'sourcing rehearsal complete · partial coverage is visible' } },
 ];
 
 const initialFacts = {
@@ -91,8 +112,8 @@ export const SUPPORT_REHEARSAL: TimedEvent[] = [
   { at: 3, e: { t: 'case_facts', scenario: 'support', facts: initialFacts, update: 'facts extracted from the first message' } },
   { at: 4, e: { t: 'decompose', scenario: 'support', issues: ['duplicate-charge refund', 'competitor price-match policy gap'] } },
   { at: 5, e: { t: 'tool_attempt', scenario: 'support', tool: 'lookup_order', args: { order_id: 'ORD-1042' } } },
-  { at: 6, e: { t: 'guard', scenario: 'support', tool: 'lookup_order', allowed: false, reason: 'lookup_order is blocked until get_customer returns one verified customer_id' } },
-  { at: 7, e: { t: 'tool_result', scenario: 'support', tool: 'lookup_order', ok: false, data: { status: 'blocked', error_type: 'precondition', message: 'lookup_order is blocked until get_customer returns one verified customer_id' } } },
+  { at: 6, e: { t: 'guard', scenario: 'support', tool: 'lookup_order', allowed: false, reason: 'lookup_order blocked: no verified customer yet. Call get_customer first, then retry with the customer_id it returns.' } },
+  { at: 7, e: { t: 'tool_result', scenario: 'support', tool: 'lookup_order', ok: false, data: { status: 'blocked', error_type: 'precondition', message: 'lookup_order blocked: no verified customer yet. Call get_customer first, then retry with the customer_id it returns.' } } },
   { at: 8, e: { t: 'tool_attempt', scenario: 'support', tool: 'get_customer', args: { name: CUSTOMER.name } } },
   { at: 9, e: { t: 'guard', scenario: 'support', tool: 'get_customer', allowed: true, reason: 'preconditions satisfied' } },
   { at: 10, e: { t: 'tool_result', scenario: 'support', tool: 'get_customer', ok: true, data: { status: 'success', match_count: 1, customer: CUSTOMER } } },

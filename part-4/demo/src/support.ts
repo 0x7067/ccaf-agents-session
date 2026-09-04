@@ -67,7 +67,7 @@ export function checkPrecondition(
   if ((tool === 'lookup_order' || tool === 'process_refund') && !state.verifiedCustomerId) {
     return {
       allowed: false,
-      reason: `${tool} is blocked until get_customer returns one verified customer_id`,
+      reason: `${tool} blocked: no verified customer yet. Call get_customer first, then retry with the customer_id it returns.`,
     };
   }
   if (tool === 'lookup_order') {

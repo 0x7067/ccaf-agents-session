@@ -15,7 +15,7 @@ every part.
 | [Part 1](part-1/) | Agentic Architecture and Orchestration: the Claude API request body, the agent loop, multi-agent hub-and-spoke (live demo), and a full exam summary | ✅ ready |
 | [Part 2](part-2/) | Model Context Protocol and Tool Calling: a restaurant-themed path through hosts, clients, servers, tools/resources/prompts, tool descriptions and `tool_choice`, project vs personal configuration, structured errors, and a live protocol trace | ✅ ready |
 | [Part 3](part-3/) | Claude Code configuration and workflows: the CLAUDE.md hierarchy as knife roll / staff handbook / station card, ask-vs-enforce with hooks, `@path` imports, path-scoped `.claude/rules/`, skills and slash commands, planning mode, session hygiene, and the headless `claude -p` CI pattern with `--output-format json` + `--json-schema` | ✅ ready |
-| [Part 4](part-4/) | Multi-agent research and restaurant customer support: decomposition, isolated context, structured partial failures, safe tool ordering, case facts, and human handoffs | ✅ ready |
+| [Part 4](part-4/) | Customer support agents and multi-agent research: the identity precondition, escalation rules and the handoff, case facts and trimming, validation and retry, the Message Batches API, decomposition and error propagation, provenance | ✅ ready |
 | Part 5+ | yours to add | |
 
 Each part is a self-contained folder:
@@ -33,9 +33,10 @@ demo launches a real local MCP server, reads the menu resource, places one
 order, performs a successful search with no matches, and returns one structured
 tool error. Part 3 keeps the structure: its demo classifies a whole fixture
 repo's Claude Code configuration (what loads always, conditionally, and on
-demand), then runs the real `claude -p` unattended inside it. Part 4 uses a
-real Agent SDK research path plus a local support guard path, with rehearsal
-buttons for a token-free office hour.
+demand), then runs the real `claude -p` unattended inside it. Part 4 runs a
+local, model-free support counter (the precondition, trimming, case facts, and
+handoff) and a real Agent SDK back office where a head chef sends three buyers
+to market, with rehearsal buttons for a token-free office hour.
 
 ## Repository checks
 
@@ -107,13 +108,15 @@ npm install
 npm run demo        # → open http://127.0.0.1:5049/part-4/slides.html
 ```
 
-On slide 9, click **Research rehearsal** to replay the coordinator, three
-parallel reporters, a structured music timeout, and a synthesis editor. On
-slide 14, click **Support rehearsal** to replay the identity guard, trimmed
-order result, safe refund, and manager handoff. **Research live** needs the
-Claude Code CLI installed and logged in. **Support live** runs the local
-TypeScript tools without credentials. Run `npm run trace -- --rehearse
-research` or `npm run trace -- support` for newline-delimited JSON.
+On slide 13, click **Rehearse** to watch the counter handle one guest: the
+lock denies the early order lookup, the ticket grows, five of 19 fields
+survive, the refund runs, the manager gets the handoff. On slide 22, click
+**Rehearse** to watch the head chef send three buyers to market: the fish
+market times out and comes back as a structured partial failure, and the plan
+keeps both tomato quotes. Slide 13's **Run live** runs the local TypeScript
+tools without credentials. Slide 22's **Run live** needs the Claude Code CLI
+installed and logged in. Run `npm run trace -- support` or `npm run trace --
+--rehearse research` for newline-delimited JSON.
 
 ## Adding a part
 

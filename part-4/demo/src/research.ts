@@ -12,9 +12,9 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 export const researchFixture = path.resolve(here, '..', 'fixtures', 'research');
 
 const ASSIGNED_SOURCE_BY_AGENT: Record<string, string> = {
-  'visual-art-researcher': 'sources/visual-art.md',
-  'music-researcher': 'sources/music.md',
-  'literature-film-researcher': 'sources/literature-film.md',
+  'produce-buyer': 'sources/produce.md',
+  'fish-buyer': 'sources/fish.md',
+  'wine-buyer': 'sources/wine.md',
 } as const;
 const RESEARCH_SOURCE_PATHS = new Set(Object.values(ASSIGNED_SOURCE_BY_AGENT));
 
@@ -60,54 +60,54 @@ const RESEARCH_HOOKS: NonNullable<Options['hooks']> = {
 };
 
 /**
- * The three reporters have separate notebooks. The editor receives their
- * reports later through the coordinator, not through direct reporter calls.
+ * The three buyers have separate order sheets. The menu planner receives their
+ * notes later through the head chef (the coordinator), never from a buyer.
  */
 export const RESEARCH_AGENTS: NonNullable<Options['agents']> = {
-  'visual-art-researcher': {
-    description: 'Researches the visual-art part of the question from the assigned local source packet.',
+  'produce-buyer': {
+    description: 'Collects produce quotes for the tasting menu from the assigned market packet.',
     prompt: [
-      'You are the visual-art beat reporter.',
-      'Read only sources/visual-art.md in the current research packet.',
-      'Return a compact structured report with status, source_id, source_date, key_findings, and limits.',
-      'Keep the source date and do not claim that the packet proves more than it says.',
-      'Do not read another beat reporter\'s packet. Do not return the full document.',
+      'You are the produce buyer for Basil Bistro.',
+      'Read only sources/produce.md in the current market packet.',
+      'Return a compact structured note with status, source_id, quote_date, quotes (supplier, item, price, date), and limits.',
+      'If two suppliers quote different prices for the same item, keep both with supplier and date and set conflict_detected: true. Do not pick one.',
+      'Do not read another buyer\'s packet. Do not return the full document.',
     ].join('\n'),
     tools: READ_ONLY_TOOLS,
     model: 'haiku',
   },
-  'music-researcher': {
-    description: 'Checks the music part of the question and reports missing coverage honestly.',
+  'fish-buyer': {
+    description: 'Collects fish quotes for the tasting menu and reports a missing market honestly.',
     prompt: [
-      'You are the music beat reporter.',
-      'Read only sources/music.md in the current research packet.',
-      'If SOURCE_STATUS says unavailable, return status partial_failure, failure_type, attempted_query, partial_results, and coverage_impact.',
-      'An unavailable source is not a successful empty result. Do not invent music findings.',
-      'Do not read another beat reporter\'s packet. Keep the report compact.',
+      'You are the fish buyer for Basil Bistro.',
+      'Read only sources/fish.md in the current market packet.',
+      'If SOURCE_STATUS says unavailable, return status partial_failure, failure_type, attempted_query, partial_results, alternative_approaches, and coverage_impact.',
+      'An unavailable market is not a successful empty result. Do not invent fish prices.',
+      'Do not read another buyer\'s packet. Keep the note compact.',
     ].join('\n'),
     tools: READ_ONLY_TOOLS,
     model: 'haiku',
   },
-  'literature-film-researcher': {
-    description: 'Researches the literature and film part of the question from the assigned local source packet.',
+  'wine-buyer': {
+    description: 'Collects wine quotes for the tasting menu from the assigned cellar packet.',
     prompt: [
-      'You are the literature-and-film beat reporter.',
-      'Read only sources/literature-film.md in the current research packet.',
-      'Return a compact structured report with status, source_id, source_date, key_findings, and limits.',
-      'Name literature and film separately in coverage, and keep the source date.',
-      'Do not read another beat reporter\'s packet. Do not return the full document.',
+      'You are the wine buyer for Basil Bistro.',
+      'Read only sources/wine.md in the current market packet.',
+      'Return a compact structured note with status, source_id, quote_date, quotes (supplier, item, price, date), and limits.',
+      'Keep the quote validity limit and the minimum order in limits.',
+      'Do not read another buyer\'s packet. Do not return the full document.',
     ].join('\n'),
     tools: READ_ONLY_TOOLS,
     model: 'haiku',
   },
-  'synthesis-editor': {
-    description: 'Turns the reporter packets into a coverage-annotated research brief.',
+  'menu-planner': {
+    description: 'Turns the buyer notes into a coverage-annotated sourcing plan for the tasting menu.',
     prompt: [
-      'You are the synthesis editor.',
-      'Use only the complete reporter packets in your prompt.',
-      'Return a short research brief with a key-findings block first, one section per requested area, source IDs and dates, and a coverage label for each section.',
+      'You are the menu planner.',
+      'Use only the complete buyer notes in your prompt.',
+      'Return a short sourcing plan with a KEY FINDINGS block first, then one section per course (produce, fish, wine) with supplier, price, quote date, and a coverage label.',
       'Preserve partial failures. Never turn a timeout into an empty result or fill a gap from memory.',
-      'Keep claims narrower than the evidence and name limits.',
+      'When two quotes conflict, show both with supplier and date and say why they may differ. Keep claims narrower than the evidence and name limits.',
     ].join('\n'),
     tools: [],
     model: 'sonnet',
@@ -115,21 +115,22 @@ export const RESEARCH_AGENTS: NonNullable<Options['agents']> = {
 };
 
 export const COORDINATOR_PROMPT = [
-  'Research question: "How is AI changing creative industries?"',
+  'Sourcing question: "What will next season\'s tasting menu cost to source, per course?"',
   '',
-  'You are the coordinator. Your job is to make a truthful, coverage-annotated brief.',
-  'The requested coverage is visual art, music, literature, and film.',
+  'You are the head chef and the coordinator. Your job is to produce a truthful, coverage-annotated sourcing plan.',
+  'The requested courses are produce, fish, and wine.',
   '',
-  'First, spawn these three reporters in parallel in one response:',
-  '- visual-art-researcher: sources/visual-art.md',
-  '- music-researcher: sources/music.md',
-  '- literature-film-researcher: sources/literature-film.md',
-  'Pass each reporter its source path, the research question, its exact output fields, and the rule that it must not read another packet.',
+  'First, spawn these three buyers in parallel in one response:',
+  '- produce-buyer: sources/produce.md',
+  '- fish-buyer: sources/fish.md',
+  '- wine-buyer: sources/wine.md',
+  'Pass each buyer its market file, the sourcing question, its exact output fields, and the rule that it must not read another market.',
   '',
-  'When all three reports return, check coverage. Then spawn synthesis-editor with the full reporter reports, including any structured failure context.',
-  'Keep all communication through you. Reporters never call one another.',
-  'If a report is partial, keep the completed work and mark the affected section PARTIAL COVERAGE in the final brief.',
-  'Do not invent a claim, silently drop a missing source, or return raw source dumps.',
+  'When all three notes return, check coverage. Then spawn menu-planner with the full buyer notes, including any structured failure context.',
+  'Keep all communication through you. Buyers never call one another.',
+  'If a note is partial, keep the completed work and mark that course PARTIAL COVERAGE in the final plan.',
+  'If two suppliers quote different prices, keep both with supplier name and quote date. Do not pick one.',
+  'Do not invent a price, silently drop a missing market, or return raw packet dumps.',
 ].join('\n');
 
 export const COORDINATOR_ALLOWED_TOOLS = ['Agent', 'Task', ...READ_ONLY_TOOLS];
@@ -294,7 +295,7 @@ function translate(
         events.push({
           t: 'final',
           scenario: 'research',
-          summary: 'The coordinator returned a coverage-annotated brief.',
+          summary: 'The head chef returned a coverage-annotated sourcing plan.',
           report,
           coverage: coverageFromReporterStatuses(reporterStatuses),
           costUsd: message.total_cost_usd ?? null,
@@ -325,8 +326,8 @@ export async function runResearch(emit: Emit, signal?: AbortSignal, delayMs = 0)
   let initSent = false;
   let completedSuccessfully = false;
 
-  emit({ t: 'status', scenario: 'research', msg: 'live research run · coordinator is preparing three beat assignments' });
-  emit({ t: 'phase', scenario: 'research', name: 'decompose', detail: 'three independent coverage areas will run in parallel' });
+  emit({ t: 'status', scenario: 'research', msg: 'live sourcing run · the head chef is preparing three market assignments' });
+  emit({ t: 'phase', scenario: 'research', name: 'decompose', detail: 'three independent markets will run in parallel' });
   emit({ t: 'coord_prompt', scenario: 'research', prompt: COORDINATOR_PROMPT });
 
   try {
@@ -335,7 +336,7 @@ export async function runResearch(emit: Emit, signal?: AbortSignal, delayMs = 0)
       options: {
         abortController: abort,
         cwd: researchFixture,
-        systemPrompt: 'You are a careful research coordinator. Preserve source dates, gaps, and provenance. Never fill an unavailable source from memory.',
+        systemPrompt: 'You are a careful head chef coordinating market buyers. Preserve quote dates, supplier names, gaps, and conflicts. Never fill an unavailable market from memory.',
         agents: RESEARCH_AGENTS,
         allowedTools: COORDINATOR_ALLOWED_TOOLS,
         hooks: RESEARCH_HOOKS,
@@ -367,14 +368,14 @@ export async function runResearch(emit: Emit, signal?: AbortSignal, delayMs = 0)
       }
     }
     if (!completedSuccessfully && !abort.signal.aborted) {
-      throw new Error('Live research ended without a final brief');
+      throw new Error('Live sourcing run ended without a final plan');
     }
   } catch (error) {
     if (!abort.signal.aborted) throw error;
   } finally {
     signal?.removeEventListener('abort', stop);
     if (!abort.signal.aborted && completedSuccessfully) {
-      emit({ t: 'done', scenario: 'research', msg: 'research run ended · inspect the final coverage label' });
+      emit({ t: 'done', scenario: 'research', msg: 'sourcing run ended · inspect the final coverage label' });
     }
   }
 }
