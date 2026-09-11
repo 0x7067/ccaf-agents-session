@@ -72,6 +72,8 @@
   .gtable{width:100%;border-collapse:collapse;font-size:13.5px;line-height:1.35;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}.gtable th{font:800 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--acc2);text-align:left;padding:7px 11px;border-bottom:1px solid var(--line);background:var(--bg2)}.gtable td{padding:7px 11px;border-bottom:1px solid #1f2940;color:var(--dim);vertical-align:top}.gtable tr:last-child td{border-bottom:0}.gtable td:first-child{color:var(--ink);width:44%}.gtable.three td:first-child{width:34%}.gtable.three td:nth-child(2){width:36%}.gtable b{color:var(--ink)}.gtable.yes{border-color:#346b44}.gtable.yes th{color:var(--ok)}.gtable.no{border-color:#7a3441}.gtable.no th{color:var(--bad)}.gtable .hl-click{font-size:12px;padding:0 5px}
   @media (max-height:840px){.dense .timeline{padding:8px 10px}.dense .timeline .cap{font-size:10px;margin-top:4px}.dense .callout{font-size:19px!important}.dense .facts{padding:8px 11px}.dense .facts div{font-size:11px}.gtable{font-size:12px;line-height:1.3}.gtable td,.gtable th{padding:5px 9px}.dense .analogy{font-size:14px;line-height:1.4;padding:11px 14px}.dense .handoff{padding:10px 12px}.dense .handoff pre{font-size:11px;line-height:1.4}.dense .grp{font-size:10px}}
   #facts-slide .wire .turn{grid-template-columns:82px 1fr}.wire .n .hl-click{font:inherit;font-size:11px;padding:0 5px}
+  .sla-ctl{display:flex;align-items:center;gap:6px;margin-bottom:6px;font:11px var(--mono);color:var(--dim)}.sla-ctl .spacer{flex:1}.sla-clock{font:800 12px var(--mono);color:var(--ink);white-space:nowrap}.sla-ctl{flex-wrap:nowrap}.sla-tally{white-space:nowrap}.sla-tally{color:var(--dim)}.sla-lbl{color:var(--faint)}.sla-ctl button{border:1px solid var(--line);background:var(--panel);color:var(--dim);border-radius:8px;padding:3px 8px;font:700 11px var(--mono);cursor:pointer}.sla-ctl button.on{color:var(--ink);border-color:var(--violet);background:#2a2140}.sla-ctl button:hover{color:var(--ink)}
+  #sla-svg text{font-family:ui-monospace,Menlo,monospace;font-size:10.5px}
   .grp{font:800 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--acc2)}
   .tracebox{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:9px 12px 10px}.tracebox .lbl{font:10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}.tracebox.lose{border-color:#7a3441}.tracebox.lose .lbl{color:var(--bad)}.tracebox.win{border-color:#346b44}.tracebox.win .lbl{color:var(--ok)}.tracebox .trace{margin:6px 0 0;font-size:12px;gap:6px;color:var(--faint)}.tracebox .trace span{padding:6px 9px;color:var(--ink)}.tracebox .trace span.x{border-color:#7a3441;color:var(--bad)}.tracebox .trace b{color:var(--acc2)}
   .trace{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font:13px var(--mono);margin:8px 0}.trace span{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 11px}.trace i{color:var(--acc2);font-style:normal}
@@ -533,39 +535,10 @@
   <h2>Why split the day into four loads: fit the worst-case order</h2>
   <div class="body">
     <div class="col" style="flex:1.25">
-      <div class="timeline">
-        <svg viewBox="0 0 640 236" role="img" aria-label="Worst case for one order under four loading cadences against a 30-hour promise">
-          <defs><marker id="tl-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0L10,5L0,10z" fill="#6b7690"/></marker></defs>
-          <line x1="40" y1="212" x2="628" y2="212" stroke="#39435e" stroke-width="1.5" marker-end="url(#tl-ar)"/>
-          <g font-family="ui-monospace,Menlo,monospace" font-size="11" fill="#9aa5bd" text-anchor="middle"><text x="40" y="228">0h</text><text x="112" y="228">6h</text><text x="184" y="228">12h</text><text x="256" y="228">18h</text><text x="328" y="228">24h</text><text x="400" y="228">30h</text><text x="472" y="228">36h</text><text x="544" y="228">42h</text><text x="616" y="228">48h</text></g>
-          <line x1="400" y1="18" x2="400" y2="214" stroke="#ffb86b" stroke-width="2" stroke-dasharray="5 4"/>
-          <text x="396" y="14" font-family="ui-monospace,Menlo,monospace" font-size="11" fill="#ffb86b" text-anchor="end">promise: 30h</text>
-          <text x="40" y="34" font-family="ui-sans-serif,system-ui" font-size="12" fill="#e8ecf6" font-weight="700">one load a day</text>
-          <rect x="40" y="40" width="288" height="20" rx="5" fill="#33261a" stroke="#7a5a34"/><text x="184" y="54" font-family="ui-monospace,Menlo,monospace" font-size="11" fill="#ffb86b" text-anchor="middle">wait 24h</text>
-          <rect x="328" y="40" width="288" height="20" rx="5" fill="#3a1e26" stroke="#9b3b4d"/><text x="472" y="54" font-family="ui-monospace,Menlo,monospace" font-size="11" fill="#ffb8c0" text-anchor="middle">oven, up to 24h → done at 48h ✗</text>
-          <text x="40" y="82" font-family="ui-sans-serif,system-ui" font-size="12" fill="#e8ecf6" font-weight="700">load every 8h · 3 a day</text>
-          <rect x="40" y="88" width="96" height="20" rx="5" fill="#33261a" stroke="#7a5a34"/><text x="88" y="102" font-family="ui-monospace,Menlo,monospace" font-size="11" fill="#ffb86b" text-anchor="middle">wait 8h</text>
-          <rect x="136" y="88" width="288" height="20" rx="5" fill="#3a1e26" stroke="#9b3b4d"/><text x="280" y="102" font-family="ui-monospace,Menlo,monospace" font-size="11" fill="#ffb8c0" text-anchor="middle">oven, up to 24h → done at 32h ✗</text>
-          <text x="40" y="130" font-family="ui-sans-serif,system-ui" font-size="12" fill="#e8ecf6" font-weight="700">load every 6h · 4 a day · the day in four parts</text>
-          <rect x="40" y="136" width="72" height="20" rx="5" fill="#33261a" stroke="#7a5a34"/><text x="76" y="150" font-family="ui-monospace,Menlo,monospace" font-size="11" fill="#ffb86b" text-anchor="middle">wait 6h</text>
-          <rect x="112" y="136" width="288" height="20" rx="5" fill="#1e3a2c" stroke="#3f8f5b"/><text x="256" y="150" font-family="ui-monospace,Menlo,monospace" font-size="11" fill="#b2f2c2" text-anchor="middle">oven, up to 24h → done at 30h ✓</text>
-          <text x="40" y="178" font-family="ui-sans-serif,system-ui" font-size="12" fill="#e8ecf6" font-weight="700">load every 4h · 6 a day</text>
-          <rect x="40" y="184" width="48" height="20" rx="5" fill="#33261a" stroke="#7a5a34"/><text x="64" y="198" font-family="ui-monospace,Menlo,monospace" font-size="11" fill="#ffb86b" text-anchor="middle">4h</text>
-          <rect x="88" y="184" width="288" height="20" rx="5" fill="#1e3a2c" stroke="#3f8f5b"/><text x="232" y="198" font-family="ui-monospace,Menlo,monospace" font-size="11" fill="#b2f2c2" text-anchor="middle">oven, up to 24h → done at 28h ✓</text>
-        </svg>
-        <div class="cap">Same order every time: it arrives just after a tray went in, at 0h. It waits for the next tray, then the oven may take its full 24 hours. Only the wait changes between rows, and the wait is the part you control.</div>
-      </div>
-      <div class="timeline">
-        <svg viewBox="0 0 640 74" role="img" aria-label="One day split into four six-hour loading windows">
-          <g font-family="ui-monospace,Menlo,monospace" font-size="11" fill="#9aa5bd" text-anchor="middle"><text x="40" y="70">00:00</text><text x="184" y="70">06:00</text><text x="328" y="70">12:00</text><text x="472" y="70">18:00</text><text x="616" y="70">24:00</text></g>
-          <rect x="40" y="26" width="144" height="22" rx="5" fill="#1a2132" stroke="#2a3554"/><rect x="184" y="26" width="144" height="22" rx="5" fill="#1a2132" stroke="#2a3554"/><rect x="328" y="26" width="144" height="22" rx="5" fill="#1a2132" stroke="#2a3554"/><rect x="472" y="26" width="144" height="22" rx="5" fill="#1a2132" stroke="#2a3554"/>
-          <g fill="#c792ea"><path d="M178,22 l6,-9 l6,9z"/><path d="M322,22 l6,-9 l6,9z"/><path d="M466,22 l6,-9 l6,9z"/><path d="M610,22 l6,-9 l6,9z"/></g>
-          <g font-family="ui-monospace,Menlo,monospace" font-size="11" fill="#c792ea" text-anchor="middle"><text x="184" y="10">tray in</text><text x="328" y="10">tray in</text><text x="472" y="10">tray in</text><text x="616" y="10">tray in</text></g>
-          <circle cx="46" cy="37" r="5" fill="#ffb86b"/><line x1="54" y1="37" x2="176" y2="37" stroke="#ffb86b" stroke-width="1.5" stroke-dasharray="3 3"/>
-          <text x="112" y="59" font-family="ui-monospace,Menlo,monospace" font-size="11" fill="#ffb86b" text-anchor="middle">arrives 00:05 · waits ~6h</text>
-          <circle cx="150" cy="37" r="5" fill="#7ce38b"/><text x="270" y="41" font-family="ui-monospace,Menlo,monospace" font-size="11" fill="#7ce38b" text-anchor="middle">arrives 04:30 · waits 1.5h</text>
-        </svg>
-        <div class="cap">The day in four parts. Most orders wait less than a window. The one that arrives right after a tray leaves waits the whole window, and that one sets the worst case.</div>
+      <div class="timeline" id="sla-stage">
+        <div class="sla-ctl"><span class="sla-clock" id="sla-clock">day 1 · 00:00</span><span class="sla-tally" id="sla-tally"></span><span class="spacer"></span><span class="sla-lbl">tray every</span><button type="button" data-w="8" class="sla-w">8h</button><button type="button" data-w="6" class="sla-w on">6h</button><button type="button" data-w="4" class="sla-w">4h</button><button type="button" id="sla-replay">Replay</button><button type="button" id="sla-skip">Skip</button></div>
+        <svg id="sla-svg" viewBox="0 0 700 262" role="img" aria-label="Six orders arriving through one day, processed with one load a day versus a split day, against a 30-hour promise"></svg>
+        <div class="cap">Same six orders in both kitchens, arriving at 00:05, 04:30, 09:00, 13:45, 18:20, and 22:50. A tray goes in at every purple marker. The oven is drawn at its ceiling, 24 hours: most batches finish far sooner, but a promise has to hold at the ceiling. Orange is waiting for a tray, violet is in the oven, and the mark at the end compares each order's total time with the 30-hour promise.</div>
       </div>
     </div>
     <div class="col">
@@ -743,6 +716,39 @@ const slides=[...document.querySelectorAll('.slide')];
 let current=Math.max(0,Math.min(slides.length-1,(Number(location.hash.slice(1))||1)-1));
 const pager=document.getElementById('pager'),hudbar=document.getElementById('hudbar'),previousButton=document.getElementById('prev-slide'),nextButton=document.getElementById('next-slide'),touchHint=document.getElementById('touch-hint');
 
+/* ═══════════ slide 16: the batches clock ═══════════ */
+const slaSlide=document.getElementById('sla-slide');
+const SLA={arrivals:[5/60,4.5,9,13.75,18+20/60,22+50/60],promise:30,oven:24,hours:48,x0:40,px:12,secondsPerRun:26};
+let slaW=6,slaT=0,slaRaf=0,slaGen=0,slaStart=0;
+const slaSvg=document.getElementById('sla-svg');
+const slaX=h=>SLA.x0+h*SLA.px;
+function slaTrays(w){const out=[];for(let h=w;h<=SLA.hours;h+=w)out.push(h);return out}
+function slaLane(y,title,w){const trays=slaTrays(w);const rows=SLA.arrivals.map((a,i)=>{const s=trays.find(h=>h>a)??Infinity;return {a,s,done:s+SLA.oven,y:y+16+i*13}});
+ let g=`<text x="${SLA.x0}" y="${y}" fill="#e8ecf6" font-weight="700" style="font-family:ui-sans-serif,system-ui;font-size:12px">${title}</text>`;
+ for(const h of trays.filter(h=>h<=SLA.hours)){g+=`<path d="M${slaX(h)-5},${y+6} l5,-8 l5,8z" fill="#c792ea" opacity=".9"/>`}
+ return {rows,markup:g}}
+function slaBuild(){const A=slaLane(14,'one load a day · tray at 24:00 and 48:00',24),B=slaLane(132,`split into ${Math.round(24/slaW)} loads · a tray every ${slaW}h`,slaW);
+ const ticks=Array.from({length:9},(_,i)=>i*6).map(h=>`<text x="${slaX(h)}" y="258" fill="#9aa5bd" text-anchor="middle">${h}h</text>`).join('');
+ slaSvg.innerHTML=`<line x1="${SLA.x0}" y1="246" x2="690" y2="246" stroke="#39435e" stroke-width="1.5"/>${ticks}${A.markup}${B.markup}<g id="sla-dyn"></g><line id="sla-head" x1="${SLA.x0}" y1="6" x2="${SLA.x0}" y2="248" stroke="#e8ecf6" stroke-width="1" opacity=".55"/>`;
+ slaSvg.__rows=[...A.rows,...B.rows]}
+function slaDraw(t){const dyn=slaSvg.querySelector('#sla-dyn');if(!dyn)return;let m='',ok=0,late=0,doneCount=0;
+ for(const r of slaSvg.__rows){if(t<r.a)continue;const xa=slaX(r.a);m+=`<circle cx="${xa}" cy="${r.y}" r="3.2" fill="#ffb86b"/>`;
+  const wEnd=Math.min(t,r.s);if(wEnd>r.a)m+=`<rect x="${xa}" y="${r.y-4}" width="${(wEnd-r.a)*SLA.px}" height="8" rx="3" fill="#7a5a34"/>`;
+  if(t>r.s){const oEnd=Math.min(t,r.done);m+=`<rect x="${slaX(r.s)}" y="${r.y-4}" width="${Math.max(0,(oEnd-r.s)*SLA.px)}" height="8" rx="3" fill="#5a3f7a"/>`}
+  if(t>=r.done){const total=r.done-r.a,good=total<=SLA.promise;doneCount++;good?ok++:late++;m+=`<text x="${slaX(r.done)+5}" y="${r.y+4}" fill="${good?'#7ce38b':'#ff7b8a'}">${total.toFixed(1)}h ${good?'✓':'✗'}</text>`}
+  else if(t>=SLA.hours){m+=`<text x="${slaX(SLA.hours)+5}" y="${r.y+4}" fill="#ff7b8a">&gt;${(SLA.hours-r.a).toFixed(0)}h ✗</text>`}}
+ dyn.innerHTML=m;const head=slaSvg.querySelector('#sla-head');const x=slaX(Math.min(t,SLA.hours));head.setAttribute('x1',x);head.setAttribute('x2',x);
+ const hh=Math.floor(t%24),mm=Math.floor((t%1)*60);document.getElementById('sla-clock').textContent=`${t>=24?'day 2 · ':'day 1 · '}${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+ const half=SLA.arrivals.length;const rowsA=slaSvg.__rows.slice(0,half),rowsB=slaSvg.__rows.slice(half);const tally=rows=>{let g=0,b=0;for(const r of rows){if(t>=r.done){(r.done-r.a<=SLA.promise)?g++:b++}else if(t>=SLA.hours)b++}return `${g}✓ ${b}✗`};
+ document.getElementById('sla-tally').textContent=t>0?`one load ${tally(rowsA)} · split ${tally(rowsB)}`:''}
+function slaStop(){if(slaRaf)cancelAnimationFrame(slaRaf);slaRaf=0;slaGen++}
+function slaPlay(){slaStop();const gen=slaGen;slaBuild();if(matchMedia('(prefers-reduced-motion: reduce)').matches){slaT=SLA.hours;slaDraw(slaT);return}slaT=0;slaDraw(0);slaStart=performance.now()+400;
+ const step=now=>{if(gen!==slaGen)return;slaT=Math.max(0,Math.min(SLA.hours,(now-slaStart)/1000*(SLA.hours/SLA.secondsPerRun)));slaDraw(slaT);if(slaT<SLA.hours)slaRaf=requestAnimationFrame(step)};slaRaf=requestAnimationFrame(step)}
+function slaShowAll(){slaStop();slaBuild();slaT=SLA.hours;slaDraw(slaT)}
+document.getElementById('sla-replay').addEventListener('click',slaPlay);document.getElementById('sla-skip').addEventListener('click',slaShowAll);
+document.querySelectorAll('.sla-w').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.sla-w').forEach(b=>b.classList.toggle('on',b===btn));slaW=Number(btn.dataset.w);slaPlay()}));
+slaBuild();slaDraw(0);
+
 /* ═══════════ slide 4: the case, played as a chat ═══════════ */
 const caseSlide=document.getElementById('case-slide');
 const CASE_GUEST='Hi, I am Mara Singh. I was charged twice for order ORD-1042. Refund the duplicate $18.00. I also want a 30% competitor price match, and I want a manager to decide that part.',CASE_AGENT='Hi Mara. I found your account and order ORD-1042. The ledger shows a second $18.00 charge, so I refunded it. It reaches your card in 3 to 5 business days. Competitor price matching is not something I can decide, so I passed it to a manager with your order details. They will contact you today.';
@@ -762,7 +768,7 @@ async function casePlay(){const gen=caseReset();if(matchMedia('(prefers-reduced-
  for(const step of caseEls.steps){if(!alive())return;step.classList.add('in');await caseSleep(650)}}
 document.getElementById('case-replay').addEventListener('click',()=>casePlay());document.getElementById('case-skip').addEventListener('click',caseShowAll);
 
-function show(index){current=Math.max(0,Math.min(slides.length-1,index));slides.forEach((slide,i)=>slide.classList.toggle('on',i===current));pager.textContent=`${current+1} / ${slides.length}`;touchHint.textContent=`${current+1} / ${slides.length}`;hudbar.style.width=`${((current+1)/slides.length)*100}%`;previousButton.disabled=current===0;nextButton.disabled=current===slides.length-1;history.replaceState(null,'',`#${current+1}`);if(slides[current].querySelector('#r-stage'))viz.layout();if(slides[current]===caseSlide)casePlay();else caseGen++}
+function show(index){current=Math.max(0,Math.min(slides.length-1,index));slides.forEach((slide,i)=>slide.classList.toggle('on',i===current));pager.textContent=`${current+1} / ${slides.length}`;touchHint.textContent=`${current+1} / ${slides.length}`;hudbar.style.width=`${((current+1)/slides.length)*100}%`;previousButton.disabled=current===0;nextButton.disabled=current===slides.length-1;history.replaceState(null,'',`#${current+1}`);if(slides[current].querySelector('#r-stage'))viz.layout();if(slides[current]===caseSlide)casePlay();else caseGen++;if(slides[current]===slaSlide)slaPlay();else slaStop()}
 function next(){show(current+1)}function previous(){show(current-1)}
 previousButton.addEventListener('click',previous);nextButton.addEventListener('click',next);
 const modal=document.getElementById('modal');
